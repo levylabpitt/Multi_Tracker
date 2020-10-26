@@ -97,14 +97,31 @@
                     android:layout_marginTop="@dimen/section_margin"
                     android:layout_marginBottom="8dp"
                     android:textSize="17sp" />
-                <Spinner
+               <!-- <Spinner
                     android:id="@+id/spinner_organization"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:layout_marginBottom="8dp"
+                    android:visibility="gone"
                     android:popupBackground="@color/colorPrimary"
 
                     android:spinnerMode="dropdown" />
+                <LinearLayout
+                    android:id="@+id/ll_organizations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:orientation="horizontal"/>-->
+                <RadioGroup
+                    android:id="@+id/radioGroup1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10dp" >
+
+                </RadioGroup>
                 <Button
                     android:id="@+id/re_auth"
                     style="@style/Widget.AppCompat.Button.Colored"

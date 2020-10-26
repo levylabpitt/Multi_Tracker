@@ -35,8 +35,11 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -130,10 +133,17 @@ public final class AsanaLoginActivity extends AppCompatActivity {
     @BindView(R.id.btn_logout)
     Button btn_logout;
 
-    @BindView(R.id.spinner_organization)
-    Spinner spinner_organization;
+
     @NonNull
     private BrowserMatcher mBrowserMatcher = AnyBrowserMatcher.INSTANCE;
+
+ /*   @BindView(R.id.spinner_organization)
+    Spinner spinner_organization;
+    @BindView(R.id.ll_organizations)
+    LinearLayout ll_organizations;*/
+
+    @BindView(R.id.radioGroup1)
+    RadioGroup radioGroup1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -402,7 +412,7 @@ public final class AsanaLoginActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK) {
             Toast.makeText(AsanaLoginActivity.this, "Success", Toast.LENGTH_SHORT).show();
-          //  finish();
+            //  finish();
         } else {
             displayAuthCancelled();
             findViewById(R.id.loading_container).setVisibility(View.GONE);
@@ -842,9 +852,9 @@ public final class AsanaLoginActivity extends AppCompatActivity {
         String strResponse = SharedPreferencesUtil.getUserDetails(this);
         UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
 
-        if (userDetailsResponse!=null && !userDetailsResponse.equals("") && userDetailsResponse.getData()!=null && userDetailsResponse.getData().getWorkspaces()!=null) {
+        if (userDetailsResponse != null && !userDetailsResponse.equals("") && userDetailsResponse.getData() != null && userDetailsResponse.getData().getWorkspaces() != null) {
             List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
-            ArrayAdapter<Workspace> aa = new ArrayAdapter<Workspace>(this, R.layout.spinner_item, workspaces);
+           /* ArrayAdapter<Workspace> aa = new ArrayAdapter<Workspace>(this, android.R.layout.simple_spinner_item, workspaces);
             aa.setDropDownViewResource(android.R.layout.simple_list_item_1);
             spinner_organization.setAdapter(aa);
 
@@ -861,7 +871,39 @@ public final class AsanaLoginActivity extends AppCompatActivity {
 
                 }
             });
+            ll_organizations.removeAllViews();
+            for (int i = 0; i < workspaces.size(); i++) {
+                CheckBox cb = new CheckBox(this);
+                cb.setText(workspaces.get(i).getName());
+                cb.setId(i);
+                cb.setTag(workspaces.get(i).getGid());
+                ll_organizations.addView(cb);
+                if (workspaces.get(i).getName().equals("levylab.org")) {
+                    cb.setChecked(true);
+                }
+            }*/
+
+            radioGroup1.removeAllViews();
+            for (int i = 0; i < workspaces.size(); i++) {
+                RadioButton button = new RadioButton(this);
+                button.setText(workspaces.get(i).getName());
+                button.setId(i);
+                button.setTag(workspaces.get(i).getGid());
+                radioGroup1.addView(button);
+                if (workspaces.get(i).getName().equals("levylab.org")) {
+                    button.setChecked(true);
+                }
+            }
+
+
+            radioGroup1.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+                @Override
+                public void onCheckedChanged(RadioGroup group, int checkedId) {
+
+                }
+            });
+
         }
     }
-
 }
