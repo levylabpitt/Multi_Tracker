@@ -165,15 +165,6 @@ public class AuthorizationManagementActivity extends Activity implements Request
     private PendingIntent mCancelIntent;
     static Intent my_intent;
 
-    /**
-     * Creates an intent to start an authorization flow.
-     *
-     * @param context        the package context for the app.
-     * @param request        the authorization request which is to be sent.
-     * @param authIntent     the intent to be used to get authorization from the user.
-     * @param completeIntent the intent to be sent when the flow completes.
-     * @param cancelIntent   the intent to be sent when the flow is canceled.
-     */
     public static Intent createStartIntent(
             Context context,
             AuthorizationRequest request,
@@ -188,13 +179,7 @@ public class AuthorizationManagementActivity extends Activity implements Request
         return intent;
     }
 
-    /**
-     * Creates an intent to start an authorization flow.
-     *
-     * @param context    the package context for the app.
-     * @param request    the authorization request which is to be sent.
-     * @param authIntent the intent to be used to get authorization from the user.
-     */
+
     public static Intent createStartForResultIntent(
             Context context,
             AuthorizationRequest request,
@@ -215,7 +200,7 @@ public class AuthorizationManagementActivity extends Activity implements Request
         return new Intent(context, AuthorizationManagementActivity.class);
     }
 
-    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
+     RetrofitManager retrofitManager =  RetrofitManager.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -366,7 +351,8 @@ public class AuthorizationManagementActivity extends Activity implements Request
 
     /*nks*/
     private void hitAPIGetAsanaUserDetails() {
-        retrofitManager.getUserDetails(this, this, Constants.API_TYPE.GET_USER_DETAILS, false);
+        String token= SharedPreferencesUtil.getAuthToken(this);
+        retrofitManager.getUserDetails(this, this, Constants.API_TYPE.GET_USER_DETAILS, token,false);
     }
 
     private void getInitialToken(Intent intent) {

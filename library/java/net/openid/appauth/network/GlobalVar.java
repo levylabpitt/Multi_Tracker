@@ -10,6 +10,7 @@ public class GlobalVar extends Application {
         super.onCreate();
 
         mInstance = this;
+        String s="";
 
 
     }

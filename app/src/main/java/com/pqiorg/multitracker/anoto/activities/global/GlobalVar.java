@@ -12,38 +12,42 @@ import com.synapse.Constants;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
 
-//import com.pqiorg.multitracker.beacon.beaconreference.BeaconReferenceApplication;
 
 public class GlobalVar extends Application {
     public static String USER_ACCOUNT = "";
     private static GlobalVar mInstance = null;
     private static AppResumeListener resumeEventReceiverListener;
+
     @Override
     public void onCreate() {
         super.onCreate();
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         mInstance = this;
         checkForApplicationLevelEvents();
-            System.loadLibrary("adna-sdk");
-            try {
-               // initialize();
-            }catch (Exception e){
-                e.getMessage();
+        System.loadLibrary("adna-sdk");
 
-            }
+        try {
+            // initialize();
+        } catch (Exception e) {
+            e.getMessage();
+
+        }
 
     }
+
     public void setAppResumeListener(AppResumeListener listener) {
         resumeEventReceiverListener = listener;
     }
+
     protected static native void initialize();
+
     private void checkForApplicationLevelEvents() {
         AppVisibilityDetector.init(mInstance, new AppVisibilityDetector.AppVisibilityCallback() {
             @Override
             public void onAppGotoForeground() {
                 //app is from background to foreground
 
-                SharedPreferencesUtil.setAppInForeground(mInstance,true);
+                SharedPreferencesUtil.setAppInForeground(mInstance, true);
                 Log.e("CHECK", "background to foreground: ");
                 if (resumeEventReceiverListener != null) {
                     resumeEventReceiverListener.onAppResume();
@@ -53,11 +57,11 @@ public class GlobalVar extends Application {
             @Override
             public void onAppGotoBackground() {
                 //app is from foreground to background
-                SharedPreferencesUtil.setAppInForeground(mInstance,false);
+                SharedPreferencesUtil.setAppInForeground(mInstance, false);
                 Log.e("CHECK", "foreground to background :");
 
                 if (!BuildConfig.DEBUG) {
-                  // Utility.killAppFromBg();
+                    // Utility.killAppFromBg();
                 }
 
             }

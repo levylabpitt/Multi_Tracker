@@ -42,21 +42,23 @@ public class RetrofitManager implements OnRetryCallback {
     Activity activity = null;
     private OnRetryCallback mRetryCallback = this;
     private static String BASE_URL;
-
+    private Context context;
     static {
 
         BASE_URL = Constants.BASE_URL_LIVE;
 
     }
 
-
+/*public RetrofitManager(Context context){
+    this.context = context;
+}*/
     private RetrofitManager() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.readTimeout(10, TimeUnit.SECONDS);
         httpClient.connectTimeout(10, TimeUnit.SECONDS);
         //  httpClient.addInterceptor(new ConnectivityInterceptor(GlobalVar.get()));
         //     httpClient.addInterceptor(new SupportInterceptor());
-        httpClient.addInterceptor(new SuppoertInterceptorJava());
+       // httpClient.addInterceptor(new SuppoertInterceptorJava());
         if (BuildConfig.DEBUG) {
 
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
@@ -76,6 +78,7 @@ public class RetrofitManager implements OnRetryCallback {
     }
 
     public static RetrofitManager getInstance() {
+
         if (retrofitManager == null) {
             retrofitManager = new RetrofitManager();
         }
@@ -232,9 +235,10 @@ public class RetrofitManager implements OnRetryCallback {
             final RequestListener mRequestListener,
             final Context mContext,
             final Constants.API_TYPE mApiType,
+            final String token,
             final boolean showProgress) {
 
-        call = retroService.getUserDetails();
+        call = retroService.getUserDetails(token);
         performCallback(mRequestListener, mContext, mApiType, showProgress);
 
     }

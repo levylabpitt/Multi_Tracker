@@ -402,7 +402,7 @@ public final class AsanaLoginActivity extends AppCompatActivity {
 
         if (resultCode == RESULT_OK) {
             Toast.makeText(AsanaLoginActivity.this, "Success", Toast.LENGTH_SHORT).show();
-            finish();
+          //  finish();
         } else {
             displayAuthCancelled();
             findViewById(R.id.loading_container).setVisibility(View.GONE);

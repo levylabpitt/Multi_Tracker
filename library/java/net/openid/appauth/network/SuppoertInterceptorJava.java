@@ -21,7 +21,7 @@ import okhttp3.Route;
 public class SuppoertInterceptorJava implements Interceptor, Authenticator {
     @NotNull
     public Response intercept(@NotNull Chain chain) throws IOException {
-        Intrinsics.checkNotNullParameter(chain, "chain");
+
         Request originalRequest = chain.request();
         Request authenticationRequest = this.request(originalRequest);
         Response initialResponse = null;
