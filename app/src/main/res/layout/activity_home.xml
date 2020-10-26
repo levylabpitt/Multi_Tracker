@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+  >
+
+
+
+    <Button
+        android:id="@+id/btn_qr"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="QR Scanner"
+
+       />
+
+    <Button
+        android:id="@+id/btn_beacon"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Beacon Scanner"
+        android:layout_marginTop="30dp"
+        />
+
+
+    <Button
+        android:id="@+id/btn_adna"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="30dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Anoto Pattern Scanner"
+       android:visibility="gone"
+        />
+
+    <Button
+        android:id="@+id/btn_spreadsheet"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="30dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Manage Spreadsheet"
+       />
+
+    <Button
+        android:id="@+id/btn_drive"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="30dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Manage Drive"
+        />
+
+    <Button
+        android:id="@+id/btn_asana"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="30dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Asana"
+        />
+    <Button
+        android:id="@+id/btn_help"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="30dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Help"
+        />
+</LinearLayout>

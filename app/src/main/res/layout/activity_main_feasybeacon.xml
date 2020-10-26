@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include layout="@layout/toolbar_beacon"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+     <!--   <include layout="@layout/header" />-->
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+           <!-- <com.pqiorg.multitracker.feasybeacon.Widget.RefreshableView
+                android:id="@+id/refreshableView"
+                android:layout_width="match_parent"
+
+                android:layout_height="match_parent">-->
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/pullToRefresh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ListView
+                    android:id="@+id/devicesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:focusable="true" />
+                <!--<androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/devicesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                   />-->
+          <!--  </com.pqiorg.multitracker.feasybeacon.Widget.RefreshableView>-->
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            <ImageView
+                android:id="@+id/imageViewScanning"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="center"
+                />
+        </FrameLayout>
+    </LinearLayout>
+
+    <include layout="@layout/footer"
+
+        />
+</LinearLayout>
+

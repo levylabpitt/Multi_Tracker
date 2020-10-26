@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6fc5e1</color>
+    <color name="colorPrimaryDark">#53D3D6</color>
+    <color name="colorAccent">#6fc5e1</color>
+<!--
+    <color name="white">#fff</color>
+
+    <color name="black3">#000</color>
+
+    <color name="black">#000</color>
+    <color name="black5">#000</color>-->
+    <color name="bg_button">#51abe8</color>
+    <color name="bg_button_press">#3b81b0</color>
+    <color name="bg_green">#57d257</color>
+    <color name="bg_page">#f2f2f2</color>
+    <color name="bg_red">#d51c32</color>
+    <color name="bg_row">#3351abe8</color>
+    <color name="black">#000000</color>
+    <color name="black2">#333333</color>
+    <color name="black3">#666666</color>
+    <color name="black5">#cccccc</color>
+    <!--   <color name="colorAccent">#2980b9</color>
+    <color name="colorPrimary">#00aeef</color>
+    <color name="colorPrimaryDark">#3498db</color>
+    <color name="com_facebook_blue">#3b5998</color>-->
+    <color name="com_facebook_button_background_color">#415dae</color>
+    <color name="material_deep_teal_500">#ff009688</color>
+    <color name="white">#ffffff</color>
+    <color name="white_alpha">#55ffffff</color>
+    <color name="control_background">#cc4285f4</color>
+
+
+    <color name="colorTxtGrey">#666666</color>
+
+    <color name="grey_icon"> #81868c</color>
+
+    <!--grey-->
+
+    <!--blue grey-->
+
+    //底栏
+
+    <color name="text_color_blue">#005fff</color>
+
+    <!--    <color name="white">#ffffff</color>-->
+<!--    <color name="black">#000000</color>-->
+    <color name="grey">#b6b6b7</color>
+    <color name="red">#ff0000</color>
+
+
+    <color name="title_background">#f3f3f3</color>
+    <color name="title_left_right">#0e74bd</color>
+
+
+    <color name="about_text">#1074bc</color>
+
+    <color name="setting_rssi">#808080</color>
+    <color name="setting_mac">#323232</color>
+    <color name="setting_name">#333333</color>
+
+
+    <color name="beacon_info">#333333</color>
+    <color name="beacon_rssi">#595959</color>
+
+
+    <color name="about_title">#1d1d1d</color>
+
+    <color name="text_enable">#7b7b7b</color>
+    <color name="text_disable">#1d1d1d</color>
+
+    <color name="divide_line">#e5e5e5</color>
+
+
+    <color name="colorTransBg">#26000000</color>
+
+    <color name="lightGrey">#E3E3E3</color>
+
+
+    <color name="fab_txt_bg">#4D595959</color>
+
+</resources>

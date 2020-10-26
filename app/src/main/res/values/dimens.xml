@@ -1,0 +1,36 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="divide_height">0.5dp</dimen>
+
+    <dimen name="size_title">20sp</dimen>
+
+    <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="standard_55">55dp</dimen>
+    <dimen name="standard_23">23dp</dimen>
+    <dimen name="standard_12">12dp</dimen>
+    <dimen name="standard_100">100dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="my_tab_text_size">12dp</dimen>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="section_margin">16dp</dimen>
+    <!--
+    Because the window insets on round devices are larger than 15dp, this padding only applies
+    to square screens.
+    -->
+
+    <!--
+    This padding applies to both square and round screens. The total padding between the buttons
+    and the window insets is box_inset_layout_padding (above variable) on square screens and
+    inner_frame_layout_padding (below variable) on round screens.
+    -->
+
+    <dimen name="dimen_help">35dp</dimen>
+    <dimen name="dimen_help_txtvw">5dp</dimen>
+
+    <dimen name="appbar_padding">16dp</dimen>
+
+    <dimen name="help_text_size">15sp</dimen>
+
+</resources>

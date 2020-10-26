@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    >
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    android:orientation="vertical"
+    tools:context=".help.ui.main.QRScannerHelp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        >
+    <Button
+        android:id="@+id/serial_no"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/round_corner"
+        android:elevation="4dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:text="3"
+        android:layout_marginRight="20dp"
+        android:textColor="#fff"
+      android:textSize="@dimen/help_text_size" />
+
+
+    <Button
+        android:id="@+id/btn_qr"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        style="@style/smallTextViewStyle_white"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Manage Spreadsheet"
+        />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+   android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center"
+        android:text="@string/spreadsheet_1"
+        android:textStyle="bold"
+      android:textSize="@dimen/help_text_size" />
+    <!--  android:textColor="@color/colorPrimary"-->
+    <ImageView
+        android:id="@+id/screenshot_1"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+       android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/g_account"
+         />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_2"
+
+      android:textSize="@dimen/help_text_size" />
+
+    <ImageView
+        android:id="@+id/screenshot_2"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/sheets_with_folders" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_3"
+
+      android:textSize="@dimen/help_text_size" />
+
+
+    <ImageView
+        android:id="@+id/screenshot_3"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/sheet_add"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_add"
+
+      android:textSize="@dimen/help_text_size" />
+
+
+    <ImageView
+        android:id="@+id/screenshot_4"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/sheet_delete"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_delete"
+
+      android:textSize="@dimen/help_text_size" />
+    <ImageView
+        android:id="@+id/screenshot_6"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/default_sheet"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/default_spreadsheet"
+
+        android:textSize="@dimen/help_text_size" />
+
+    <ImageView
+        android:id="@+id/screenshot_5"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+       android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/sheet_viewer"
+        />
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_6"
+
+      android:textSize="@dimen/help_text_size" />
+    <!--   android:textColor="@color/colorPrimary"-->
+
+
+
+    <ImageView
+        android:id="@+id/screenshot_7"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/ss_cell_preview"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_7"
+        android:textSize="@dimen/help_text_size" />
+
+    <ImageView
+        android:id="@+id/screenshot_8"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/ss_dialog"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_8"
+        android:textSize="@dimen/help_text_size" />
+    <ImageView
+        android:id="@+id/screenshot_9"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="@dimen/dimen_help"
+        android:src="@drawable/ss_upload_started_"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_help_txtvw"
+        android:gravity="center_vertical"
+        android:text="@string/spreadsheet_9"
+        android:textSize="@dimen/help_text_size" />
+
+
+</LinearLayout>
+    </ScrollView>

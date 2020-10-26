@@ -1,0 +1,95 @@
+package com.ammarptn.gdriverest;
+
+import com.google.api.client.util.DateTime;
+
+public class GoogleDriveFileHolder {
+
+    private String id;
+    private String name;
+    private DateTime modifiedTime;
+    private long size;
+    private DateTime createdTime;
+    private Boolean starred;
+    private String mimeType;
+    private String ThumbnailLink;
+    private String  webContentLink;
+    private String  WebViewLink;
+
+    public DateTime getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(DateTime createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public Boolean getStarred() {
+        return starred;
+    }
+
+    public void setStarred(Boolean starred) {
+        this.starred = starred;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public DateTime getModifiedTime() {
+        return modifiedTime;
+    }
+
+    public void setModifiedTime(DateTime modifiedTime) {
+        this.modifiedTime = modifiedTime;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
+    public void setThumbnailLink(String ThumbnailLink) {
+        this.ThumbnailLink = ThumbnailLink;
+    }
+    public String  getThumbnailLink(){
+        return  ThumbnailLink;
+    }
+
+    public String getWebContentLink() {
+        return webContentLink;
+    }
+
+    public void setWebContentLink(String webContentLink) {
+        this.webContentLink = webContentLink;
+    }
+
+    public String getWebViewLink() {
+        return WebViewLink;
+    }
+
+    public void setWebViewLink(String webViewLink) {
+        WebViewLink = webViewLink;
+    }
+}

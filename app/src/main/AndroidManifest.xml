@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.pqiorg.multitracker">
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--<uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS"/>
+     <uses-permission android:name="com.android.browser.permission.WRITE_HISTORY_BOOKMARKS"/>-->
+ <!--   <permission
+        android:name="android.permission.INTERACT_ACROSS_USERS_FULL"
+        android:protectionLevel="signature" />-->
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <permission
+        android:name="android.permission.INTERACT_ACROSS_USERS_FULL"
+        android:protectionLevel="signature" />
+
+    <uses-feature android:name="android.hardware.bluetooth_le" />
+
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- <uses-permission android:name="android.permission.CAMERA"/> -->
+    <uses-feature android:name="android.hardware.camera.any" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.screen.landscape"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.wifi"
+        android:required="false" />
+
+
+
+    <application
+        android:name=".anoto.activities.global.GlobalVar"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:replace="android:name"
+        >
+        <activity
+            android:name=".help.TabbedActivity"
+            android:label="@string/title_activity_tabbed"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".feasybeacon.TabbedActivityBeacon"
+            android:label="@string/title_activity_tabbed"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name="com.synapse.HomeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" /> <!--  -->
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+
+        <activity
+            android:name=".anoto.activities.SplashActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_Splash">
+
+            <!--
+            <intent-filter android:label="@string/app_name">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            -->
+        </activity>
+        <activity
+            android:name=".anoto.activities.AboutActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".anoto.activities.MainActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.WebActivity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".anoto.activities.MP3Activity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".anoto.activities.VideoActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="singleInstance" />
+        <activity
+            android:name=".anoto.activities.ImageActivity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".anoto.activities.TextActivity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".anoto.activities.DataListActivity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait" />
+        <!--
+<activity android:name="net.hockeyapp.android.UpdateActivity"/>
+        <activity android:name="net.hockeyapp.android.FeedbackActivity"
+            android:windowSoftInputMode="adjustUnspecified|stateVisible|adjustResize"/>
+        <activity android:name="net.hockeyapp.android.PaintActivity"/>
+        -->
+        <activity
+            android:name=".anoto.activities.LoginActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.SignupActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.MyScanActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen">
+
+            <!--
+          <intent-filter>
+              <action android:name="android.intent.action.MAIN" />
+
+              <category android:name="android.intent.category.LAUNCHER" />
+          </intent-filter>
+            -->
+
+        </activity>
+        <activity
+            android:name=".anoto.activities.AddStickersActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.LinkRegActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.LinkDetActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.MyStickerList1Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.MyStickerList2Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+        <activity
+            android:name=".anoto.activities.LinkWebViewActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme_FullScreen" />
+
+        <meta-data
+            android:name="android.support.VERSION"
+            android:value="26.1.0" />
+
+        <activity android:name="com.facebook.CustomTabMainActivity" />
+        <activity android:name="com.facebook.CustomTabActivity" />
+        <!--
+ <receiver android:name="com.google.android.gms.cast.framework.media.MediaIntentReceiver" />
+
+        <service android:name="com.google.android.gms.cast.framework.media.MediaNotificationService" />
+        <service android:name="com.google.android.gms.cast.framework.ReconnectionService" /
+        -->
+        <!--
+   <provider
+            android:name="com.squareup.picasso.PicassoProvider"
+            android:authorities="com.anoto.adna.com.squareup.picasso"
+            android:exported="false" />
+        -->
+        <!--
+<activity android:name="net.hockeyapp.android.LoginActivity"/>
+        <activity android:name="net.hockeyapp.android.ExpiryInfoActivity"/>
+        -->
+        <!--
+        <provider
+            android:name="com.facebook.internal.FacebookInitProvider"
+            android:authorities="com.anoto.adna.FacebookInitProvider"
+            android:exported="false" />
+        <receiver
+            android:name="com.facebook.CurrentAccessTokenExpirationBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.facebook.sdk.ACTION_CURRENT_ACCESS_TOKEN_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="com.google.android.gms.ads.AdActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:exported="false"
+            android:theme="@style/Theme.Translucent" />
+
+        <receiver
+            android:name="com.google.android.gms.analytics.AnalyticsReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <service
+            android:name="com.google.android.gms.analytics.AnalyticsService"
+            android:enabled="true"
+            android:exported="false" />
+        <service
+            android:name="com.google.android.gms.analytics.AnalyticsJobService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <activity
+            android:name="com.google.android.gms.appinvite.PreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppInvite.Preview">
+            <intent-filter>
+                <action android:name="com.google.android.gms.appinvite.ACTION_PREVIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/Theme.Translucent.NoTitleBar" />
+
+        <service
+            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+            android:exported="true"
+            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION" />
+
+        <activity
+            android:name="com.google.firebase.auth.internal.FederatedSignInActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:permission="com.google.firebase.auth.api.gms.permission.LAUNCH_FEDERATED_SIGN_IN"
+            android:theme="@style/Theme.Translucent.NoTitleBar" />
+
+        <activity
+            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Translucent.NoTitleBar" />
+
+
+        <service
+            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+            android:exported="true">
+            <intent-filter android:priority="-500">
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.google.android.gms.tagmanager.TagManagerService"
+            android:enabled="true"
+            android:exported="false" />
+        -->
+        <!--
+        <activity
+            android:name="com.google.android.gms.tagmanager.TagManagerPreviewActivity"
+            android:exported="true"
+            android:noHistory="true">
+            <intent-filter>
+                <data android:scheme="tagmanager.c.com.anoto.adna" />
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
+        -->
+        <!--
+   <receiver
+            android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
+            android:enabled="true"
+            android:exported="false" />
+        <receiver
+            android:name="com.google.android.gms.measurement.AppMeasurementInstallReferrerReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INSTALL_PACKAGES">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER" />
+            </intent-filter>
+        </receiver>
+        -->
+        <!--
+   <service
+            android:name="com.google.android.gms.measurement.AppMeasurementService"
+            android:enabled="true"
+            android:exported="false" />
+        <service
+            android:name="com.google.android.gms.measurement.AppMeasurementJobService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        -->
+        <!--
+    <receiver
+            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="com.anoto.adna" />
+            </intent-filter>
+        </receiver>
+        -->
+        <!--
+   <service
+            android:name="com.google.firebase.iid.FirebaseInstanceIdService"
+            android:exported="true">
+            <intent-filter android:priority="-500">
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
+        -->
+        <!--
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="com.anoto.adna.firebaseinitprovider"
+            android:exported="false"
+            android:initOrder="100" />
+        -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <activity
+            android:name=".qr_scanner.ContinuousCaptureActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".qr_scanner.ContinuousCaptureActivityNew"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <service android:name=".qr_scanner.intent_service.SaveWebRequestService"/>
+        <service android:name=".qr_scanner.intent_service.UpdateWebRequestService"/>
+        <service
+            android:name="org.altbeacon.beacon.service.BeaconService"
+            tools:node="replace">
+            <meta-data
+                android:name="longScanForcingEnabled"
+                android:value="true" />
+        </service>
+        <!-- spreadsheet -->
+        <!--
+ <activity android:name="com.pedrocarrillo.spreadsheetandroid.SpreadsheetMainActivity">
+
+            &lt;!&ndash;
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            &ndash;&gt;
+        </activity>
+        <activity android:name="com.pedrocarrillo.spreadsheetandroid.ui.read.ReadSpreadsheetActivity" />
+        <activity android:name="com.pedrocarrillo.spreadsheetandroid.ui.create.CreateSpreadsheetActivity" /> &lt;!&ndash; spreadsheet2 &ndash;&gt;
+        <activity android:name="com.spreadsheet.sub2.SpreadsheetMainActivity1" />
+        <activity android:name="com.spreadsheet.sub2.SignInActivity">
+
+            &lt;!&ndash;
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            &ndash;&gt;
+
+        </activity>
+        -->
+        <!--
+  <activity android:name="com.spreadsheet.sub2.SpreadSheetFetcherActivity" />
+        <activity android:name="com.spreadsheet.sub2.appendToSheetActivity" />
+        -->
+        <activity android:name=".spreadsheet.creater.SpreadSheetListActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+
+            /> <!-- feasy beacon -->
+        <activity
+            android:name=".feasybeacon.Activity.AdvertisingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.notAnimation" />
+        <activity
+            android:name=".feasybeacon.Activity.ParameterSettingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.notAnimation"
+            android:windowSoftInputMode="adjustPan" />
+
+        <service
+            android:name="com.feasycom.service.AtCommandService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name="com.feasycom.service.OTASPPService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity
+            android:name=".feasybeacon.Activity.SetActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.notAnimation"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".feasybeacon.Activity.AboutActivityFeasyBeacon"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.notAnimation" />
+        <activity
+            android:name=".feasybeacon.Activity.AddBeaconActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.notAnimation" />
+        <activity
+            android:name=".feasybeacon.Activity.MainActivityBeacon"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.notAnimation" />
+        <activity
+            android:name=".feasybeacon.Activity.MainActivityBeacon2"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" /> <!-- android:theme="@style/Theme.notAnimation" -->
+        <activity
+            android:name=".feasybeacon.Activity.UpgradeActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.notAnimation" />
+        <activity android:name=".feasybeacon.Activity.GuideActivity" />
+        <activity
+            android:name=".feasybeacon.Activity.FilterDeviceActivity"
+            android:label="@string/title_activity_filter_device"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".drive.DriveActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".drive.FullscreenImageViewDrive"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".drive.FullscreenImageViewDrive2"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+       <!-- <service
+            android:name="com.feasycom.service.AtCommandService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name="com.feasycom.service.OTASPPService"
+            android:enabled="true"
+            android:exported="true" />-->
+
+
+        <activity
+            android:name=".spreadsheet.viewer.SheetActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <service
+            android:name="com.synapse.service.BeaconScannerService"
+            android:enabled="true"
+            android:exported="false" /> <!-- openid app auth -->
+        <activity
+            android:name=".openid_appauth.AsanaLoginActivity"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="stateHidden">
+
+            <!--
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            -->
+        </activity>
+        <activity
+            android:name=".openid_appauth.TokenActivity"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="stateHidden" />
+        <activity android:name="net.openid.appauth.RedirectUriReceiverActivity">
+
+            <!--
+                        <intent-filter >
+                            <action android:name="android.intent.action.VIEW"/>
+                            <category android:name="android.intent.category.DEFAULT"/>
+                            <category android:name="android.intent.category.BROWSABLE"/>
+                            <data android:scheme="https"
+                              android:host="www.pqi.org"
+                              android:pathPrefix="/about"/>
+                        </intent-filter>
+            -->
+            <!--
+               <intent-filter>
+                   <data android:scheme="naveen_open" />
+                   <action android:name="android.intent.action.VIEW" />
+                   <category android:name="android.intent.category.DEFAULT" />
+                   <category android:name="android.intent.category.BROWSABLE" />
+               </intent-filter>
+            -->
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="www.pqi.org"
+                    android:path="/app/AppAuth.html"
+                    android:scheme="https" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="my_action" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="my_host"
+                    android:scheme="my_scheme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="my_host"
+                    android:mimeType="text/plain"
+                    android:scheme="my_scheme" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

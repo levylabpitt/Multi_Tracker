@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="snack_bar_background_color" format="color" />
+    <attr name="snack_bar_text_color" format="color" />
+    <attr name="snack_bar_text_action_color" format="color" />
+    <attr name="snack_bar_duration" format="integer" />
+    <attr name="snack_bar_interpolator" format="reference" />
+    <attr name="snack_bar_message_typeface" format="string" />
+    <attr name="snack_bar_action_typeface" format="string" />
+    <attr name="snack_bar_message_text_appearance" format="reference" />
+    <attr name="snack_bar_action_text_appearance" format="reference" />
+    <attr name="snack_bar_offset" format="dimension" />
+
+    <declare-styleable name="CustomView">
+        <attr name="matchHeightToWidth" format="boolean" />
+        <attr name="matchWidthToHeight" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="Rotate3dAnimation">
+        <attr name="rollType" format="enum">
+            <enum name="x" value="0" />
+            <enum name="y" value="1" />
+            <enum name="z" value="2" />
+        </attr>
+        <attr name="fromDeg" format="float" />
+        <attr name="toDeg" format="float" />
+        <attr name="pivotX" format="fraction" />
+        <attr name="pivotY" format="fraction" />
+    </declare-styleable>
+
+
+    <declare-styleable name="ProgressWheel">
+        <attr name="matProg_progressIndeterminate" format="boolean" />
+        <attr name="matProg_barColor" format="color" />
+        <attr name="matProg_rimColor" format="color" />
+        <attr name="matProg_rimWidth" format="dimension" />
+        <attr name="matProg_spinSpeed" format="float" />
+        <attr name="matProg_barSpinCycleTime" format="integer" />
+        <attr name="matProg_circleRadius" format="dimension" />
+        <attr name="matProg_fillRadius" format="boolean" />
+        <attr name="matProg_barWidth" format="dimension" />
+        <attr name="matProg_linearProgress" format="boolean" />
+    </declare-styleable>
+
+    <!--loading  -->
+
+    <declare-styleable name="Dialog">
+        <attr name="DialogTitleAppearance" format="reference" />
+        <attr name="DialogTitleText" format="reference|string" />
+        <attr name="DialogSpotColor" format="reference|color" />
+        <attr name="DialogSpotCount" format="integer" />
+    </declare-styleable>
+
+    <!-- material design calender -->
+
+
+    <declare-styleable name="MaterialCalendarView">
+        <attr name="mcv_dateTextAppearance" format="reference" />
+        <attr name="mcv_weekDayTextAppearance" format="reference" />
+        <attr name="mcv_headerTextAppearance" format="reference" />
+        <attr name="mcv_arrowColor" format="color" />
+        <attr name="mcv_leftArrowMask" format="reference" />
+        <attr name="mcv_rightArrowMask" format="reference" />
+        <attr name="mcv_selectionColor" format="color" />
+        <attr name="mcv_showOtherDates" format="integer">
+            <flag name="none" value="0" />
+            <flag name="other_months" value="1" />
+            <flag name="out_of_range" value="2" />
+            <flag name="decorated_disabled" value="4" />
+            <flag name="defaults" value="4" />
+            <flag name="all" value="7" />
+
+        </attr>
+
+        <attr name="mcv_weekDayLabels" format="reference" />
+        <attr name="mcv_monthLabels" format="reference" />
+        <attr name="mcv_tileSize" format="dimension" />
+        <attr name="mcv_firstDayOfWeek" format="enum">
+            <enum name="sunday" value="1" />
+            <enum name="monday" value="2" />
+            <enum name="tuesday" value="3" />
+            <enum name="wednesday" value="4" />
+            <enum name="thursday" value="5" />
+            <enum name="friday" value="6" />
+            <enum name="saturday" value="7" />
+
+        </attr>
+
+
+    </declare-styleable>
+
+    <!--material edittext  -->
+    <declare-styleable name="MaterialTextField">
+        <attr name="mtf_cardCollapsedHeight" format="dimension" />
+        <attr name="mtf_labelColor" format="color" />
+        <attr name="mtf_cardColor" format="color" />
+        <attr name="mtf_image" format="reference" />
+        <attr name="mtf_animationDuration" format="integer" />
+        <attr name="mtf_openKeyboardOnFocus" format="boolean" />
+    </declare-styleable>
+
+    <!--<attr name="spinnerStyle" format="reference"/> -->
+    <!--  Default dropdown Spinner style.  -->
+    <attr name="dropDownSpinnerStyle" format="reference" />
+
+    <!-- Declare custom theme attributes that allow changing which styles are
+         used for button bars depending on the API level.
+         ?android:attr/buttonBarStyle is new as of API 11 so this is
+         necessary to support previous API levels. -->
+    <declare-styleable name="ButtonBarContainerTheme">
+        <attr name="metaButtonBarStyle" format="reference" />
+        <attr name="metaButtonBarButtonStyle" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="LableEditView">
+        <attr name="labelText" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="ToggleButton">
+        <attr name="tbBorderWidth" format="dimension" />
+        <attr name="tbOffBorderColor" format="reference|color" />
+        <attr name="tbOffColor" format="reference|color" />
+        <attr name="tbOnColor" format="reference|color" />
+        <attr name="tbSpotColor" format="reference|color" />
+        <attr name="tbAnimate" format="reference|boolean" />
+        <attr name="tbAsDefaultOn" format="reference|boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="IndexTitleImageView">
+        <attr name="index" format="string" />
+        <attr name="title" format="string" />
+        <attr name="imgSrc" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="SwitchView">
+        <attr name="hasShadow" format="boolean" />
+        <attr name="primaryColor" format="color" />
+        <attr name="primaryColorDark" format="color" />
+        <attr name="offColor" format="color" />
+        <attr name="offColorDark" format="color" />
+        <attr name="shadowColor" format="color" />
+        <attr name="ratioAspect" format="float" />
+        <attr name="isOpened" format="boolean" />
+    </declare-styleable>
+
+
+
+
+
+</resources>

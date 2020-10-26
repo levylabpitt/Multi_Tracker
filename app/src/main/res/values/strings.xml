@@ -1,0 +1,300 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Multi Tracker</string>
+    <string name="adna_app_id">MIICXAIBAAKBgQCqGKukO1De7zhZj6+H</string>
+
+    <string name="appbar_scrolling_view_behavior">android.support.design.widget.AppBarLayout$ScrollingViewBehavior</string>
+    <string name="facebook_app_id">2108961359195952</string>
+    <string name="mypages_menu1">My Stickers</string>
+    <string name="mypages_menu2">Add\10Stickers</string>
+    <string name="mypages_menu3">Scan\10Link</string>
+    <string name="server_address">http://api.adna-anoto.com:60112</string>
+    <string name="txt_about_description">Anoto DNA (ADNA) makes it possible to uniquely and unobtrusively code objects that can then be easily identified using ubiquitous mobile devices. This translates into lots of exciting possibilities for product innovation, marketing insights, and supply-chain control.</string>
+    <string name="txt_add_purchase_stickers">Add Purchase Stickers</string>
+    <string name="txt_add_sticker">ADD\10stickers</string>
+    <string name="txt_add_stickers">Add Stickers</string>
+    <string name="txt_cancel">Cancel</string>
+    <string name="txt_copyright">All Rights Reserved.\10copyright ⓒ 2018 by ANOTO</string>
+    <string name="txt_create_account">Create New Account</string>
+    <string name="txt_create_account_ok">Your verification email has been sent.\10Please check your email.</string>
+    <string name="txt_create_new_account">Create New Account</string>
+    <string name="txt_date">Date</string>
+    <string name="txt_delete">Delete</string>
+    <string name="txt_dont_show">Got it! No need to show this again.</string>
+    <string name="txt_empty_url">Empty Url</string>
+    <string name="txt_exit">Press \'back\' button again to exit the app.</string>
+    <string name="txt_expiration">Expiration</string>
+    <string name="txt_expiration_date">Expiration date</string>
+    <string name="txt_hint_input_id">Please enter email address</string>
+    <string name="txt_hint_input_pwd">Please enter password</string>
+    <string name="txt_hint_input_pwd2">Please confirm password</string>
+    <string name="txt_hint_input_title">Please enter a sticker title</string>
+    <string name="txt_hint_input_url">http:// or https://</string>
+    <string name="txt_history">History</string>
+    <string name="txt_history_delete_all">Are you sure you want to delete all records?</string>
+    <string name="txt_history_delete_item">Are you sure you want to delete this record?</string>
+    <string name="txt_img_save_cannot">Can\'t save image.</string>
+    <string name="txt_img_save_fail">Failed to save the image.</string>
+    <string name="txt_img_save_success">Successfully save image.</string>
+    <string name="txt_index">Index</string>
+    <string name="txt_later">Later</string>
+    <string name="txt_link_copy">Copy Link</string>
+    <string name="txt_link_copy_fail">Failed to copy link.</string>
+    <string name="txt_link_copy_successful">Link copy successful.</string>
+    <string name="txt_link_type">Link Type</string>
+    <string name="txt_link_url">Link Url</string>
+    <string name="txt_linked">Linked</string>
+    <string name="txt_loading">Loading...\10Please wait...</string>
+    <string name="txt_login">Login</string>
+    <string name="txt_login_msg">Available after logging in.</string>
+    <string name="txt_logout">Logout</string>
+    <string name="txt_manual_link">LINK\10manual</string>
+    <string name="txt_msg_already_account">This account is already registered.</string>
+    <string name="txt_msg_create_account">A confirmation email will be sent.</string>
+    <string name="txt_msg_expiration_date_false">Invalid Expiration date information. Please re-enter Expiration date</string>
+    <string name="txt_msg_input_link_url">Please enter link url.</string>
+    <string name="txt_msg_invalid_pwd">Use alphanumeric characters, special characters and the length should be between 8-20 characters.</string>
+    <string name="txt_msg_logout">Are you sure you want to log out?</string>
+    <string name="txt_msg_logout_ok">You have been logged out.</string>
+    <string name="txt_msg_no_reg_link">No selected or already registed. Please select correctly.</string>
+    <string name="txt_msg_not_match_pwd">Password does not match.</string>
+    <string name="txt_msg_reg_link">Do you want to register the link to the sticker?</string>
+    <string name="txt_msg_scan_unregistered_sticker">Unregistered sticker.\10Do you want to register as My Sticker?</string>
+    <string name="txt_mypages">My Pages</string>
+    <string name="txt_network_disconnected">The network is not connected\10Check the network status.</string>
+    <string name="txt_no">NO</string>
+    <string name="txt_no_link_data">No Link!! No Data!!!</string>
+    <string name="txt_none">None</string>
+    <string name="txt_not_valid_email">Not a valid email type.</string>
+    <string name="txt_ok">OK</string>
+    <string name="txt_page_address">Page Address</string>
+    <string name="txt_permission_msg">You need to enable all permissions to use the application.</string>
+    <string name="txt_permission_title">Permission required</string>
+    <string name="txt_proceed">Proceed</string>
+    <string name="txt_quantity">Quantity</string>
+    <string name="txt_registered">Registered.</string>
+    <string name="txt_registration">Registration</string>
+    <string name="txt_scan">Scan</string>
+    <string name="txt_scan_invalid_sticker">Invalid sticker.</string>
+    <string name="txt_scan_link">LINK\10scan</string>
+    <string name="txt_setting">Setting</string>
+    <string name="txt_signup_account_ok">User registered.</string>
+    <string name="txt_singup">SING UP</string>
+    <string name="txt_singup_msg">For using ADNA Sticker,\10you should register your account.</string>
+    <string name="txt_sticker_title">Title</string>
+    <string name="txt_stickers_link_registration">Link Registration</string>
+    <string name="txt_update">Update</string>
+    <string name="txt_user_account_login">User Account Login</string>
+    <string name="txt_version_latest">The latest version.</string>
+    <string name="txt_version_update">There is a new version.\10Do you want to update your app?</string>
+    <string name="txt_version_update_force">There is a new version.\10Please update your app for better use.</string>
+
+    <string name="picture">Picture</string>
+    <string name="description_info">Info</string>
+    <string name="request_permission">This sample needs camera permission.</string>
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+
+    <string name="ERROR_SOCKET">Socket timeout!</string>
+
+    <string name="ERROR_INTERNET">No internet available!</string>
+
+    <string name="ERROR_SOMETHING_WENT_WRONG">Something went wrong</string>
+
+    <string name="intro_message">
+        <![CDATA[
+
+
+            This sample demonstrates the basic use of Camera2 API. Check the source code to see how
+            you can display camera preview and take pictures.
+
+
+        ]]>
+    </string>
+
+    //默认值
+    <!-- 默认 0db-->
+
+    //关于
+    <string name="more">more ></string>
+    <string name="about_title">About Feasycom</string>
+    <string name="company">Company</string>
+    <string name="company_name">Shenzhen Feasycom Technology Co.,Ltd</string>
+    <string name="tel_number">+86-0755-23062695</string>
+    <string name="tel">Tel</string>
+    <string name="web">Web</string>
+    <string name="web_url">www.feasycom.com</string>
+    <string name="mail">E-mail</string>
+    <string name="mail_addr">support@feasycom.com</string>
+    <string name="Facebook">Facebook</string>
+    <string name="FaceBook_addr">Feasycom</string>
+    <string name="appVersion">Version</string>
+
+
+    // header
+    <string name="back">&#60; Back</string>
+    <string name="save">Save</string>
+    <string name="parameter_setting_title">Parameter Setting</string>
+    <string name="update">Update </string>
+    <string name="add_beacon_title">Add Beacon</string>
+    <string name="add_beacon_right">Finish</string>
+
+    // Function
+    Password
+    <string name="hint_input_PIN"></string>
+    //下拉刷新
+    <string name="pull_to_refresh">Pull to refresh</string>
+    <string name="release_to_refresh">Release to refresh</string>
+    <string name="refreshing">Refreshing</string>
+    <string name="not_updated_yet">Do not updated yet</string>
+    <string name="updated_at">Updated at %1$s</string>
+    <string name="updated_just_now">Updated just now</string>
+    <string name="time_error">Time error</string>
+
+
+    // 参数修改
+    //版本消息
+    <string name="version_name">3.1.5</string>
+    <string name="version_update">Get the newest version</string>
+    //设备过滤
+
+    //OTA
+    <string name="otaFile">File: </string>
+    <string name="module">Module</string>
+    <string name="appVwesion">AppVersion</string>
+    <string name="blVwesion">BLVersion</string>
+    <string name="current">Current</string>
+    <string name="except">New</string>
+    <string name="rest">Rest</string>
+    <string name="start">Start</string>
+    <string name="selectFile">SelectFile</string>
+    <string name="title_activity_filter_device">FilterDeviceActivity</string>
+    <string name="filter_by_rssi">Filter Enable</string>
+    <string name="minimum_rssi">Minimum RSSI:</string>
+    <string name="sheet">Sheet</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+
+    <!--app_auth-->
+    <string name="auth_granted">Authorization granted</string>
+
+    <!--<string name="intro_header">OpenID AppAuth Demo</string>-->
+    <string name="intro_header">Asana Auth</string>
+    <string name="openid_logo_content_description">AppAuth Logo</string>
+    <string name="refresh_token">Refresh token</string>
+    <string name="access_token_expires_at">Access token expires at: %s</string>
+    <string name="no_access_token_returned">No access token returned</string>
+    <string name="no_refresh_token_returned">No refresh token returned</string>
+    <string name="refresh_token_returned">Refresh token returned</string>
+    <string name="no_id_token_returned">No ID token returned</string>
+    <string name="id_token_returned">ID token returned</string>
+    <string name="view_profile">View user info</string>
+    <string name="userinfo_profile_content_description">User profile picture</string>
+    <string name="login_hint_value">Account ID (e.g. test@example.com)</string>
+    <string name="account_id_description">The Account ID is optional. If specified, it is transmitted as a login_hint parameter in the authorization request.</string>
+    <string name="auth_options">Authorization options:</string>
+    <string name="browser_selector_label">Use browser:</string>
+    <string name="browser_icon_contentDescription">Browser app icon</string>
+    <string name="browser_appauth_default_label">AppAuth heuristic selection</string>
+    <string name="custom_tab_label">"%1$s (custom tab)"</string>
+    <string name="retry_label">Retry</string>
+    <string name="not_authorized">Not authorized</string>
+    <string name="start_authorization">Start authorization</string>
+    <string name="reauthorize">Reauthorize</string>
+    <string name="sign_out">Sign out</string>
+    <string name="no_access_token_expiry">Access time has no defined expiry</string>
+    <string name="access_token_expired">Access token has expired</string>
+    <string name="auth_settings">Authorization settings in use:</string>
+
+    <string name="title_activity_tabbed">TabbedActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="use_pending_intents">Use PendingIntent\'s for completion</string>
+
+
+    <string name="qr_scanner1">This button opens the QR scanner screen.</string>
+
+    <string name="qr_scanner2">"1. The top left corner of this screen shows the count of scanned QR code.
+        \n2. The top right corner of this screen shows the count of beacons found by beacon scanner.
+        \n3. The 'Pause' button will pause the QR Scanner.
+        \n4. The 'Resume' button will resume the QR Scanner.
+        \n5. The 'Finish' button will stop QR scanner and system will starts processing QR data and Beacon data in background in below steps:
+
+        \n(a). QR data and Beacon data will be written to local database.
+        \n(b). QR photo will be saved in default google drive folder.
+        \n(c). QR data and Beacon data will be written to default spreadsheet with status of 'In Progress'.
+        \n(d). QR data will be updated on corresponding Asana task.
+        \n(e). After successfully completing above steps, system will change status of a QR data from  'In Progress'  to 'Completed'  in spreadsheet.
+        \n6. The above process can be resumed by clicking in status column of a QR data in spreadsheet viewer, in case a QR data has not been processed successfully and its status in spreadsheet viewer is still 'In Progress' ."
+
+
+    </string>
+    <string name="beacon_scanner1" tools:ignore="MissingTranslation">This button opens the Beacon scanner screen. </string>
+
+    <string name="beacon_scanner2">"1 (a). Beacon scanner  starts scanning automatically when app opens and stops scanning when app is closed.
+        \n(b). Beacon Scanner scans continuously in background for the available beacons and shows them in a list in first tab 'Beacons'.
+         \n(c). The dropdown on the top right corner can be used to filter the available beacons."
+    </string>
+    <string name="beacon_scanner3">"2. Second tab 'BlackListed Beacons' shows the list of blacklisted beacons. \nInitially the blacklisted beacons list will be empty."
+    </string>
+
+    <string name="beacon_scanner4">"3. A beacon can be added to blacklist by clicking on a beacon item from beacons list in first tab"
+    </string>
+    <string name="beacon_scanner5">"4. When a beacon will be added to blacklist , it will be shown in blacklisted beacons list in second tab and this beacon will be removed from beacons list in first tab."
+    </string>
+    <string name="beacon_scanner6">"5. A beacon can be removed from blacklist by clicking on a beacon item from blacklisted beacons list in second tab"
+    </string>
+    <string name="spreadsheet_1">This button opens the Manage Spreadsheet screen.</string>
+    <string name="spreadsheet_2">1. First time user will need to choose a google account for saving and retrieving spreadsheets in google drive.</string>
+    <string name="spreadsheet_3">"2 (a). System will show all spreadsheets created using app when user is logged in using a google account.
+        \n(b). A spreadsheet can be created in root folder or inside specific folder.
+   \n(c). A spreadsheet can be set as default for writing QR data and Beacon data by clicking on Star Icon."</string>
+
+    <string name="spreadsheet_add">"3. A new spreadsheet can be created using '+' icon in the bottom right corner of this screen."</string>
+    <string name="spreadsheet_delete">4. A spreadsheet can be deleted by clicking on three vertical dots icon available in right side of spreadsheet name.</string>
+    <string name="default_spreadsheet">5. Default spreadsheet (Spreadsheet for saving QR and Beacon data) name will be shown on top right corner of the screen. Clicking on which a pop-up will be shown that will show the path of default spreadsheet in google drive </string>
+
+    <string name="spreadsheet_6">"6(a). Spreadsheet data can be checked by clicking on a spreadsheet icon from list.
+   \n(b). A spreadsheet has two sheets- 'QR Sheet' for writing QR data and  'Bluetooth Sheet' for writing beacons data."</string>
+
+    <string name="spreadsheet_7">7. On clicking in a cell, its data preview can be seen in bottom bar. </string>
+    <string name="spreadsheet_8">8. QR data uploading process can be resumed by clicking in status column of a QR data in QR sheet page of spreadsheet viewer. </string>
+    <string name="spreadsheet_9">9. When QR data uploading process will be started, it will be notified by a message. </string>
+
+    <string name="drive_1">This button opens the Manage Drive screen.</string>
+
+    <string name="drive_2">1. First time user will need to choose a google account for saving and retrieving photos in a google drive folder.</string>
+
+    <string name="drive_3">2. First time user will also need to allow permission for managing files and folders on google drive.</string>
+
+    <string name="drive_4">"3(a). System will show all folders created using app when user is logged in using a google account.
+    \n(b). A folder can be set as default folder for saving QR photos by clicking on Star Icon available on folder icon."</string>
+
+    <string name="drive_8">"4. Default folder (Google drive folder for  QR photo) name will be shown on top right corner of the screen. Clicking on which a pop-up will be shown that will show the path of default spreadsheet in google drive </string>
+
+    <string name="drive_5">"5. A new folder can be created using '+' icon in the bottom right corner of this screen."</string>
+
+    <string name="drive_folder_delete">6. A folder/photo can be deleted by clicking on three vertical dots icon available in right side of folder/photo title.</string>
+
+    <string name="drive_6">7. System will show all QR photos saved in a folder by clicking on folder icon.</string>
+
+    <string name="drive_7">8. Full size preview of a QR photo can be viewed by clicking on a QR photo.</string>
+
+
+
+
+    <string name="asana_1">This button opens the Asana Authorization screen.</string>
+
+    <string name="asana_2">"1. First time user will need to click on 'START AUTHORIZATION' button to start Asana authorization process. "</string>
+
+    <string name="asana_3">"2. System will then start browser session for making authorization request on Asana."</string>
+
+    <string name="asana_4">"3. Browser session will load Asana login web page. User can login using existing Asana credentials or create a new account."</string>
+
+    <string name="asana_5">"4. User may also use google account option for logging in to Asana"</string>
+
+    <string name="asana_6">"5. When user is authorized on Asana, a new screen having user name and email id will be shown."</string>
+
+
+</resources>

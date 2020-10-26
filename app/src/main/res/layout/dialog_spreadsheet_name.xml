@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="15dp">
+
+
+
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+        <TextView
+
+            style="@style/mediumTextViewStyle_grey"
+            android:layout_width="match_parent"
+android:text="Spreadsheet Name"
+            android:gravity="center"
+            android:textColor="@color/colorPrimary"
+            android:layout_weight="1"
+
+         />
+        <EditText
+            android:id="@+id/et_templateName"
+            style="@style/smallTextViewStyle_grey"
+            android:layout_width="match_parent"
+
+            android:layout_weight="1"
+            android:background="@drawable/edittext_bg"
+            android:hint="Spreadsheet Name"
+           android:layout_marginTop="20dp"
+            android:minHeight="40dp"
+            android:paddingLeft="10dp" />
+
+            <Button
+                android:id="@+id/buttonSaveTemplate"
+                style="@style/smallTextViewStyle_white"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+              android:layout_marginTop="20dp"
+                android:layout_weight="1"
+
+                android:background="@drawable/btn_bg_rounded"
+                android:text="Save" />
+
+
+    </LinearLayout>
+</LinearLayout>

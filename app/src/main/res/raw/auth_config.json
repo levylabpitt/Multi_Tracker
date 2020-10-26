@@ -1,0 +1,11 @@
+{
+  "client_id": "1189021352957129",
+  "redirect_uri": "https://www.pqi.org/app/AppAuth.html",
+  "authorization_scope": "openid email profile default",
+  "discovery_uri": "https://app.asana.com/api/1.0/.well-known/openid-configuration",
+  "authorization_endpoint_uri": "https://app.asana.com/-/oauth_authorize",
+  "token_endpoint_uri": "https://app.asana.com/-/oauth_token",
+  "registration_endpoint_uri": "",
+  "user_info_endpoint_uri": "https://app.asana.com/api/1.0/openid_connect/userinfo",
+  "https_required": true
+}

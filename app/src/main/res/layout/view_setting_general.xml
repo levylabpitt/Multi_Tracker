@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:aapt="http://schemas.android.com/aapt" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+    <TextView android:paddingTop="10dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="16dp" android:text="General"/>
+    <LinearLayout android:background="@color/black5" android:layout_width="match_parent" android:layout_height="1px"/>
+    <LinearLayout android:gravity="center_vertical" android:background="@color/white" android:paddingLeft="16dp" android:paddingRight="16dp" android:layout_width="match_parent" android:layout_height="60dp">
+        <LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:visibility="visible" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+            <TextView android:textSize="14sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Beep Sound"/>
+            <TextView android:textSize="10sp" android:textColor="@color/black3" android:visibility="visible" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Beep will sound when the scan is successful."/>
+        </LinearLayout>
+        <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_beep" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true"/>
+    </LinearLayout>
+    <LinearLayout android:background="@color/black5" android:layout_width="match_parent" android:layout_height="1px"/>
+    <LinearLayout android:gravity="center_vertical" android:background="@color/white" android:paddingLeft="16dp" android:paddingRight="16dp" android:layout_width="match_parent" android:layout_height="60dp">
+        <LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:visibility="visible" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+            <TextView android:textSize="14sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vibration"/>
+            <TextView android:textSize="10sp" android:textColor="@color/black3" android:visibility="visible" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Vibration will sound when the scan is successful."/>
+        </LinearLayout>
+        <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_vibration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true"/>
+    </LinearLayout>
+    <LinearLayout android:background="@color/black5" android:layout_width="match_parent" android:layout_height="1px"/>
+    <LinearLayout android:gravity="center_vertical" android:background="@color/white" android:paddingLeft="16dp" android:paddingRight="16dp" android:layout_width="match_parent" android:layout_height="60dp">
+        <LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:visibility="visible" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
+            <TextView android:textSize="14sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="History Record"/>
+            <TextView android:textSize="10sp" android:textColor="@color/black3" android:visibility="visible" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Save the history record."/>
+        </LinearLayout>
+        <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_history" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true"/>
+    </LinearLayout>
+    <LinearLayout android:background="@color/black5" android:layout_width="match_parent" android:layout_height="1px"/>
+    <LinearLayout android:orientation="vertical" android:visibility="visible" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:id="@+id/bt_grayscale_method" android:background="@color/white" android:paddingLeft="16dp" android:layout_width="match_parent" android:layout_height="60dp">
+            <TextView android:textSize="14sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Grayscale Conversion Method"/>
+            <TextView android:textSize="10sp" android:textColor="@color/black3" android:id="@+id/tv_grayscale_method" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Auto"/>
+        </LinearLayout>
+        <LinearLayout android:background="@color/black5" android:layout_width="match_parent" android:layout_height="1px"/>
+        <LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:id="@+id/bt_decode_mode" android:background="@color/white" android:paddingLeft="16dp" android:layout_width="match_parent" android:layout_height="60dp">
+            <TextView android:textSize="14sp" android:textColor="@color/black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Event Decode Mode"/>
+            <TextView android:textSize="10sp" android:textColor="@color/black3" android:id="@+id/tv_decode_mode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text=""/>
+        </LinearLayout>
+        <LinearLayout android:background="@color/black5" android:layout_width="match_parent" android:layout_height="1px"/>
+    </LinearLayout>
+</LinearLayout>

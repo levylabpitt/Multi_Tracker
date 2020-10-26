@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@drawable/bg_title"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginLeft="16dp"
+            android:background="@drawable/ic_back_48_off" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingLeft="16dp"
+            android:text="@string/txt_singup"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_navi"
+        android:layout_below="@+id/title"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="70dp"
+            android:layout_marginBottom="30dp"
+            android:gravity="center"
+            android:text="@string/txt_create_account"
+            android:textSize="24sp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="20dp"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/edit_id"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:hint="@string/txt_hint_input_id"
+                android:inputType="textEmailAddress"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:singleLine="true" />
+
+            <EditText
+                android:id="@+id/edit_pw1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/edit_id"
+                android:layout_marginTop="12dp"
+                android:hint="@string/txt_hint_input_pwd"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:password="true"
+                android:singleLine="true" />
+
+            <EditText
+                android:id="@+id/edit_pw2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/edit_pw1"
+                android:layout_marginTop="12dp"
+                android:hint="@string/txt_hint_input_pwd2"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:password="true"
+                android:singleLine="true" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/edit_pw2"
+                android:layout_marginTop="23dp"
+                android:gravity="center_horizontal"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="@string/txt_msg_create_account"
+                android:textColor="@color/black3"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_create_account"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/button_main_back"
+                android:text="@string/txt_create_account"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_navi"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/bg_navi">
+
+        <LinearLayout
+            android:id="@+id/bt_scan"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_scan"
+                android:layout_width="30dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_camera_50_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_scan" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bt_mypages"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_mypages"
+                android:layout_width="30dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_mypage_50_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_mypages" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bt_history"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_history"
+                android:layout_width="30dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_history_50_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_history" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bt_setting"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_setting"
+                android:layout_width="30dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_settings_50_off" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/txt_setting" />
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

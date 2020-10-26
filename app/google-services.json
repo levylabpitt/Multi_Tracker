@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "501551242318",
+    "firebase_url": "https://adnasampleapp.firebaseio.com",
+    "project_id": "adnasampleapp",
+    "storage_bucket": "adnasampleapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:501551242318:android:eb8612db7bfa8d544ab71f",
+        "android_client_info": {
+          "package_name": "com.pqiorg.multitracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "501551242318-1c55p346a8gkp5583up0mpgc3tnvf5ju.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt8ifeBStcu84HFjpJ6xuVbHt5hyzQp4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "501551242318-1c55p346a8gkp5583up0mpgc3tnvf5ju.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

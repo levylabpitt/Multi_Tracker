@@ -1,0 +1,4 @@
+include ':library'
+rootProject.name='Multi Tracker'
+include ':app', ':zxing-android-embedded'
+include ':gdriverest'
