@@ -947,8 +947,8 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
     }
 
     @Override
-    public void onItemDelete(String itemName,String itemID,String itemType) {
-        showBottomSheetDialog(itemName,itemID,itemType);
+    public void onItemDelete(String itemName, String itemID, String itemType) {
+        showBottomSheetDialog(itemName, itemID, itemType);
       /*
         String defaultSheetId = SharedPreferencesUtil.getDefaultDriveFolderId(this);
         if (defaultSheetId.equals(itemID)) {
@@ -1036,11 +1036,14 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
         }
 
     }
-    public void showBottomSheetDialog(String itemName,String itemID,String itemType) {
+
+    public void showBottomSheetDialog(String itemName, String itemID, String itemType) {
         View view = getLayoutInflater().inflate(R.layout.menu_manage_drive, null);
         BottomSheetDialog dialog = new BottomSheetDialog(this);
-        LinearLayout action_delete=view.findViewById(R.id.action_delete);
-        TextView folder_name=view.findViewById(R.id.name);
+        LinearLayout action_delete = view.findViewById(R.id.action_delete);
+        LinearLayout action_rename = view.findViewById(R.id.action_rename);
+
+        TextView folder_name = view.findViewById(R.id.name);
         folder_name.setText(itemName);
         action_delete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1055,7 +1058,83 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
 
             }
         });
+
+        action_rename.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                Dialog_RenameFolder(itemID, itemName);
+            }
+        });
+
+
         dialog.setContentView(view);
         dialog.show();
+    }
+
+    private void RenameFileFolder(final String fileId, final String name) {
+        if (mDriveServiceHelper == null) {
+            return;
+        }
+        Utility.ReportNonFatalError("RenameFileFolder", "Started");
+        progressBar1.setVisibility(View.VISIBLE);
+        mDriveServiceHelper.updateFile(fileId, name)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        progressBar1.setVisibility(View.INVISIBLE);
+                        hideprogressdialog();
+                        viewFileFolder();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        hideprogressdialog();
+                        progressBar1.setVisibility(View.INVISIBLE);
+                        Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show();
+                        Utility.ReportNonFatalError("RenameFileFolder", "Failed-->\n" + e.getMessage());
+                    }
+                });
+    }
+
+    public void Dialog_RenameFolder(String fileFolderId, String currentName) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setMessage("Rename Folder");
+        final EditText input = new EditText(this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        lp.setMargins(40, 10, 40, 10);
+
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+        input.setText(currentName);
+        alertDialog.setPositiveButton("Rename",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        if (input.getText().length() < 1) {
+                            Toast.makeText(context, "Please enter folder name", Toast.LENGTH_SHORT).show();
+                            return;
+                        } else {
+
+                            RenameFileFolder(fileFolderId, input.getText().toString().trim());
+
+                        }
+
+                    }
+                });
+
+        alertDialog.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        alertDialog.show();
+
+
     }
 }

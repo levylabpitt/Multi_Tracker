@@ -407,7 +407,7 @@ public class AuthorizationManagementActivity extends Activity implements Request
                 UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
                 String user_gid = userDetailsResponse.getData().getGid();
                 //   SharedPreferencesUtil.setAsanaUserId(this, user_gid);
-                List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
+            /*    List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
                 if (workspaces != null && workspaces.size() > 0) {
                     String workspace_gid = workspaces.get(0).getGid();
                     //  SharedPreferencesUtil.setAsanaWorkspaceId(this, workspace_gid);
@@ -418,10 +418,10 @@ public class AuthorizationManagementActivity extends Activity implements Request
                         SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
                         break;
                     } else if (i == workspaces.size() - 1) {
-                        // Toast.makeText(this, "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana. ", Toast.LENGTH_SHORT).show();
+                         Toast.makeText(this, "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana. ", Toast.LENGTH_SHORT).show();
 
                     }
-                }
+                }*/
                 setResult(RESULT_OK, getIntent());
                 finish();
             }

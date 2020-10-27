@@ -243,8 +243,8 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
         LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(this);
         LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
-        Utility.ReportNonFatalError("AsanaTaskDataList",AsanaTaskDataList.toString());
-        Log.e("AsanaTaskDataList",AsanaTaskDataList.toString());
+        Utility.ReportNonFatalError("AsanaTaskDataList", AsanaTaskDataList.toString());
+        Log.e("AsanaTaskDataList", AsanaTaskDataList.toString());
         if (LevyLab_workspace_gid.equals("")) {
             hitAPIGetAsanaUserDetails();
         } else {
@@ -293,11 +293,11 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             if (apiType == Constants.API_TYPE.GET_USER_DETAILS) {
                 UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
                 String user_gid = userDetailsResponse.getData().getGid();
-             //   SharedPreferencesUtil.setAsanaUserId(this, user_gid);
+                //   SharedPreferencesUtil.setAsanaUserId(this, user_gid);
                 List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
                 if (workspaces.size() > 0) {
                     String workspace_gid = workspaces.get(0).getGid();
-                   // SharedPreferencesUtil.setAsanaWorkspaceId(this, workspace_gid);
+                    // SharedPreferencesUtil.setAsanaWorkspaceId(this, workspace_gid);
                 }
                 for (int i = 0; i < workspaces.size(); i++) {
                     if (workspaces.get(i).getName().equals("levylab.org")) {
@@ -315,10 +315,10 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             } else if (apiType == Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE) {
                 SearchTaskByWorkspace searchTaskResponse = new Gson().fromJson(strResponse, SearchTaskByWorkspace.class);
                 if (searchTaskResponse.getData() == null || searchTaskResponse.getData().isEmpty()) {
-                    // Utility.showToast(this, "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                    //  Utility.showToast(this, "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
                     Utility.ReportNonFatalError("onSuccess", "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
                 } else {
-                    //  Utility.showToast(this, "Multiple matching tasks found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                    //   Utility.showToast(this, " matching tasks found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
                     TaskData task_data = AsanaTaskDataList.get(taskSearchAPICount);
                     List<Datum> listMatchingTasks = searchTaskResponse.getData();
                     for (int j = 0; j < listMatchingTasks.size(); j++) {

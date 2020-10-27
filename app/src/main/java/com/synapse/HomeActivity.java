@@ -238,7 +238,10 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         } */ else if (SharedPreferencesUtil.getAsanaEmail(this).equals("")) {
             //Toast.makeText(this, "Please login to Asana!", Toast.LENGTH_SHORT).show();
             showAppCompatDialog("Please login to Asana for updating tasks on Asana!", 3);
-        } else {
+        } else if (SharedPreferencesUtil.getLevyLabWorkspaceId(this).equals("")) {
+            //Toast.makeText(this, "Please login to Asana!", Toast.LENGTH_SHORT).show();
+            showAppCompatDialog("Please choose organization for Asana!", 3);
+        }else {
             startActivity(new Intent(HomeActivity.this, ContinuousCaptureActivityNew.class));
 
 

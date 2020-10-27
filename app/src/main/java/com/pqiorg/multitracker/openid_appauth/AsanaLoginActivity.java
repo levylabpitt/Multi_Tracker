@@ -854,55 +854,55 @@ public final class AsanaLoginActivity extends AppCompatActivity {
 
         if (userDetailsResponse != null && !userDetailsResponse.equals("") && userDetailsResponse.getData() != null && userDetailsResponse.getData().getWorkspaces() != null) {
             List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
-           /* ArrayAdapter<Workspace> aa = new ArrayAdapter<Workspace>(this, android.R.layout.simple_spinner_item, workspaces);
-            aa.setDropDownViewResource(android.R.layout.simple_list_item_1);
-            spinner_organization.setAdapter(aa);
-
-            spinner_organization.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    // On selecting a spinner item
-                    Workspace workspace = (Workspace) parent.getItemAtPosition(position);
-
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-
-                }
-            });
-            ll_organizations.removeAllViews();
-            for (int i = 0; i < workspaces.size(); i++) {
-                CheckBox cb = new CheckBox(this);
-                cb.setText(workspaces.get(i).getName());
-                cb.setId(i);
-                cb.setTag(workspaces.get(i).getGid());
-                ll_organizations.addView(cb);
-                if (workspaces.get(i).getName().equals("levylab.org")) {
-                    cb.setChecked(true);
-                }
-            }*/
 
             radioGroup1.removeAllViews();
+
+         String  selectedWorkspaceGID= SharedPreferencesUtil.getLevyLabWorkspaceId(AsanaLoginActivity.this);
+
             for (int i = 0; i < workspaces.size(); i++) {
                 RadioButton button = new RadioButton(this);
                 button.setText(workspaces.get(i).getName());
                 button.setId(i);
                 button.setTag(workspaces.get(i).getGid());
                 radioGroup1.addView(button);
-                if (workspaces.get(i).getName().equals("levylab.org")) {
+                /*if (workspaces.get(i).getName().equals("levylab.org")) {
                     button.setChecked(true);
+                    String LevyLab_workspace_gid = workspaces.get(i).getGid();
+                    com.synapse.SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
+                }*/
+                if (workspaces.get(i).getGid().equals(selectedWorkspaceGID)) {
+                 //   button.setChecked(true);
+                }
+
+
+            }
+            radioGroup1.clearCheck();
+            for (int i=0;i<radioGroup1.getChildCount();i++) {
+                View view = radioGroup1.getChildAt(i);
+                if (view instanceof RadioButton) {
+                    RadioButton button = (RadioButton)view;
+                    String wrokspace_gid = (String) button.getTag();
+                    if (wrokspace_gid.equals(selectedWorkspaceGID)) {
+                        button.setChecked(true);
+                        break;
+                    }
                 }
             }
 
 
             radioGroup1.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-
                 @Override
                 public void onCheckedChanged(RadioGroup group, int checkedId) {
-
+                    // This will get the radiobutton that has changed in its check state
+                    RadioButton checkedRadioButton = (RadioButton) group.findViewById(checkedId);
+                    if(checkedRadioButton!=null && checkedRadioButton.isChecked()){
+                        String wrokspace_gid = (String) checkedRadioButton.getTag();
+                        String name = (String) checkedRadioButton.getText();
+                        SharedPreferencesUtil.setLevyLabWorkspaceId(AsanaLoginActivity.this, wrokspace_gid);
+                    }
                 }
             });
+
 
         }
     }
