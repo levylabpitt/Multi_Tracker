@@ -363,6 +363,10 @@ public final class AsanaLoginActivity extends AppCompatActivity {
                 SharedPreferencesUtil.setRefreshToken(AsanaLoginActivity.this, "");
                 SharedPreferencesUtil.setAsanaEmail(AsanaLoginActivity.this, "");
                 SharedPreferencesUtil.setAsanaName(AsanaLoginActivity.this, "");
+
+                finish();
+
+
             }
         });
         chooseOrganization();
@@ -722,8 +726,7 @@ public final class AsanaLoginActivity extends AppCompatActivity {
     }
 
     private void createAuthRequest(@Nullable String loginHint) {
-        Log.i(TAG, "Creating auth request for login hint: " + loginHint);
-////////////////////////
+        Log.i(TAG, "Creating auth request for login hint: " + loginHint);////////////////////////
        /* AuthState currentState = mAuthStateManager.getCurrent();
         AuthState clearedState =
                 new AuthState(currentState.getAuthorizationServiceConfiguration());
@@ -857,7 +860,7 @@ public final class AsanaLoginActivity extends AppCompatActivity {
 
             radioGroup1.removeAllViews();
 
-         String  selectedWorkspaceGID= SharedPreferencesUtil.getLevyLabWorkspaceId(AsanaLoginActivity.this);
+            String selectedWorkspaceGID = SharedPreferencesUtil.getLevyLabWorkspaceId(AsanaLoginActivity.this);
 
             for (int i = 0; i < workspaces.size(); i++) {
                 RadioButton button = new RadioButton(this);
@@ -871,16 +874,16 @@ public final class AsanaLoginActivity extends AppCompatActivity {
                     com.synapse.SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
                 }*/
                 if (workspaces.get(i).getGid().equals(selectedWorkspaceGID)) {
-                 //   button.setChecked(true);
+                    //   button.setChecked(true);
                 }
 
 
             }
             radioGroup1.clearCheck();
-            for (int i=0;i<radioGroup1.getChildCount();i++) {
+            for (int i = 0; i < radioGroup1.getChildCount(); i++) {
                 View view = radioGroup1.getChildAt(i);
                 if (view instanceof RadioButton) {
-                    RadioButton button = (RadioButton)view;
+                    RadioButton button = (RadioButton) view;
                     String wrokspace_gid = (String) button.getTag();
                     if (wrokspace_gid.equals(selectedWorkspaceGID)) {
                         button.setChecked(true);
@@ -895,7 +898,7 @@ public final class AsanaLoginActivity extends AppCompatActivity {
                 public void onCheckedChanged(RadioGroup group, int checkedId) {
                     // This will get the radiobutton that has changed in its check state
                     RadioButton checkedRadioButton = (RadioButton) group.findViewById(checkedId);
-                    if(checkedRadioButton!=null && checkedRadioButton.isChecked()){
+                    if (checkedRadioButton != null && checkedRadioButton.isChecked()) {
                         String wrokspace_gid = (String) checkedRadioButton.getTag();
                         String name = (String) checkedRadioButton.getText();
                         SharedPreferencesUtil.setLevyLabWorkspaceId(AsanaLoginActivity.this, wrokspace_gid);

@@ -1848,7 +1848,7 @@ public void showBottomSheetDialog(String itemName,String itemID,String itemType)
     LinearLayout action_delete=view.findViewById(R.id.action_delete);
     TextView folder_name=view.findViewById(R.id.name);
     ImageView item_type_icon=view.findViewById(R.id.item_type_icon);
-
+    LinearLayout action_rename = view.findViewById(R.id.action_rename);
     if(itemType.equals(DriveFolder.MIME_TYPE)){
         item_type_icon.setImageResource(R.drawable.ic_baseline_folder_24);
     }else {
@@ -1870,8 +1870,61 @@ public void showBottomSheetDialog(String itemName,String itemID,String itemType)
 
         }
     });
+
+    action_rename.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            dialog.dismiss();
+            Dialog_RenameFolder(itemID, itemName,itemType);
+        }
+    });
+
+
     dialog.setContentView(view);
     dialog.show();
 }
+    public void Dialog_RenameFolder(String fileFolderId, String currentName, String itemType) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        if(itemType.equals(DriveFolder.MIME_TYPE)){
+            alertDialog.setMessage("Rename Folder");
+        }else {
+            alertDialog.setMessage("Rename Spreadsheet");
+        }
 
+        final EditText input = new EditText(this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        lp.setMargins(40, 10, 40, 10);
+
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+        input.setText(currentName);
+        alertDialog.setPositiveButton("Rename",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        if (input.getText().length() < 1) {
+                            Toast.makeText(context, "Please enter name", Toast.LENGTH_SHORT).show();
+                            return;
+                        } else {
+
+                            RenameFileFolder(fileFolderId, input.getText().toString().trim());
+
+                        }
+
+                    }
+                });
+
+        alertDialog.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+        alertDialog.show();
+
+
+    }
 }
