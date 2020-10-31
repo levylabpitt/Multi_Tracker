@@ -80,7 +80,7 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
     ImageView signinButton;
     TextView mail_id, txt_no_items;
     /*fab*/
-    FloatingActionButton fab, fab_CretaeFolder, fab_UploadFile;
+    FloatingActionButton fab, fab_CreateFolder, fab_UploadFile;
     LinearLayout fabLayout1, fabLayout2;
     View fabBGLayout;
     boolean isFABOpen = false;
@@ -248,8 +248,8 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
                     mDriveServiceHelper = null;
                     mail_id.setText("");
                     recyclerView.setAdapter(null);
-                    path_recyclerView.setAdapter(null);
                     List_Path.clear();
+                    drivePathAdapter.notifyDataSetChanged();
                     txt_no_items.setVisibility(View.VISIBLE);
                     _default.setVisibility(View.GONE);
                     SharedPreferencesUtil.setDefaultDriveFolderId(DriveActivity.this, "");
@@ -387,7 +387,7 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
         fabLayout2 = (LinearLayout) findViewById(R.id.fabLayout2);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab_CretaeFolder = (FloatingActionButton) findViewById(R.id.fab1);
+        fab_CreateFolder = (FloatingActionButton) findViewById(R.id.fab1);
         fab_UploadFile = (FloatingActionButton) findViewById(R.id.fab2);
 
         fabBGLayout = findViewById(R.id.fabBGLayout);
@@ -409,7 +409,7 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
                 closeFABMenu();
             }
         });
-        fab_CretaeFolder.setOnClickListener(new View.OnClickListener() {
+        fab_CreateFolder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!isFABOpen) {
@@ -449,6 +449,7 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
         if (List_Path.isEmpty()) {
             List_Path.add(new PathDrive("Root", null));
         }
+        drivePathAdapter.notifyDataSetChanged();
         String defaultFolderName = SharedPreferencesUtil.getDefaultDriveFolderName(this);
         if (!defaultFolderName.equals("")) {
             _default.setVisibility(View.VISIBLE);

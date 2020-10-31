@@ -743,8 +743,7 @@ public final class AsanaLoginActivity extends AppCompatActivity {
                 mConfiguration.getRedirectUri()).setScope(mConfiguration.getScope());
 
 
-        authRequestBuilder.setPrompt("login");
-
+        authRequestBuilder.setPrompt(AuthorizationRequest.Prompt.LOGIN);
         if (!TextUtils.isEmpty(loginHint)) {
             authRequestBuilder.setLoginHint(loginHint);
         }

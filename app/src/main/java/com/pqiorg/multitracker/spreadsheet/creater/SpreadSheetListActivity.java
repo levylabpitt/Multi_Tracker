@@ -296,7 +296,7 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         if (!defaultSheetName.equals("")) {
             _default.setVisibility(View.VISIBLE);
             _default.setText("Default: " + defaultSheetName + ".xlsx");
-        }else {
+        } else {
             _default.setVisibility(View.GONE);
         }
 
@@ -426,6 +426,8 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         if (List_Path.isEmpty()) {
             List_Path.add(new PathDrive("Root", null));
         }
+        drivePathAdapter.notifyDataSetChanged();
+
         String defaultFolderName = SharedPreferencesUtil.getDefaultSheetName(this);
         if (!defaultFolderName.equals("")) {
             _default.setVisibility(View.VISIBLE);
@@ -713,15 +715,14 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
                         mDriveServiceHelper = null;
                         mail_id.setText("");
                         recycler_sheets.setAdapter(null);
-                        recycler_path.setAdapter(null);
                         List_Path.clear();
-                        txt_no_items.setVisibility(View.VISIBLE);
+                        drivePathAdapter.notifyDataSetChanged();
                         txt_no_items.setVisibility(View.VISIBLE);
                         _default.setVisibility(View.GONE);
-                        SharedPreferencesUtil.setDefaultSheetId(SpreadSheetListActivity.this,"");
-                        SharedPreferencesUtil.setDefaultSheetName(SpreadSheetListActivity.this,"");
-                        SharedPreferencesUtil.setDefaultSheetPath(SpreadSheetListActivity.this,"");
-                     onResume();
+                        SharedPreferencesUtil.setDefaultSheetId(SpreadSheetListActivity.this, "");
+                        SharedPreferencesUtil.setDefaultSheetName(SpreadSheetListActivity.this, "");
+                        SharedPreferencesUtil.setDefaultSheetPath(SpreadSheetListActivity.this, "");
+                        onResume();
 
 
                     }
@@ -1137,22 +1138,16 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
             return;
         }
         mDriveServiceHelper.uploadFile(localFile, mimeType, folderId)
-                .addOnSuccessListener(new OnSuccessListener<GoogleDriveFileHolder>() {
-                    @Override
-                    public void onSuccess(GoogleDriveFileHolder googleDriveFileHolder) {
-                        Log.e("", "");
-                        Utility.ReportNonFatalError("uploadSampleSpreadsheetUsingDriveAPI", "On Success");
-                        RenameFileFolder(googleDriveFileHolder.getId(), spreadsheetTitle);
+                .addOnSuccessListener(googleDriveFileHolder -> {
+                    Log.e("", "");
+                    Utility.ReportNonFatalError("uploadSampleSpreadsheetUsingDriveAPI", "On Success");
+                    RenameFileFolder(googleDriveFileHolder.getId(), spreadsheetTitle);
 
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(context, "Failed!", Toast.LENGTH_SHORT).show();
-                hideprogressdialog();
-                Utility.ReportNonFatalError("uploadSampleSpreadsheetUsingDriveAPI", e.getMessage());
-            }
-        });
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(context, "Failed!", Toast.LENGTH_SHORT).show();
+                    hideprogressdialog();
+                    Utility.ReportNonFatalError("uploadSampleSpreadsheetUsingDriveAPI", e.getMessage());
+                });
     }
 
     private void RenameFileFolder(final String fileId, final String name) {
@@ -1336,8 +1331,8 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
     }
 
     @Override
-    public void onItemDelete(String itemName,String itemID,String itemType) {
-        showBottomSheetDialog(itemName,itemID,itemType);
+    public void onItemDelete(String itemName, String itemID, String itemType) {
+        showBottomSheetDialog(itemName, itemID, itemType);
        /* String defaultSheetId = SharedPreferencesUtil.getDefaultSheetId(this);
         if (defaultSheetId.equals(itemID)) {
             Dialog_DeleteSpreadsheet(itemID);
@@ -1780,45 +1775,45 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
     }
 
 
-/*    public void readXLSFile(Uri uri) throws IOException {
-        InputStream ExcelFileToRead = getContentResolver().openInputStream(uri);
-        //   Workbook workbook = WorkbookFactory.create(ExcelFileToRead);
-        // InputStream ExcelFileToRead = new FileInputStream(path);
-        //HSSFWorkbook wb = new HSSFWorkbook(ExcelFileToRead);
-        XSSFWorkbook workbook = null;
-        try {
-            workbook = new XSSFWorkbook(ExcelFileToRead);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        FileOutputStream fos = null;
-        try {
-            File file = Utility.getPathWorkbook(this);
-            fos = new FileOutputStream(file);
-            workbook.write(fos);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.flush();
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    /*    public void readXLSFile(Uri uri) throws IOException {
+            InputStream ExcelFileToRead = getContentResolver().openInputStream(uri);
+            //   Workbook workbook = WorkbookFactory.create(ExcelFileToRead);
+            // InputStream ExcelFileToRead = new FileInputStream(path);
+            //HSSFWorkbook wb = new HSSFWorkbook(ExcelFileToRead);
+            XSSFWorkbook workbook = null;
+            try {
+                workbook = new XSSFWorkbook(ExcelFileToRead);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
-        }
+            FileOutputStream fos = null;
+            try {
+                File file = Utility.getPathWorkbook(this);
+                fos = new FileOutputStream(file);
+                workbook.write(fos);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (fos != null) {
+                    try {
+                        fos.flush();
+                        fos.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
 
 
-        //  HSSFSheet sheet = wb.getSheetAt(0);
-        //   HSSFRow row;
-        // HSSFCell cell;
+            //  HSSFSheet sheet = wb.getSheetAt(0);
+            //   HSSFRow row;
+            // HSSFCell cell;
 
-        //     Iterator rows = sheet.rowIterator();
+            //     Iterator rows = sheet.rowIterator();
 
-    *//*    while (rows.hasNext()) {
+        *//*    while (rows.hasNext()) {
             row = (HSSFRow) rows.next();
             Iterator cells = row.cellIterator();
 
@@ -1842,52 +1837,53 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         }*//*
 
     }*/
-public void showBottomSheetDialog(String itemName,String itemID,String itemType) {
-    View view = getLayoutInflater().inflate(R.layout.menu_manage_drive, null);
-    BottomSheetDialog dialog = new BottomSheetDialog(this);
-    LinearLayout action_delete=view.findViewById(R.id.action_delete);
-    TextView folder_name=view.findViewById(R.id.name);
-    ImageView item_type_icon=view.findViewById(R.id.item_type_icon);
-    LinearLayout action_rename = view.findViewById(R.id.action_rename);
-    if(itemType.equals(DriveFolder.MIME_TYPE)){
-        item_type_icon.setImageResource(R.drawable.ic_baseline_folder_24);
-    }else {
-        item_type_icon.setImageResource(R.drawable.ic_baseline_list_alt_24);
+    public void showBottomSheetDialog(String itemName, String itemID, String itemType) {
+        View view = getLayoutInflater().inflate(R.layout.menu_manage_drive, null);
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        LinearLayout action_delete = view.findViewById(R.id.action_delete);
+        TextView folder_name = view.findViewById(R.id.name);
+        ImageView item_type_icon = view.findViewById(R.id.item_type_icon);
+        LinearLayout action_rename = view.findViewById(R.id.action_rename);
+        if (itemType.equals(DriveFolder.MIME_TYPE)) {
+            item_type_icon.setImageResource(R.drawable.ic_baseline_folder_24);
+        } else {
+            item_type_icon.setImageResource(R.drawable.ic_baseline_list_alt_24);
+        }
+
+
+        folder_name.setText(itemName);
+        action_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                String defaultSheetId = SharedPreferencesUtil.getDefaultSheetId(SpreadSheetListActivity.this);
+                if (defaultSheetId.equals(itemID)) {
+                    Dialog_DeleteSpreadsheet(itemID);
+                } else {
+                    deleteFileFolder(itemID);
+                }
+
+            }
+        });
+
+        action_rename.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                Dialog_RenameFolder(itemID, itemName, itemType);
+            }
+        });
+
+
+        dialog.setContentView(view);
+        dialog.show();
     }
 
-
-    folder_name.setText(itemName);
-    action_delete.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            dialog.dismiss();
-            String defaultSheetId = SharedPreferencesUtil.getDefaultSheetId(SpreadSheetListActivity.this);
-            if (defaultSheetId.equals(itemID)) {
-                Dialog_DeleteSpreadsheet(itemID);
-            } else {
-                deleteFileFolder(itemID);
-            }
-
-        }
-    });
-
-    action_rename.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            dialog.dismiss();
-            Dialog_RenameFolder(itemID, itemName,itemType);
-        }
-    });
-
-
-    dialog.setContentView(view);
-    dialog.show();
-}
     public void Dialog_RenameFolder(String fileFolderId, String currentName, String itemType) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        if(itemType.equals(DriveFolder.MIME_TYPE)){
+        if (itemType.equals(DriveFolder.MIME_TYPE)) {
             alertDialog.setMessage("Rename Folder");
-        }else {
+        } else {
             alertDialog.setMessage("Rename Spreadsheet");
         }
 
