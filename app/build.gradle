@@ -30,11 +30,11 @@ android {
         minSdkVersion 26
         targetSdkVersion 29
 
-        // versionCode 1
-        //versionName "1.0"
+         versionCode 1
+        versionName "1.0"
 
-        versionCode 9000
-        versionName "Dev"
+      //  versionCode 9000
+      //  versionName "Dev"
         useLibrary 'org.apache.http.legacy'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {

@@ -15,20 +15,44 @@
       },
       "oauth_client": [
         {
+          "client_id": "501551242318-161813lg8gouhim1pskaskrke92of60r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pqiorg.multitracker",
+            "certificate_hash": "b0b8dbcb947f24a2e7e3054070657e93c734c494"
+          }
+        },
+        {
+          "client_id": "501551242318-t0ve0c6k58poncdsfeieru7r851qdk8j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pqiorg.multitracker",
+            "certificate_hash": "796ed938ff02de0e7f31c9b4d879af364c86f7ba"
+          }
+        },
+        {
+          "client_id": "501551242318-kq9tg7rigilluscthuigd0t2pnjbfmin.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pqiorg.multitracker",
+            "certificate_hash": "19c280cc22ec3e3fc90c4eacfb3fc91d0997f138"
+          }
+        },
+        {
           "client_id": "501551242318-1c55p346a8gkp5583up0mpgc3tnvf5ju.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCt8ifeBStcu84HFjpJ6xuVbHt5hyzQp4w"
+          "current_key": "AIzaSyCM1OBMWWs6DGxob-RY2A9mM-LwkOUF5RM"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "501551242318-1c55p346a8gkp5583up0mpgc3tnvf5ju.apps.googleusercontent.com",
+              "client_id": "501551242318-7ro7hgv3thv0eqij6vds7fsfmcis9sgd.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

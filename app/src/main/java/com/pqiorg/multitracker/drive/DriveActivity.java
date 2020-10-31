@@ -544,6 +544,8 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                    //    Toast.makeText(DriveActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
+                        Utility.ReportNonFatalError("viewFileFolder",e.getMessage());
                         if (pullToRefresh != null && pullToRefresh.isRefreshing())
                             pullToRefresh.setRefreshing(false);
                         progressBar1.setVisibility(View.INVISIBLE);
@@ -624,6 +626,8 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        Utility.ReportNonFatalError("createFolder",e.getMessage());
+                       // Toast.makeText(DriveActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
                         progressBar1.setVisibility(View.INVISIBLE);
                         Log.d(TAG, "onFailure: " + e.getMessage());
                         Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show();
