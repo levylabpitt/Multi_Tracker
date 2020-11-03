@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -426,7 +427,35 @@ public class Utility {
         }
         return folder2;
     }
+    public static File getOutputMediaFolderForSpreadsheet() {
+        File folder2 = null;
+        try {
+            String extStorageDirectory = Environment.getExternalStorageDirectory().getAbsolutePath();
+            File folder = new File(extStorageDirectory, "Multitracker");
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
+            folder2 = new File(folder, "Spreadsheet");
+            if (!folder2.exists()) {
+                folder2.mkdir();
+            }
 
+
+            File nomedia = new File(folder2.getPath() + "/" + ".Nomedia");
+            try {
+                nomedia.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            return folder2;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return folder2;
+    }
     public static File getOutputMediaFilePath() {
         File folder2 = getOutputMediaFolder();
         try {
@@ -467,13 +496,14 @@ public class Utility {
     }
 
     public static File getExcelOutputMediaFilePath() {
-        File folder2 = getOutputMediaFolder();
+        File folder2 = getOutputMediaFolderForSpreadsheet();
         try {
             File mediaFile;
-            mediaFile = new File(folder2.getPath() + File.separator + "Sample.xlsx");
-            if (!mediaFile.exists()) {
-                mediaFile.createNewFile();
+            mediaFile = new File(folder2.getPath() + File.separator + "sample7392.xlsx");
+            if (mediaFile.exists()) {
+                boolean deleted = mediaFile.delete();
             }
+            mediaFile.createNewFile();
             return mediaFile;
         } catch (Exception e) {
             e.printStackTrace();
@@ -571,14 +601,7 @@ public class Utility {
     }
 
     public static void ReportNonFatalError(String Title, String Detail) {
-        // Crashlytics.logException(new Exception(Title + "--> " + Detail));
-      //  FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
-       // FirebaseCrashlytics.getInstance().recordException(new Exception(Title + "--> " + Detail));
         FirebaseCrashlytics.getInstance().recordException(new RuntimeException(Title + "---> " + Detail));
-      //  crashlytics.log(Title + "--> " + Detail);
-
-     //   FirebaseCrashlytics.getInstance().log("Higgs-Boson detected! Bailing out");
-
     }
 
     public static void logFeatureSelectedEvent(Context context, String Title, String Detail) {

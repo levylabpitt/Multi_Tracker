@@ -73,7 +73,6 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.pqiorg.multitracker.R;
-import com.pqiorg.multitracker.drive.DriveActivity;
 import com.pqiorg.multitracker.spreadsheet.viewer.SheetActivity;
 //import com.spreadsheet.viewer.SheetActivity;
 import com.synapse.Constants;
@@ -121,9 +120,6 @@ import pub.devrel.easypermissions.EasyPermissions;
 import static com.ammarptn.gdriverest.DriveServiceHelper.EXPORT_TYPE_MS_EXCEL;
 import static com.ammarptn.gdriverest.DriveServiceHelper.TYPE_GOOGLE_SHEETS;
 import static com.ammarptn.gdriverest.DriveServiceHelper.getGoogleDriveService;
-
-//import android.support.annotation.NonNull;
-//import android.support.v7.app.AppCompatActivity;
 
 
 public class SpreadSheetListActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks, DriveItemListener, DrivePathClickListener, DriveListener {
@@ -225,6 +221,7 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         initGoogleLayout();
         setToolbar();
         initFAB();
+
     }
 
     void initGoogleLayout() {
@@ -765,8 +762,6 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
             acquireGooglePlayServices();
         } else if (mCredential.getSelectedAccountName() == null) {
             chooseAccount();
-        } else if (!isDeviceOnline()) {
-            Log.e(this.toString(), "No network connection available.");
         }
     }
 
@@ -780,7 +775,6 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
                 mCredential.setSelectedAccountName(accountName);
                 Utility.ReportNonFatalError("2", accountName);
             } else {
-                // Start a dialog from which the user can choose an account
                 Utility.ReportNonFatalError("3", "startActivityForResult");
                 startActivityForResult(
                         mCredential.newChooseAccountIntent(),
@@ -813,10 +807,8 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
                 }
                 break;
             case REQUEST_ACCOUNT_PICKER:
-                if (resultCode == RESULT_OK && data != null &&
-                        data.getExtras() != null) {
+                if (resultCode == RESULT_OK && data != null && data.getExtras() != null) {
                     Utility.ReportNonFatalError("REQUEST_ACCOUNT_PICKER", data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME));
-
                     String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
                     setAccountName(accountName);
 
@@ -1144,10 +1136,10 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
                     RenameFileFolder(googleDriveFileHolder.getId(), spreadsheetTitle);
 
                 }).addOnFailureListener(e -> {
-                    Toast.makeText(context, "Failed!", Toast.LENGTH_SHORT).show();
-                    hideprogressdialog();
-                    Utility.ReportNonFatalError("uploadSampleSpreadsheetUsingDriveAPI", e.getMessage());
-                });
+            Toast.makeText(context, "Failed!", Toast.LENGTH_SHORT).show();
+            hideprogressdialog();
+            Utility.ReportNonFatalError("uploadSampleSpreadsheetUsingDriveAPI", e.getMessage());
+        });
     }
 
     private void RenameFileFolder(final String fileId, final String name) {
@@ -1302,8 +1294,14 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
     @Override
     public void onItemClick(String itemID, String itemName, String itemType) {
         if (itemType.equalsIgnoreCase("sheet")) {
-            new ReadFromSheetsTask(mCredential, this, itemID).execute();
-            // downloadFile(itemID);
+            if (mCredential == null || account == null || mCredential.getSelectedAccountName() == null || mCredential.getSelectedAccountName().isEmpty()) {
+                Toast.makeText(this, "Sign-in required!", Toast.LENGTH_SHORT).show();
+                mGoogleSignInClient.signOut();
+                signIn();
+            } else {
+                new ReadFromSheetsTask(mCredential, this, itemID).execute();
+                // downloadFile(itemID);
+            }
 
         } else if (itemType.equalsIgnoreCase("folder")) {
             refreshList(itemID, itemName);
@@ -1319,7 +1317,15 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
             Utility.showToast(context, "Default for writing data.");
         } else {
 
-            new CheckSpreadsheetTask(mCredential, context, ItemId, ItemName).execute();
+            if (mCredential == null || account == null || mCredential.getSelectedAccountName() == null || mCredential.getSelectedAccountName().isEmpty()) {
+                Toast.makeText(this, "Sign-in required!", Toast.LENGTH_SHORT).show();
+                mGoogleSignInClient.signOut();
+                signIn();
+            } else {
+                new CheckSpreadsheetTask(mCredential, context, ItemId, ItemName).execute();
+            }
+
+
         }
     }
 
@@ -1485,7 +1491,7 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         protected void onPostExecute(Void output) {
             hideprogressdialog();
 
-          /*  List<String> sheetNames = new ArrayList<>();
+          /* List<String> sheetNames = new ArrayList<>();
             for (Sheet sheet : sheetList) {
                 sheetNames.add(sheet.getProperties().getTitle());
             }*/
@@ -1697,7 +1703,7 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
                 onRefresh();
                 setToolbar();
             } else {
-                Snackbar.make(recycler_sheets, "This Spreadsheet do not have 'QR Sheet' & 'Bluetooth Sheet'.\nPlease choose another or create a new spreadsheet.", Snackbar.LENGTH_INDEFINITE)
+                Snackbar.make(recycler_sheets, "This Spreadsheet do not have 'QR Sheet' & 'Bluetooth Sheet'. Please choose another or create a new spreadsheet.", Snackbar.LENGTH_INDEFINITE)
                         .setAction("CLOSE", new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
