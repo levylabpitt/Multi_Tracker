@@ -146,7 +146,7 @@ public class FragmentBeacon extends Fragment {
         super.onResume();
         initFeasyBeaconAPI();
         if (!Utility.isMyServiceRunning(BeaconScannerService.class, activity)) {
-            activity.startService(new Intent(activity, BeaconScannerService.class));
+            activity.startForegroundService(new Intent(activity, BeaconScannerService.class));
         }
 
         //  startBeacon();

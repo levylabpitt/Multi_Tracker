@@ -232,7 +232,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
         //  startBeacon();
         initFeasyBeaconAPI();
         if (!Utility.isMyServiceRunning(BeaconScannerService.class, this)) {
-            this.startService(new Intent(this, BeaconScannerService.class));
+            this.startForegroundService(new Intent(this, BeaconScannerService.class));
         }
 
     }

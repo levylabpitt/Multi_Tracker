@@ -121,27 +121,23 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
     private void setToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Remove default title text
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        if (getSupportActionBar() != null){
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        }
+
         // Get access to the custom title view
         TextView mTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
-        ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
-
+      //  ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
+       // imgBack.setVisibility(View.GONE);
         mTitle.setText("Drive");
-        // toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+       // imgBack.setOnClickListener(v -> onBackPressed());
 
-        imgBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+
 
         String defaultFolderName = SharedPreferencesUtil.getDefaultDriveFolderName(this);
         if (!defaultFolderName.equals("")) {

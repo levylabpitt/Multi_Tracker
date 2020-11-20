@@ -100,7 +100,8 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         try {
             initFeasyBeaconAPI();
             if (!Utility.isMyServiceRunning(BeaconScannerService.class, this)) {
-                this.startService(new Intent(this, BeaconScannerService.class));
+                // this.startService(new Intent(this, BeaconScannerService.class));
+                this.startForegroundService(new Intent(this, BeaconScannerService.class));
             }
         } catch (Exception e) {
             Utility.ReportNonFatalError("Home", e.getMessage());
@@ -109,7 +110,8 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
 
     void initFeasyBeaconAPI() {
         fscBeaconApi = FscBeaconApiImp.getInstance(this);
-        fscBeaconApi.initialize();
+        if (fscBeaconApi == null) return;
+            fscBeaconApi.initialize();
         if (!fscBeaconApi.isBtEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, ENABLE_BT_REQUEST_ID);
@@ -241,7 +243,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         } else if (SharedPreferencesUtil.getLevyLabWorkspaceId(this).equals("")) {
             //Toast.makeText(this, "Please login to Asana!", Toast.LENGTH_SHORT).show();
             showAppCompatDialog("Please choose organization for Asana!", 3);
-        }else {
+        } else {
             startActivity(new Intent(HomeActivity.this, ContinuousCaptureActivityNew.class));
 
 
@@ -311,6 +313,8 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         } else if (requestCode == ENABLE_BT_REQUEST_ID) {
             if (resultCode == Activity.RESULT_CANCELED) {
                 btDisabled();
+            } else {
+                onResume();
             }
         }
     }

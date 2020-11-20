@@ -2,9 +2,14 @@ package com.synapse;
 
 import android.app.ActivityManager;
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
@@ -25,6 +30,9 @@ import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.TaskStackBuilder;
+
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
@@ -35,6 +43,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.JsonObject;
 import com.journeyapps.barcodescanner.Util;
 import com.pqiorg.multitracker.R;
+import com.pqiorg.multitracker.help.TabbedActivity;
 import com.room_db.Beacon;
 import com.synapse.model.BlackListedBeacon;
 import com.synapse.model.TaskData;
@@ -58,6 +67,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.pqiorg.multitracker.anoto.activities.sdk.util.DevLog.TAG;
 
 public class Utility {
@@ -113,7 +123,73 @@ public class Utility {
         }
         return folder2;
     }
+    public static void startNotification(Context context) {
+        // TODO Auto-generated method stub
+        NotificationCompat.Builder notification;
+        PendingIntent pIntent;
+        NotificationManager manager;
+        Intent resultIntent;
+        TaskStackBuilder stackBuilder;
 
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+
+            final String channelId = context.getResources().getString(R.string.default_notification_channel_id);
+            final String channelName = "channel name";
+            final NotificationChannel defaultChannel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_MIN);
+            manager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            if (manager != null) {
+                manager.createNotificationChannel(defaultChannel);
+            }
+
+
+            stackBuilder = TaskStackBuilder.create(context);
+
+            resultIntent = new Intent(context, TabbedActivity.class);
+            stackBuilder.addNextIntent(resultIntent);
+            pIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+            Notification notification2 = new Notification.Builder(context)
+                    .setContentTitle(context.getResources().getString(R.string.app_name))
+                    .setContentText("Beacon scanner running...")
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setChannelId(channelId)
+                    .setContentIntent(pIntent)
+                    .setOngoing(true)
+                    .build();
+
+            manager.notify(9083150, notification2);
+
+        } else {
+            //Creating Notification Builder
+            notification = new NotificationCompat.Builder(context);
+            //Title for Notification
+            notification .setContentTitle(context.getResources().getString(R.string.app_name));
+            //Message in the Notification
+            notification.setContentText("Beacon scanner running...");
+            //Alert shown when Notification is received
+            notification.setTicker("Beacon scanner running...");
+            //Icon to be set on Notification
+            notification.setSmallIcon(R.mipmap.ic_launcher);
+            notification.setOngoing(true);
+            /*nks*/
+            //Creating new Stack Builder
+            stackBuilder = TaskStackBuilder.create(context);
+            /*  stackBuilder.addParentStack(Result.class);*/
+            //Intent which is opened when notification is clicked
+            resultIntent = new Intent(context, TabbedActivity.class);
+            stackBuilder.addNextIntent(resultIntent);
+            pIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+            notification.setContentIntent(pIntent);
+            manager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            manager.notify(9083150, notification.build());
+
+        }
+
+
+    }
     public static File getPathWorkbook(Context context) {
         File folder2 = null;
         File file = null;

@@ -268,27 +268,22 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
     private void setToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Remove default title text
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        if (getSupportActionBar() != null){
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        }
         // Get access to the custom title view
         TextView mTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
-        ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
+      //  ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
 
         mTitle.setText("Spreadsheet");
         // toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
-        imgBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+     //   imgBack.setOnClickListener((View.OnClickListener) v -> onBackPressed());
         String defaultSheetName = SharedPreferencesUtil.getDefaultSheetName(this);
         if (!defaultSheetName.equals("")) {
             _default.setVisibility(View.VISIBLE);
@@ -396,11 +391,9 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
             onResume();
         } catch (ApiException e) {
             Utility.ReportNonFatalError("RC_SIGN_IN ApiException", String.valueOf(e.getStatusCode() + "-" + e));
-            Log.e("Sign-In", "signInResult:failed code=" + e.getStatusCode() + e);
-            Toast.makeText(context,
-                    "Sign In Failed.Try again Later", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Sign In Failed.Try again Later", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-            Utility.ReportNonFatalError("RC_SIGN_IN ApiException", "-" + e);
+            Utility.ReportNonFatalError("RC_SIGN_IN Exception", "-" + e);
         }
     }
 

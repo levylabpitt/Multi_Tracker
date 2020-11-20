@@ -186,7 +186,7 @@ public class MainActivityBeacon2 extends AppCompatActivity {
         super.onResume();
         initFeasyBeaconAPI();
         if (!Utility.isMyServiceRunning(BeaconScannerService.class, this)) {
-            this.startService(new Intent(this, BeaconScannerService.class));
+            this.startForegroundService(new Intent(this, BeaconScannerService.class));
         }
 
         //  startBeacon();

@@ -1,20 +1,27 @@
 package com.synapse.service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.feasycom.bean.BluetoothDeviceWrapper;
 import com.feasycom.controler.FscBeaconApi;
 import com.feasycom.controler.FscBeaconApiImp;
+import com.pqiorg.multitracker.R;
 import com.pqiorg.multitracker.feasybeacon.Utils.SettingConfigUtil;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
@@ -28,6 +35,7 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static androidx.core.app.NotificationCompat.PRIORITY_MIN;
 import static com.facebook.GraphRequest.TAG;
 
 
@@ -55,6 +63,24 @@ public class BeaconScannerService extends Service {
         mReceiver = new ScreenStateReceiver();
         registerReceiver(mReceiver, intentFilter);
 
+       // Utility.startNotification(this);
+        startNotification();
+    }
+
+
+    void startNotification(){
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentText("Beacon scanner running...")
+                .setPriority(PRIORITY_MIN)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build();
+
+        startForeground(101, notification);
     }
 
     @Override
@@ -64,6 +90,7 @@ public class BeaconScannerService extends Service {
         }*/
         startBeacon();
         // startTimerThread();
+
 
         return START_STICKY;
         //  return START_REDELIVER_INTENT;
@@ -84,10 +111,6 @@ public class BeaconScannerService extends Service {
         return null;
     }
 
-
-    /**
-     * Viewを破棄します。
-     */
     private void destroy() {
         if (timerTask != null) {
             timerTask.cancel();
@@ -121,9 +144,13 @@ public class BeaconScannerService extends Service {
 
 
     void startBeacon() {
-        fscBeaconApi = FscBeaconApiImp.getInstance();
-        fscBeaconApi.initialize();
-
+        try {
+            fscBeaconApi = FscBeaconApiImp.getInstance();
+            if (fscBeaconApi == null) return;
+            fscBeaconApi.initialize();
+        } catch (Exception e) {
+            e.getMessage();
+        }
         fscBeaconApi.setCallbacks(new FscBeaconCallbacksImpScannerService(new WeakReference<BeaconScannerService>((BeaconScannerService) this)));
         fscBeaconApi.startScan(0);
 
@@ -144,30 +171,7 @@ public class BeaconScannerService extends Service {
         @Override
         public void run() {
             addDevice(activityWeakReference.get().getDeviceQueue().poll());
-
-
-            /*activityWeakReference.get().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.e("UITimerTask", "Beacon Scanner Active");
-
-                }
-            });
-*/
-
-          /*  myRunnable = new Runnable() {
-                public void run() {
-                      addDevice(activityWeakReference.get().getDeviceQueue().poll());
-                       handler.postDelayed(this, 10);//1000 milli second=1 second
-                    Log.e("Service Active", "Beacon Scanner Active");
-                }
-            };
-            handler.postDelayed(myRunnable, 0);*/
-
-
         }
-
-
     }
 
     public Queue<BluetoothDeviceWrapper> getDeviceQueue() {
@@ -181,7 +185,6 @@ public class BeaconScannerService extends Service {
     public Handler getHandler() {
         return handler;
     }
-
 
 
     synchronized public boolean addDevice(BluetoothDeviceWrapper deviceDetail) {
@@ -388,5 +391,16 @@ public class BeaconScannerService extends Service {
             e.getMessage();
             Log.e(TAG, "Error in Thread Stopping: ");
         }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(NotificationManager notificationManager){
+        String channelId = "my_service_channelid";
+        String channelName = "My Foreground Service";
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
+        // omitted the LED color
+        channel.setImportance(NotificationManager.IMPORTANCE_NONE);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        notificationManager.createNotificationChannel(channel);
+        return channelId;
     }
 }

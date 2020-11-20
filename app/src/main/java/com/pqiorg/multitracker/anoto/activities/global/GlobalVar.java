@@ -1,6 +1,7 @@
 package com.pqiorg.multitracker.anoto.activities.global;
 
 import android.app.Application;
+import android.content.Intent;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -11,6 +12,7 @@ import com.synapse.AppVisibilityDetector;
 import com.synapse.Constants;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
+import com.synapse.service.BeaconScannerService;
 
 
 public class GlobalVar extends Application {
@@ -46,8 +48,9 @@ public class GlobalVar extends Application {
             @Override
             public void onAppGotoForeground() {
                 //app is from background to foreground
-
                 SharedPreferencesUtil.setAppInForeground(mInstance, true);
+                startForegroundService(new Intent(getApplicationContext(), BeaconScannerService.class));
+
                 Log.e("CHECK", "background to foreground: ");
                 if (resumeEventReceiverListener != null) {
                     resumeEventReceiverListener.onAppResume();
@@ -59,7 +62,7 @@ public class GlobalVar extends Application {
                 //app is from foreground to background
                 SharedPreferencesUtil.setAppInForeground(mInstance, false);
                 Log.e("CHECK", "foreground to background :");
-
+                stopService(new Intent(getApplicationContext(),BeaconScannerService.class));
                 if (!BuildConfig.DEBUG) {
                     // Utility.killAppFromBg();
                 }
