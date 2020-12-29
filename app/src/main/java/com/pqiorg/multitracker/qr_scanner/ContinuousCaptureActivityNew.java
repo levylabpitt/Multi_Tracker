@@ -163,6 +163,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             scannedQRCount++;
             QR_count.setText("QR scanned: " + scannedQRCount);
             // if (Utility.QRAlreadyScanned(scannedDataList, result.getText())) return;
+            Log.e("QR Scanned",result.getText());
             if (Utility.QRAlreadyScanned(AsanaTaskDataList, result.getText())) return;
             //  scannedQRDataList.add(new ScannedData(result.getText(), Utility.getCurrentDate(), "", "", "", "",bitmap,""));
             //   QR_count.setText("QR scanned: " + scannedQRDataList.size());

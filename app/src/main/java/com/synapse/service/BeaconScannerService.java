@@ -3,6 +3,7 @@ package com.synapse.service;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -22,7 +23,9 @@ import com.feasycom.bean.BluetoothDeviceWrapper;
 import com.feasycom.controler.FscBeaconApi;
 import com.feasycom.controler.FscBeaconApiImp;
 import com.pqiorg.multitracker.R;
+import com.pqiorg.multitracker.feasybeacon.TabbedActivityBeacon;
 import com.pqiorg.multitracker.feasybeacon.Utils.SettingConfigUtil;
+import com.synapse.HomeActivity;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
 import com.synapse.model.BlackListedBeacon;
@@ -73,6 +76,17 @@ public class BeaconScannerService extends Service {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
+
+
+      //  Intent notificationIntent = new Intent(this, HomeActivity.class);
+        Intent notificationIntent = new Intent(this, TabbedActivityBeacon.class);
+
+
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent intent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentText("Beacon scanner running...")
@@ -80,7 +94,12 @@ public class BeaconScannerService extends Service {
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .build();
 
+        notification.contentIntent=intent;
+
+
         startForeground(101, notification);
+
+
     }
 
     @Override
@@ -88,7 +107,11 @@ public class BeaconScannerService extends Service {
         /*if (mFloatingViewManager != null) {
             return START_STICKY;
         }*/
-        startBeacon();
+        try {
+            startBeacon();
+        }catch (Exception e){
+            e.getMessage();
+        }
         // startTimerThread();
 
 

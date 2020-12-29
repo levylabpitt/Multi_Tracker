@@ -63,6 +63,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 
 import butterknife.BindView;
@@ -102,7 +103,7 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
     SwipeRefreshLayout pullToRefresh;
 
     static final int REQUEST_AUTHORIZATION = 1001;
-    private static final String PREF_ACCOUNT_NAME = "accountName";
+    // private static final String PREF_ACCOUNT_NAME = "accountName";
 
     @BindView(R.id._default)
     TextView _default;
@@ -122,7 +123,7 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (getSupportActionBar() != null){
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowTitleEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -131,12 +132,11 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
 
         // Get access to the custom title view
         TextView mTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
-      //  ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
-       // imgBack.setVisibility(View.GONE);
+        //  ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
+        // imgBack.setVisibility(View.GONE);
         mTitle.setText("Drive");
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
-       // imgBack.setOnClickListener(v -> onBackPressed());
-
+        // imgBack.setOnClickListener(v -> onBackPressed());
 
 
         String defaultFolderName = SharedPreferencesUtil.getDefaultDriveFolderName(this);
@@ -366,7 +366,8 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
         signOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signOut();
+              //  signOut();
+                Dialog_GoogleLogoutAlert();
             }
         });
 
@@ -540,8 +541,9 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                    //    Toast.makeText(DriveActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
-                        Utility.ReportNonFatalError("viewFileFolder",e.getMessage());
+                        //    Toast.makeText(DriveActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
+                        Utility.ReportNonFatalError("viewFileFolder", e.getMessage());
+                        Log.e("Drive Error", Objects.requireNonNull(e.getMessage()));
                         if (pullToRefresh != null && pullToRefresh.isRefreshing())
                             pullToRefresh.setRefreshing(false);
                         progressBar1.setVisibility(View.INVISIBLE);
@@ -622,8 +624,8 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Utility.ReportNonFatalError("createFolder",e.getMessage());
-                       // Toast.makeText(DriveActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
+                        Utility.ReportNonFatalError("createFolder", e.getMessage());
+                        // Toast.makeText(DriveActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
                         progressBar1.setVisibility(View.INVISIBLE);
                         Log.d(TAG, "onFailure: " + e.getMessage());
                         Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show();
@@ -799,7 +801,18 @@ public class DriveActivity extends AppCompatActivity implements DriveItemListene
 
 
     }
-
+    public void Dialog_GoogleLogoutAlert() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setMessage("Do you want to sign out from current google account.");
+        alertDialog.setPositiveButton("Yes",
+                (dialog, which) -> {
+                    dialog.cancel();
+                    signOut();
+                });
+        alertDialog.setNegativeButton("Cancel",
+                (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
     public void Dialog_ChooseAction(final String fileId, final String name, final String content, final String mimeType) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         String[] colors = {"Rename", "Delete"};

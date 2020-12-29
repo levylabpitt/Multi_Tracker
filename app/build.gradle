@@ -52,8 +52,8 @@ android {
             debuggable true
         }
         release {
-            minifyEnabled true //Important step
-            shrinkResources true
+            minifyEnabled false //if true , Drive api will not work in release apk
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             debuggable false
             /* signingConfig signingConfigs.config

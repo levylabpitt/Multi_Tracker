@@ -259,7 +259,8 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         signOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signOut();
+                Dialog_GoogleLogoutAlert();
+               // signOut();
             }
         });
 
@@ -872,7 +873,18 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         dialog.show();
     }
 
-
+    public void Dialog_GoogleLogoutAlert() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(SpreadSheetListActivity.this);
+        alertDialog.setMessage("Do you want to sign out from current google account.");
+        alertDialog.setPositiveButton("Yes",
+                (dialog, which) -> {
+                    dialog.cancel();
+                    signOut();
+                });
+        alertDialog.setNegativeButton("Cancel",
+                (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
     private class CrateSpreadsheetTask extends AsyncTask<Void, Void, Void> {
         private Sheets mService = null;
         private Exception mLastError = null;
