@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.Patterns;
 
 import androidx.annotation.NonNull;
 
@@ -258,6 +259,20 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     }
 
     private void hitAPISearchTaskByWorkspace(String workspace_gid, String search_task) {
+
+        boolean isValidURL = Patterns.WEB_URL.matcher(search_task).matches();
+
+        if(isValidURL){
+            taskSearchAPICount++;
+            if (taskSearchAPICount < AsanaTaskDataList.size()) {
+                hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+            } else {
+                taskDetailAPICount = 0;
+                hitAPIGetTaskDetails(AsanaTaskDataList.get(taskDetailAPICount).getTaskId());
+            }
+            return;
+        }
+
         retrofitManager.searchTaskByWorkspace(this, this, Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
     }
 

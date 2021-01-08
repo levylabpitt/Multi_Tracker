@@ -1,22 +1,20 @@
 package com.pqiorg.multitracker.qr_scanner;
 
-import android.accounts.AccountManager;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -26,37 +24,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.ammarptn.gdriverest.DriveServiceHelper;
-import com.ammarptn.gdriverest.GoogleDriveFileHolder;
-import com.pqiorg.multitracker.drive.MimeUtils;
-import com.feasycom.bean.BluetoothDeviceWrapper;
 import com.feasycom.controler.FscBeaconApi;
 import com.feasycom.controler.FscBeaconApiImp;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.ExponentialBackOff;
-import com.google.api.services.sheets.v4.Sheets;
-import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.AppendValuesResponse;
-import com.google.api.services.sheets.v4.model.ValueRange;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.client.android.BeepManager;
@@ -68,51 +37,22 @@ import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 import com.pqiorg.multitracker.R;
 import com.pqiorg.multitracker.qr_scanner.intent_service.SaveWebRequestService;
 import com.synapse.ProgressHUD;
-import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
 import com.synapse.model.TaskData;
 import com.synapse.model.Task_data;
-import com.synapse.model.projetcs.GetProjectsResponse;
-import com.synapse.model.search_task.Datum;
-import com.synapse.model.search_task.SearchTaskByWorkspace;
-import com.synapse.model.task_detail.CustomField;
-import com.synapse.model.task_detail.TaskDetail;
-import com.synapse.model.tasks.TasksResponse;
-import com.synapse.model.update_task.UpdateTAskResponse;
-import com.synapse.model.upload_attachment.UploadAttachmentsResponse;
-import com.synapse.model.user_detail.UserDetailsResponse;
-import com.synapse.model.user_detail.Workspace;
-import com.synapse.network.APIError;
-import com.synapse.network.Constants;
-import com.synapse.network.RequestListener;
-import com.synapse.network.RetrofitManager;
 import com.synapse.service.BeaconScannerService;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Type;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
-import retrofit2.Response;
-
-import static com.ammarptn.gdriverest.DriveServiceHelper.getGoogleDriveService;
-import static com.facebook.GraphRequest.TAG;
 
 
 /**
@@ -148,6 +88,9 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
     @BindView(R.id.QR_count)
     TextView QR_count;
 
+    @BindView(R.id.webview)
+    WebView webview;
+    int URLCount = 0;
     private BarcodeCallback callback = new BarcodeCallback() {
         @Override
         public void barcodeResult(BarcodeResult result) {
@@ -295,7 +238,9 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
         }
 
         barcodeView.pause();
-        uploadMultipleFilesOnGoogleDriveFolder();
+
+        UnshortenURL();
+        //saveQRBitmapToDeviceStorage();
 
     }
 
@@ -374,14 +319,16 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
 
     }
 
-    void uploadMultipleFilesOnGoogleDriveFolder() {
-        showprogressdialog();
+    void saveQRBitmapToDeviceStorage() {
+      //  showprogressdialog();
         for (int j = 0; j < AsanaTaskDataList.size(); j++) {
             Task_data scannedData = AsanaTaskDataList.get(j);
             String filePath = Utility.saveImage(scannedData.getBitmap());
             scannedData.setBitmapFilePath(filePath);
             AsanaTaskDataList.set(j, scannedData);
         }
+
+
 
         String timestampBeacon = Utility.getCurrentTimestamp();// timestamp for beacons should be same for all QR code scanned at a time
         long timestamp = 0;
@@ -395,7 +342,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
                     "",
                     "",
                     "",
-                    "",
+                    task_data.getTaskId(),
                     "",
                     "",
                     "",
@@ -419,6 +366,60 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
         //   driveUploadAPICount = 0;
         //   uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
 
+
+    }
+
+
+    private void UnshortenURL() {
+       showprogressdialog();
+        if (URLCount >= AsanaTaskDataList.size() ) {  // task complete
+            webview.destroy();
+            saveQRBitmapToDeviceStorage();
+            return;
+        }
+        String url = AsanaTaskDataList.get(URLCount).getQrText();
+        boolean isValidURL = Patterns.WEB_URL.matcher(url).matches();
+        if (isValidURL && !url.startsWith("http://")) {
+            url = "http://" + url;
+        }
+
+        if (!isValidURL && URLCount < AsanaTaskDataList.size()) {
+            URLCount++;
+            UnshortenURL();
+            return;
+        }
+
+
+        webview.loadUrl(url);
+        webview.setWebViewClient(new WebViewClient() {
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+
+            }
+
+            // When finish loading page
+            public void onPageFinished(WebView view, String url) {
+                String expandedUrl = webview.getUrl();
+                if (!expandedUrl.isEmpty() && expandedUrl.startsWith("https://app.asana.com")) {
+                    webview.stopLoading();
+                    if (expandedUrl.contains("/")) {
+                        String asanaURL = expandedUrl.substring(expandedUrl.lastIndexOf("/") + 1);
+                        AsanaTaskDataList.get(URLCount).setTaskId( asanaURL);
+                        URLCount++;
+                        UnshortenURL();
+                    } else {
+                        Log.e("Error", "Link not resolved to valid asana URL");
+                    }
+                }
+
+
+            }
+        });
 
     }
 

@@ -325,30 +325,33 @@ public class FragmentBeacon extends Fragment {
 
 
     void getDevicesForSpinner() {
-        devices.clear();
-        devices.add("--All Beacons--");
-        for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevices) {
-            String deviceName = bluetoothDeviceWrapper.getName();
-            String completeName = bluetoothDeviceWrapper.getCompleteLocalName();
-            String nameDevice = "";
-            if ((completeName != null) && completeName.length() > 0) {
-                nameDevice = completeName;
-                if (completeName.length() > 10) {
-                    nameDevice = completeName.substring(0, 10);
+        try {
+            devices.clear();
+            devices.add("--All Beacons--");
+            for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevices) {
+                String deviceName = bluetoothDeviceWrapper.getName();
+                String completeName = bluetoothDeviceWrapper.getCompleteLocalName();
+                String nameDevice = "";
+                if ((completeName != null) && completeName.length() > 0) {
+                    nameDevice = completeName;
+                    if (completeName.length() > 10) {
+                        nameDevice = completeName.substring(0, 10);
+                    }
+                } else if (deviceName != null && deviceName.length() > 0) {
+                    nameDevice = deviceName;
+                    if (deviceName.length() > 10) {
+                        nameDevice = deviceName.substring(0, 10);
+                    }
                 }
-            } else if (deviceName != null && deviceName.length() > 0) {
-                nameDevice = deviceName;
-                if (deviceName.length() > 10) {
-                    nameDevice = deviceName.substring(0, 10);
+                if (!devices.contains(nameDevice)) {
+                    devices.add(nameDevice);
                 }
-            }
-            if (!devices.contains(nameDevice)) {
-                devices.add(nameDevice);
-            }
 
+            }
+            refreshSpinnerAdapter();
+        }catch (Exception e){
+            Log.e("Error--",e.getMessage());
         }
-        refreshSpinnerAdapter();
-
 
     }
 

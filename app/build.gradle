@@ -199,7 +199,8 @@ dependencies {
     implementation "android.arch.persistence.room:runtime:$room_version"
     annotationProcessor "android.arch.persistence.room:compiler:$room_version"
     testImplementation "android.arch.persistence.room:testing:$room_version"
-}
+
+   }
 //task copyNativeLibs(type: Copy) {
 //    from(new File(getProjectDir(), 'src/main/jniLibs')) { include '**/*.so' }
 //    into new File(buildDir, 'jniLibs')

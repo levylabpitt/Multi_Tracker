@@ -85,7 +85,8 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
 
     private RetrofitManager retrofitManager = RetrofitManager.getInstance();
-    String LevyLab_project_gid = "", LevyLab_workspace_gid = "";
+    String LevyLab_project_gid = "";
+    String    LevyLab_workspace_gid = "";
 
 
     // private Sheets mService = null;
@@ -239,7 +240,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
       //  String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
      //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
         LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(this);
-        LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
+       // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
 
         if (LevyLab_workspace_gid.equals("")) {
             hitAPIGetAsanaUserDetails();

@@ -62,6 +62,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:replace="android:name"
+        android:usesCleartextTraffic="true"
         >
         <activity
             android:name=".help.TabbedActivity"

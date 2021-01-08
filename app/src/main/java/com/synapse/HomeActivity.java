@@ -7,12 +7,17 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -47,8 +52,11 @@ import java.io.IOException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
+
+
 
 public class HomeActivity extends AppCompatActivity implements RequestListener {
     final int PERMISSION_REQUEST_CODE = 100;
@@ -72,7 +80,13 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     @BindView(R.id.btn_beacon)
     Button btn_beacon;
 
-    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
+    @BindView(R.id.webview)
+    WebView webview;
+
+
+    private final RetrofitManager retrofitManager = RetrofitManager.getInstance();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,9 +101,14 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
             RequestMultiplePermission();
         }
 
+
+
     }
 
+
+
     private void hitAPIRefreshToken() {
+        Log.e("Token", SharedPreferencesUtil.getAuthToken(this));
         retrofitManager.refreshToken(this, this, Constants.API_TYPE.REFRESH_TOKEN, SharedPreferencesUtil.getRefreshToken(this), SharedPreferencesUtil.getCodeVerifier(this), false);
 
     }
@@ -111,7 +130,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     void initFeasyBeaconAPI() {
         fscBeaconApi = FscBeaconApiImp.getInstance(this);
         if (fscBeaconApi == null) return;
-            fscBeaconApi.initialize();
+        fscBeaconApi.initialize();
         if (!fscBeaconApi.isBtEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, ENABLE_BT_REQUEST_ID);

@@ -32,7 +32,9 @@ import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
+import androidx.core.util.Preconditions;
 
+import com.google.api.client.http.HttpResponse;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
@@ -45,11 +47,20 @@ import com.journeyapps.barcodescanner.Util;
 import com.pqiorg.multitracker.R;
 import com.pqiorg.multitracker.help.TabbedActivity;
 import com.room_db.Beacon;
+//import com.shekhargulati.urlcleaner.UrlCleaner;
 import com.synapse.model.BlackListedBeacon;
 import com.synapse.model.TaskData;
 import com.synapse.model.Task_data;
 import com.synapse.model.ScannedData;
 import com.synapse.model.SpreadsheetItem;
+
+import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.CloseableHttpResponse;
+
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -57,6 +68,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -66,6 +79,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.pqiorg.multitracker.anoto.activities.sdk.util.DevLog.TAG;
@@ -123,6 +137,7 @@ public class Utility {
         }
         return folder2;
     }
+
     public static void startNotification(Context context) {
         // TODO Auto-generated method stub
         NotificationCompat.Builder notification;
@@ -166,7 +181,7 @@ public class Utility {
             //Creating Notification Builder
             notification = new NotificationCompat.Builder(context);
             //Title for Notification
-            notification .setContentTitle(context.getResources().getString(R.string.app_name));
+            notification.setContentTitle(context.getResources().getString(R.string.app_name));
             //Message in the Notification
             notification.setContentText("Beacon scanner running...");
             //Alert shown when Notification is received
@@ -190,6 +205,7 @@ public class Utility {
 
 
     }
+
     public static File getPathWorkbook(Context context) {
         File folder2 = null;
         File file = null;
@@ -503,6 +519,7 @@ public class Utility {
         }
         return folder2;
     }
+
     public static File getOutputMediaFolderForSpreadsheet() {
         File folder2 = null;
         try {
@@ -532,6 +549,7 @@ public class Utility {
         }
         return folder2;
     }
+
     public static File getOutputMediaFilePath() {
         File folder2 = getOutputMediaFolder();
         try {
@@ -887,7 +905,8 @@ public class Utility {
         }
         return obj3;
     }
-    public static String getRealPathFromURI(Uri contentURI,Context context) {
+
+    public static String getRealPathFromURI(Uri contentURI, Context context) {
         String result;
         Cursor cursor = context.getContentResolver().query(contentURI, null, null, null, null);
         if (cursor == null) {
@@ -944,7 +963,7 @@ public class Utility {
                 }
 
                 final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
+                final String[] selectionArgs = new String[]{
                         split[1]
                 };
 
@@ -967,7 +986,6 @@ public class Utility {
 
         return null;
     }
-
 
 
     /**
@@ -1004,14 +1022,14 @@ public class Utility {
 
     public static String getPath(final Context context, final Uri uri) {
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-        Log.i("URI",uri+"");
-        String result = uri+"";
+        Log.i("URI", uri + "");
+        String result = uri + "";
         // DocumentProvider
         //  if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
         if (isKitKat && (result.contains("media.documents"))) {
             String[] ary = result.split("/");
             int length = ary.length;
-            String imgary = ary[length-1];
+            String imgary = ary[length - 1];
             final String[] dat = imgary.split("%3A");
             final String docId = dat[1];
             final String type = dat[0];
@@ -1022,7 +1040,7 @@ public class Utility {
             } else if ("audio".equals(type)) {
             }
             final String selection = "_id=?";
-            final String[] selectionArgs = new String[] {
+            final String[] selectionArgs = new String[]{
                     dat[1]
             };
             return getDataColumn(context, contentUri, selection, selectionArgs);
@@ -1054,6 +1072,36 @@ public class Utility {
         }
         return null;
     }
+
+
+/*    public static void main(String[] srgs) throws IOException {
+        // String s=    UrlCleaner.unshortenUrl("http://bit.ly/1pwuGdF");
+
+
+        String s = unshortenUrl("http://bit.ly/1pwuGdF");
+        System.out.println(s);
+    }*/
+
+
+  /*  public static String unshortenUrl(final String shortUrl) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(shortUrl).openConnection();
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestMethod("HEAD");
+        connection.setRequestProperty("Connection", "Keep-Alive");
+        connection.setReadTimeout(4000);
+        int responseCode = connection.getResponseCode();
+        String url = connection.getHeaderField("Location");
+        if (responseCode / 100 == 3 && url != null) {
+            String expandedUrl = unshortenUrl(new URL(new URL(shortUrl), url).toString());
+            if (Objects.equals(expandedUrl, url))
+                return url;
+            else {
+                return expandedUrl;
+            }
+        }
+        return shortUrl;
+    }*/
+
 
 }
 
