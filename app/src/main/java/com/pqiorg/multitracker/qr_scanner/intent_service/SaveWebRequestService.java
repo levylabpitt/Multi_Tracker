@@ -83,7 +83,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     private DriveServiceHelper mDriveServiceHelper;
     GoogleAccountCredential mCredential;
     int strongestSignalBeaconRSSI = 0;
-    String strongestSignalBeaconUUID;
+    String strongestSignalBeaconUUID = "";
 
 
     private RetrofitManager retrofitManager = RetrofitManager.getInstance();
@@ -261,8 +261,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     private void hitAPISearchTaskByWorkspace(String workspace_gid, String search_task) {
 
         boolean isValidURL = Patterns.WEB_URL.matcher(search_task).matches();
-
-        if(isValidURL){
+        if (isValidURL) {
             taskSearchAPICount++;
             if (taskSearchAPICount < AsanaTaskDataList.size()) {
                 hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
@@ -447,7 +446,8 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
                 taskUpdateAPICount++;
                 if (taskUpdateAPICount < AsanaTaskDataList.size()) {
-                    updateTask();
+                   // updateTask();
+                    updateTaskNew();
                 } else {
                     //taskUpdateAPICount = 0;
                     feasybeaconTaskUpdateAPICount = 0;
@@ -503,17 +503,20 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             hitAPIGetFeasybeaconTaskDetails(AsanaTaskDataList.get(feasybeaconTaskDetailAPICount).getFeasybeacon_task_gid());
         } else {
             taskUpdateAPICount = 0;
-            updateTask();
+          //  updateTask();
+            updateTaskNew();
+
         }
     }
 
     void updateTask() {
         //if AsanaTaskDataList has an Anchor. Update NearAnchor URL to normal task containing no Anchor tag
-        String nearAnchorURL = Utility.getNearAnchorURL(AsanaTaskDataList);
+
         JsonObject input;
         if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor()) {
             input = Utility.getJSONForUpdatingAnchorTask(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
         } else {
+            String nearAnchorURL = Utility.getNearAnchorURL(AsanaTaskDataList);
             input = Utility.getJSONForUpdatingNormalTask(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
         }
 
@@ -521,6 +524,18 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
     }
 
+    void updateTaskNew() {
+
+        JsonObject input;
+        if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor() && AsanaTaskDataList.get(taskUpdateAPICount).getTaskId().equals(Utility.getLastScannedAnchorTaskID(AsanaTaskDataList))) {
+            // find logic here- https://app.asana.com/0/1190079917488218/1197159241924214
+            String nearAnchorURL = Utility.getNearAnchorURLNew(AsanaTaskDataList.get(taskUpdateAPICount));
+            input = Utility.getJSONForUpdatingAnchorTaskNew(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
+        }else{
+            input = Utility.getJSONForUpdatingNormalTaskNew(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
+        }
+        hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
+    }
 
     public void callAPI_UpdateFeasybeaconTask() {
         // because it is possible that Feasybeacon_UUID_gid may OR MAY NOT be available
