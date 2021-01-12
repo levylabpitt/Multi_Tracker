@@ -302,13 +302,17 @@ public class BeaconScannerService extends Service {
             return;
         }
         for (int i = 0; i < mDevices.size(); i++) {
-            BluetoothDeviceWrapper deviceDetail = mDevices.get(i);
-            for (int j = 0; j < blackListedBeacons.size(); j++) {
-                String id = blackListedBeacons.get(j).getId();
-                if (!deviceDetail.getAddress().equals(id)) {
-                    nonBlacklistedDevices.add(deviceDetail);
+            try {
+                BluetoothDeviceWrapper deviceDetail = mDevices.get(i);
+                for (int j = 0; j < blackListedBeacons.size(); j++) {
+                    String id = blackListedBeacons.get(j).getId();
+                    if (!deviceDetail.getAddress().equals(id)) {
+                        nonBlacklistedDevices.add(deviceDetail);
+                    }
                 }
+            }catch (Exception e){
             }
+
         }
     }
 

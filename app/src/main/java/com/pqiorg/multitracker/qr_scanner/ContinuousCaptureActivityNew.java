@@ -13,6 +13,8 @@ import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
@@ -106,7 +108,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             scannedQRCount++;
             QR_count.setText("QR scanned: " + scannedQRCount);
             // if (Utility.QRAlreadyScanned(scannedDataList, result.getText())) return;
-            Log.e("QR Scanned",result.getText());
+            Log.e("QR Scanned", result.getText());
             if (Utility.QRAlreadyScanned(AsanaTaskDataList, result.getText())) return;
             //  scannedQRDataList.add(new ScannedData(result.getText(), Utility.getCurrentDate(), "", "", "", "",bitmap,""));
             //   QR_count.setText("QR scanned: " + scannedQRDataList.size());
@@ -239,6 +241,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
 
         barcodeView.pause();
 
+        showprogressdialog();
         UnshortenURL();
         //saveQRBitmapToDeviceStorage();
 
@@ -320,14 +323,13 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
     }
 
     void saveQRBitmapToDeviceStorage() {
-      //  showprogressdialog();
+        //  showprogressdialog();
         for (int j = 0; j < AsanaTaskDataList.size(); j++) {
             Task_data scannedData = AsanaTaskDataList.get(j);
             String filePath = Utility.saveImage(scannedData.getBitmap());
             scannedData.setBitmapFilePath(filePath);
             AsanaTaskDataList.set(j, scannedData);
         }
-
 
 
         String timestampBeacon = Utility.getCurrentTimestamp();// timestamp for beacons should be same for all QR code scanned at a time
@@ -371,8 +373,8 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
 
 
     private void UnshortenURL() {
-       showprogressdialog();
-        if (URLCount >= AsanaTaskDataList.size() ) {  // task complete
+
+        if (URLCount >= AsanaTaskDataList.size()) {  // task complete
             webview.destroy();
             saveQRBitmapToDeviceStorage();
             return;
@@ -409,15 +411,23 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
                     webview.stopLoading();
                     if (expandedUrl.contains("/")) {
                         String asanaURL = expandedUrl.substring(expandedUrl.lastIndexOf("/") + 1);
-                        AsanaTaskDataList.get(URLCount).setTaskId( asanaURL);
+                        AsanaTaskDataList.get(URLCount).setTaskId(asanaURL);
                         URLCount++;
                         UnshortenURL();
                     } else {
                         Log.e("Error", "Link not resolved to valid asana URL");
                     }
+                }else if(expandedUrl.endsWith("404.html")){
+                    URLCount++;
+                    UnshortenURL();
                 }
 
+            }
 
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                URLCount++;
+                UnshortenURL();
             }
         });
 

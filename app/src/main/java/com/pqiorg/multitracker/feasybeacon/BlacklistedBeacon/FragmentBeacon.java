@@ -329,6 +329,7 @@ public class FragmentBeacon extends Fragment {
             devices.clear();
             devices.add("--All Beacons--");
             for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevices) {
+                if(bluetoothDeviceWrapper==null) continue;
                 String deviceName = bluetoothDeviceWrapper.getName();
                 String completeName = bluetoothDeviceWrapper.getCompleteLocalName();
                 String nameDevice = "";

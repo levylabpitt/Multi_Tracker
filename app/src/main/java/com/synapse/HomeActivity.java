@@ -178,7 +178,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0) {
+                if (grantResults.length > 2) {
                     boolean Camera = grantResults[0] == PackageManager.PERMISSION_GRANTED;
                     boolean LOCATION = grantResults[1] == PackageManager.PERMISSION_GRANTED;
                     boolean bLUETOOTH = grantResults[2] == PackageManager.PERMISSION_GRANTED;

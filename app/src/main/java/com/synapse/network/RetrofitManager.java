@@ -150,7 +150,6 @@ public class RetrofitManager implements OnRetryCallback {
                            // Log.e("Log_Response", response.body().string());
                             mRequestListener.onSuccess(response, mApiType);
 
-
                         } else {
                             //Log.e("Log_Error", response.toString());
                             mRequestListener.onApiException(error, response, mApiType);

@@ -87,7 +87,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
     private RetrofitManager retrofitManager = RetrofitManager.getInstance();
     String LevyLab_project_gid = "";
-    String    LevyLab_workspace_gid = "";
+    String LevyLab_workspace_gid = "";
 
 
     // private Sheets mService = null;
@@ -238,10 +238,10 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
 
     private void callApiToWriteDataOnAsana() {
-      //  String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
-     //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
+        //  String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
+        //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
         LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(this);
-       // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
+        // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
 
         if (LevyLab_workspace_gid.equals("")) {
             hitAPIGetAsanaUserDetails();
@@ -294,58 +294,89 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
         retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
 
-    @Override
-    public void onSuccess(Response<ResponseBody> response, Constants.API_TYPE apiType) {
+    void logResponseToFirebaseConsole(Response<ResponseBody> response) {
         try {
-            String strResponse = response.body().string();
             Log.e("APIResponse---->", response.body().toString());
             String url = response.raw().request().url().toString();
             String headers = response.raw().request().headers().toString();
-            Utility.ReportNonFatalError("onSuccess----", "<-url->\n " + url + " <-headers->\n " + headers + " <-Response->\n " + strResponse);
+            Utility.ReportNonFatalError("onSuccess----", "<-url->\n " + url + " <-headers->\n " + headers + " <-Response->\n " + response.body().string());
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
+
+    @Override
+    public void onSuccess(Response<ResponseBody> response, Constants.API_TYPE apiType) {
+        try {
+
+            logResponseToFirebaseConsole(response);
+
 
             if (apiType == Constants.API_TYPE.GET_USER_DETAILS) {
-                UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
-                String user_gid = userDetailsResponse.getData().getGid();
-              //  SharedPreferencesUtil.setAsanaUserId(this, user_gid);
-                List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
-                if (workspaces.size() > 0) {
-                    String workspace_gid = workspaces.get(0).getGid();
-                  //  SharedPreferencesUtil.setAsanaWorkspaceId(this, workspace_gid);
-                }
-                for (int i = 0; i < workspaces.size(); i++) {
-                    if (workspaces.get(i).getName().equals("levylab.org")) {
-                        LevyLab_workspace_gid = workspaces.get(i).getGid();
-                        SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
-                        //  hitAPIGetProjectsByWorkspace(workspaces.get(i).getGid());
-                        taskSearchAPICount = 0;
-                        hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
 
-                        break;
-                    } else if (i == workspaces.size() - 1) {
-                        // Toast.makeText(this, "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana. ", Toast.LENGTH_SHORT).show();
-                        Utility.ReportNonFatalError("onSuccess", "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana.");
+                try {
+                    if (!response.isSuccessful()) {
+                        return;
                     }
-                }
-            } else if (apiType == Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE) {
-                SearchTaskByWorkspace searchTaskResponse = new Gson().fromJson(strResponse, SearchTaskByWorkspace.class);
-                if (searchTaskResponse.getData() == null || searchTaskResponse.getData().isEmpty()) {
-                    // Utility.showToast(this, "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
-                    Utility.ReportNonFatalError("onSuccess", "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
-                } else {
-                    //  Utility.showToast(this, "Multiple matching tasks found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
-                    TaskData task_data = AsanaTaskDataList.get(taskSearchAPICount);
-                    List<Datum> listMatchingTasks = searchTaskResponse.getData();
-                    for (int j = 0; j < listMatchingTasks.size(); j++) {
-                        Datum matchingTask = listMatchingTasks.get(j);
-                        if (matchingTask.getResourceType().equals("task") && matchingTask.getName().equals(task_data.getQrText())) { //// TODO matching criteria will be changed later
-                            task_data.setTaskId(matchingTask.getGid());
-                            AsanaTaskDataList.set(taskSearchAPICount, task_data);
-                            break;
-                        } else if (j == listMatchingTasks.size() - 1) {
-                            /*     Utility.showToast(this, "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());*/
-                            Utility.ReportNonFatalError("onSuccess", "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+
+                    String strResponse = response.body().string();
+                    UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
+                    //  String user_gid = userDetailsResponse.getData().getGid();
+                    //  SharedPreferencesUtil.setAsanaUserId(this, user_gid);
+                    List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
+                    if (workspaces.size() > 0) {
+                        //  String workspace_gid = workspaces.get(0).getGid();
+                        //  SharedPreferencesUtil.setAsanaWorkspaceId(this, workspace_gid);
+
+                        for (int i = 0; i < workspaces.size(); i++) {
+                            if (workspaces.get(i).getName().equals("levylab.org")) {
+                                LevyLab_workspace_gid = workspaces.get(i).getGid();
+                                SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
+                                //  hitAPIGetProjectsByWorkspace(workspaces.get(i).getGid());
+                                taskSearchAPICount = 0;
+                                hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+
+                                break;
+                            } else if (i == workspaces.size() - 1) {
+                                // Toast.makeText(this, "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana. ", Toast.LENGTH_SHORT).show();
+                                Utility.ReportNonFatalError("onSuccess", "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana.");
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                }
+
+
+            } else if (apiType == Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE) {
+
+                try {
+                    if (response.isSuccessful()) {
+                        String strResponse = response.body().string();
+
+                        SearchTaskByWorkspace searchTaskResponse = new Gson().fromJson(strResponse, SearchTaskByWorkspace.class);
+                        if (searchTaskResponse.getData() == null || searchTaskResponse.getData().isEmpty()) {
+                            // Utility.showToast(this, "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                            Utility.ReportNonFatalError("onSuccess", "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                        } else {
+                            //  Utility.showToast(this, "Multiple matching tasks found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                            TaskData task_data = AsanaTaskDataList.get(taskSearchAPICount);
+                            List<Datum> listMatchingTasks = searchTaskResponse.getData();
+                            for (int j = 0; j < listMatchingTasks.size(); j++) {
+                                Datum matchingTask = listMatchingTasks.get(j);
+                                if (matchingTask.getResourceType().equals("task") && matchingTask.getName().equals(task_data.getQrText())) { //// TODO matching criteria will be changed later
+                                    task_data.setTaskId(matchingTask.getGid());
+                                    AsanaTaskDataList.set(taskSearchAPICount, task_data);
+                                    break;
+                                } else if (j == listMatchingTasks.size() - 1) {
+                                    /*     Utility.showToast(this, "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());*/
+                                    Utility.ReportNonFatalError("onSuccess", "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
                 taskSearchAPICount++;
                 if (taskSearchAPICount < AsanaTaskDataList.size()) {
@@ -355,51 +386,62 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                     hitAPIGetTaskDetails(AsanaTaskDataList.get(taskDetailAPICount).getTaskId());
                 }
             } else if (apiType == Constants.API_TYPE.TASK_DETAILS) {
-                TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
-                List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
-                if (fieldList == null) return;
-                String beacon1_gid = "", beacon1_RSSI_gid = "", beacon1_URL = "", feasybeacon_task_gid = "", nearAnchor_gid = "", barcode = "";
-                boolean isAnchor = false;
+                try {
+                    if (response.isSuccessful()) {
+                        String strResponse = response.body().string();
+                        TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
+                        List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
+                        if (fieldList == null) return;
+                        String beacon1_gid = "", beacon1_RSSI_gid = "", beacon1_URL = "", feasybeacon_task_gid = "", nearAnchor_gid = "", barcode = "";
+                        boolean isAnchor = false;
 
-                // Check if this Qr code is an Anchor or not
-                List<Tag> tagList = taskDetailsResponse.getData().getTags();
-                for (Tag tag : tagList) {
-                    if (tag.getName().equalsIgnoreCase("Anchor")) {
-                        isAnchor = true;
-                        break;
+                        // Check if this Qr code is an Anchor or not
+                        List<Tag> tagList = taskDetailsResponse.getData().getTags();
+                        for (Tag tag : tagList) {
+                            if (tag.getName().equalsIgnoreCase("Anchor")) {
+                                isAnchor = true;
+                                break;
+                            }
+                        }
+
+                        // get data from custom fields
+                        for (int i = 0; i < fieldList.size(); i++) {
+                            CustomField customField = fieldList.get(i);
+                            if (customField.getName().equals("Beacon1")) {
+                                beacon1_gid = customField.getGid();
+                            } else if (customField.getName().equals("Beacon1 RSSI")) {
+                                beacon1_RSSI_gid = customField.getGid();
+                            } else if (customField.getName().equals("Beacon1 URL")) {
+                                beacon1_URL = customField.getTextValue();
+                                if (beacon1_URL != null && !beacon1_URL.isEmpty() && beacon1_URL.contains("/")) {
+                                    feasybeacon_task_gid = beacon1_URL.substring(beacon1_URL.lastIndexOf("/") + 1);
+                                } else if (beacon1_URL == null) beacon1_URL = "";
+                            } else if (customField.getName().equals("Barcode")) {
+                                barcode = customField.getTextValue();
+                            } else if (customField.getName().equals("Near Anchor")) {
+                                nearAnchor_gid = customField.getGid();
+                            }
+                        }
+
+                        TaskData task_data = AsanaTaskDataList.get(taskDetailAPICount);
+                        task_data.setBeacon1_gid(beacon1_gid);
+                        task_data.setBeacon1_RSSI_gid(beacon1_RSSI_gid);
+                        task_data.setBeacon1_URL(beacon1_URL);
+                        task_data.setFeasybeacon_task_gid(feasybeacon_task_gid);
+                        task_data.setAnchor(isAnchor);
+                        task_data.setBarcode(barcode);
+                        task_data.setNearAnchor_gid(nearAnchor_gid);
+
+
+                        AsanaTaskDataList.set(taskDetailAPICount, task_data);
+
                     }
+
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
 
-                // get data from custom fields
-                for (int i = 0; i < fieldList.size(); i++) {
-                    CustomField customField = fieldList.get(i);
-                    if (customField.getName().equals("Beacon1")) {
-                        beacon1_gid = customField.getGid();
-                    } else if (customField.getName().equals("Beacon1 RSSI")) {
-                        beacon1_RSSI_gid = customField.getGid();
-                    } else if (customField.getName().equals("Beacon1 URL")) {
-                        beacon1_URL = customField.getTextValue();
-                        if (beacon1_URL != null && !beacon1_URL.isEmpty() && beacon1_URL.contains("/")) {
-                            feasybeacon_task_gid = beacon1_URL.substring(beacon1_URL.lastIndexOf("/") + 1);
-                        } else if (beacon1_URL == null) beacon1_URL = "";
-                    } else if (customField.getName().equals("Barcode")) {
-                        barcode = customField.getTextValue();
-                    } else if (customField.getName().equals("Near Anchor")) {
-                        nearAnchor_gid = customField.getGid();
-                    }
-                }
 
-                TaskData task_data = AsanaTaskDataList.get(taskDetailAPICount);
-                task_data.setBeacon1_gid(beacon1_gid);
-                task_data.setBeacon1_RSSI_gid(beacon1_RSSI_gid);
-                task_data.setBeacon1_URL(beacon1_URL);
-                task_data.setFeasybeacon_task_gid(feasybeacon_task_gid);
-                task_data.setAnchor(isAnchor);
-                task_data.setBarcode(barcode);
-                task_data.setNearAnchor_gid(nearAnchor_gid);
-
-
-                AsanaTaskDataList.set(taskDetailAPICount, task_data);
                 taskDetailAPICount++;
                 if (taskDetailAPICount < AsanaTaskDataList.size()) {
                     hitAPIGetTaskDetails(AsanaTaskDataList.get(taskDetailAPICount).getTaskId());
@@ -414,38 +456,52 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
             } else if (apiType == Constants.API_TYPE.FEASYBEACON_TASK_DETAILS) {
 
+                try {
+                    if (response.isSuccessful()) {
+                        String strResponse = response.body().string();
+                        TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
+                        List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
+                        if (fieldList == null) return;
+                        String feasybeacon_UUID_gid = "";
 
-                TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
-                List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
-                if (fieldList == null) return;
-                String feasybeacon_UUID_gid = "";
-
-                for (int i = 0; i < fieldList.size(); i++) {
-                    CustomField customField = fieldList.get(i);
-                    if (customField.getName().equals("UUID")) {
-                        feasybeacon_UUID_gid = customField.getGid();
-                        break;
+                        for (int i = 0; i < fieldList.size(); i++) {
+                            CustomField customField = fieldList.get(i);
+                            if (customField.getName().equals("UUID")) {
+                                feasybeacon_UUID_gid = customField.getGid();
+                                break;
+                            }
+                        }
+                        for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                            TaskData task_data = AsanaTaskDataList.get(i);
+                            if (task_data.getFeasybeacon_task_gid().equals(taskDetailsResponse.getData().getGid())) {
+                                task_data.setFeasybeacon_UUID_gid(feasybeacon_UUID_gid);
+                                AsanaTaskDataList.set(feasybeaconTaskDetailAPICount, task_data);
+                                break;
+                            }
+                        }
                     }
-                }
-                for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                    TaskData task_data = AsanaTaskDataList.get(i);
-                    if (task_data.getFeasybeacon_task_gid().equals(taskDetailsResponse.getData().getGid())) {
-                        task_data.setFeasybeacon_UUID_gid(feasybeacon_UUID_gid);
-                        AsanaTaskDataList.set(feasybeaconTaskDetailAPICount, task_data);
-                        break;
-                    }
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
 
                 feasybeaconTaskDetailAPICount++;
-
                 callAPI_getFeasyBeaconTaskDetails();
 
 
             } else if (apiType == Constants.API_TYPE.UPDATE_TASK) {
-                UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
+                try {
+                    if (response.isSuccessful()) {
+                        String strResponse = response.body().string();
+                        UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
+                    }
+
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                }
+
                 taskUpdateAPICount++;
                 if (taskUpdateAPICount < AsanaTaskDataList.size()) {
-                   // updateTask();
+                    // updateTask();
                     updateTaskNew();
                 } else {
 
@@ -457,22 +513,36 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
 
             } else if (apiType == Constants.API_TYPE.UPDATE_FEASYBEACON_TASK) {
+                try {
+                    if (response.isSuccessful()) {
+                        String strResponse = response.body().string();
+                        UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
+                    }
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                }
                 feasybeaconTaskUpdateAPICount++;
-                UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
-
                 callAPI_UpdateFeasybeaconTask();
 
             } else if (apiType == Constants.API_TYPE.UPLOAD_ATTACHMENTS) {
-                UploadAttachmentsResponse uploadAttachmentsResponse = new Gson().fromJson(strResponse, UploadAttachmentsResponse.class);
-                AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Completed");
+                try {
+                    if (response.isSuccessful()) {
+                        String strResponse = response.body().string();
+                        UploadAttachmentsResponse uploadAttachmentsResponse = new Gson().fromJson(strResponse, UploadAttachmentsResponse.class);
+                        AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Completed");
+                    } else {
+                        AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Failed");
+                    }
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                }
+
+
                 attachmentUploadAPICount++;
                 if (attachmentUploadAPICount < AsanaTaskDataList.size()) {
                     hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
                 } else {
                     new UpdateStatusInQRSheet(mCredential, this).execute();
-                    //  updateQRRecordStatusInSpreadsheet();
-                    //   new updateStatusInLocalDB().execute();
-                    // updateQRStatusInLocalDB();
                     new updateQRStatusInLocalDBAsync().execute();
                 }
 
@@ -482,16 +552,19 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
         }
     }
 
+
     @Override
     public void onFailure(Response<ResponseBody> response, Constants.API_TYPE apiType) {
-        Utility.ReportNonFatalError("onFailure", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        Utility.ReportNonFatalError("onFailure--", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        onSuccess(response, apiType); // So that api call flow will not break due to a failed api call
     }
 
     @Override
     public void onApiException(APIError error, Response<ResponseBody> response, Constants.API_TYPE apiType) {
-        Utility.ReportNonFatalError("onApiException", "API-->" + apiType + " Error-->" + response.errorBody().toString());
-
+        Utility.ReportNonFatalError("onApiException--", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        onSuccess(response, apiType);   // So that api call flow will not break due to a failed api call
     }
+
 
     public void callAPI_getFeasyBeaconTaskDetails() {
         // because it is possible that Feasybeacon_task_gid may OR MAY NOT be available
@@ -507,7 +580,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
             hitAPIGetFeasybeaconTaskDetails(AsanaTaskDataList.get(feasybeaconTaskDetailAPICount).getFeasybeacon_task_gid());
         } else {
             taskUpdateAPICount = 0;
-           // updateTask();
+            // updateTask();
             updateTaskNew();
         }
     }
@@ -520,7 +593,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
             // find logic here- https://app.asana.com/0/1190079917488218/1197159241924214
             String nearAnchorURL = Utility.getNearAnchorURLNew(AsanaTaskDataList.get(taskUpdateAPICount));
             input = Utility.getJSONForUpdatingAnchorTaskNew(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
-        }else{
+        } else {
             input = Utility.getJSONForUpdatingNormalTaskNew(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
         }
         hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
@@ -540,7 +613,6 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
         hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
     }
-
 
     public void callAPI_UpdateFeasybeaconTask() {
         // because it is possible that Feasybeacon_UUID_gid may OR MAY NOT be available
@@ -979,7 +1051,6 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
     }
 
-
     private class updateQRStatusInLocalDBAsync extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -1014,7 +1085,6 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
     }
 
-
     List<TaskData> getAllQRRecordsFromLocalStorage() {
         return DatabaseClient
                 .getInstance(getApplicationContext())
@@ -1023,7 +1093,6 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                 .getAll();
 
     }
-
 
     private class findRecordByTimestampAsync extends AsyncTask<Void, Void, TaskData> {
         String QRTimestamp;
