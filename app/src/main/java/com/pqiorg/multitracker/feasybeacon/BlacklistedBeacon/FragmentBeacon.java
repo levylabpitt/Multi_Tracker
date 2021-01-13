@@ -107,7 +107,7 @@ public class FragmentBeacon extends Fragment {
 
     public static Fragment newInstance() {
         FragmentBeacon frag = new FragmentBeacon();
-        return  frag;
+        return frag;
     }
 
     @Override
@@ -115,9 +115,9 @@ public class FragmentBeacon extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.activity_main_feasybeacon, container, false);
-       ButterKnife.bind(this, view);
+        ButterKnife.bind(this, view);
         activity = getActivity();
-         LocalBroadcastManager.getInstance(activity).registerReceiver(mMessageReceiver,
+        LocalBroadcastManager.getInstance(activity).registerReceiver(mMessageReceiver,
                 new IntentFilter("custom-event-name"));
 
         initView();
@@ -131,6 +131,7 @@ public class FragmentBeacon extends Fragment {
 
         return view;
     }
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -151,6 +152,7 @@ public class FragmentBeacon extends Fragment {
 
         //  startBeacon();
     }
+
     void setBeaconSpinner() {
 
         aa = new ArrayAdapter<String>(activity, R.layout.spinner_item, devices);
@@ -180,7 +182,6 @@ public class FragmentBeacon extends Fragment {
     }
 
 
-
     void initFeasyBeaconAPI() {
         fscBeaconApi = FscBeaconApiImp.getInstance(activity);
         fscBeaconApi.initialize();
@@ -200,7 +201,6 @@ public class FragmentBeacon extends Fragment {
             timerUI = null;
         }
     }
-
 
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -249,25 +249,25 @@ public class FragmentBeacon extends Fragment {
                 .setTitle(name)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface arg0, int arg1) {
-                        String uuid = "",type="", id="";
+                        String uuid = "", type = "", id = "";
                         if (deviceWrapper.getiBeacon() != null) {
-                            type="iBeacon";
+                            type = "iBeacon";
                             uuid = deviceWrapper.getiBeacon().getUuid();
-                            id=deviceWrapper.getAddress();    // matching criteria
+                            id = deviceWrapper.getAddress();    // matching criteria
                         } else if (deviceWrapper.getAltBeacon() != null) {
-                            type="AltBeacon";
+                            type = "AltBeacon";
                             uuid = deviceWrapper.getAltBeacon().getId();
-                            id=deviceWrapper.getAddress();  // matching criteria
+                            id = deviceWrapper.getAddress();  // matching criteria
                         } else if (deviceWrapper.getgBeacon() != null) {
-                            type="gBeacon";
-                            uuid =deviceWrapper.getgBeacon().getUrl();
-                            id=deviceWrapper.getAddress();  // matching criteria
+                            type = "gBeacon";
+                            uuid = deviceWrapper.getgBeacon().getUrl();
+                            id = deviceWrapper.getAddress();  // matching criteria
                         }
 
 
                         String strBeacons = SharedPreferencesUtil.getBlacklistBeacon(activity);
                         List<BlackListedBeacon> blackListedBeacons = Utility.convertJSONStringBeaconsList(strBeacons);
-                        blackListedBeacons.add(new BlackListedBeacon(deviceWrapper.getName(), deviceWrapper.getAddress(), uuid,type,id));
+                        blackListedBeacons.add(new BlackListedBeacon(deviceWrapper.getName(), deviceWrapper.getAddress(), uuid, type, id));
                         String json_BlacklistedBeacons = Utility.convertBeaconListToJSONString(blackListedBeacons);
                         SharedPreferencesUtil.setBlacklistBeacon(activity, json_BlacklistedBeacons);
                         beaconBlacklistedListener.onItemBlacklisted();
@@ -307,7 +307,6 @@ public class FragmentBeacon extends Fragment {
     }
 
 
-
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -325,11 +324,13 @@ public class FragmentBeacon extends Fragment {
 
 
     void getDevicesForSpinner() {
-        try {
-            devices.clear();
-            devices.add("--All Beacons--");
-            for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevices) {
-                if(bluetoothDeviceWrapper==null) continue;
+        if(devices==null) return;
+        devices.clear();
+        devices.add("--All Beacons--");
+        for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevices) {
+
+            try {
+                if (bluetoothDeviceWrapper == null) continue;
                 String deviceName = bluetoothDeviceWrapper.getName();
                 String completeName = bluetoothDeviceWrapper.getCompleteLocalName();
                 String nameDevice = "";
@@ -348,12 +349,18 @@ public class FragmentBeacon extends Fragment {
                     devices.add(nameDevice);
                 }
 
+            } catch (Exception e) {
+                // Log.e("Error--",String.valueOf(e.getMessage()));
             }
-            refreshSpinnerAdapter();
-        }catch (Exception e){
-            Log.e("Error--",e.getMessage());
+
+
         }
 
+        try {
+        refreshSpinnerAdapter();
+        } catch (Exception e) {
+            // Log.e("Error--",String.valueOf(e.getMessage()));
+        }
     }
 
     void getFilterBeaconList(String beaconName) {

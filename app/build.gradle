@@ -14,9 +14,7 @@ ext.artifactId = 'zxing-android-embedded'
 
 dependencies {
     api project.zxingCore
-
     api 'androidx.legacy:legacy-support-v4:1.0.0'
-
     testImplementation 'junit:junit:4.13'
     testImplementation "org.mockito:mockito-core:1.9.5"
 }
@@ -34,7 +32,7 @@ android {
       //  versionName "1.0"
 
         versionCode 9000
-        versionName "12Jan21"
+        versionName "13Jan21"
         useLibrary 'org.apache.http.legacy'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {

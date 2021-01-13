@@ -13,6 +13,7 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -32,6 +33,7 @@ import com.synapse.model.BlackListedBeacon;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -54,8 +56,9 @@ public class BeaconScannerService extends Service {
     private static Timer timerUI;
     private static TimerTask timerTask;
     Queue<BluetoothDeviceWrapper> deviceQueue = new LinkedList<BluetoothDeviceWrapper>();
-    private static ArrayList<BluetoothDeviceWrapper> mDevices = new ArrayList<BluetoothDeviceWrapper>();
-    private static ArrayList<BluetoothDeviceWrapper> nonBlacklistedDevices = new ArrayList<BluetoothDeviceWrapper>();
+    private static List<BluetoothDeviceWrapper> mDevices = Collections.synchronizedList(new ArrayList<BluetoothDeviceWrapper>());
+
+    private static List<BluetoothDeviceWrapper> nonBlacklistedDevices = Collections.synchronizedList(new ArrayList<BluetoothDeviceWrapper>());
 
     @Override
     public void onCreate() {
@@ -66,19 +69,19 @@ public class BeaconScannerService extends Service {
         mReceiver = new ScreenStateReceiver();
         registerReceiver(mReceiver, intentFilter);
 
-       // Utility.startNotification(this);
+        // Utility.startNotification(this);
         startNotification();
     }
 
 
-    void startNotification(){
+    void startNotification() {
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
 
 
-      //  Intent notificationIntent = new Intent(this, HomeActivity.class);
+        //  Intent notificationIntent = new Intent(this, HomeActivity.class);
         Intent notificationIntent = new Intent(this, TabbedActivityBeacon.class);
 
 
@@ -94,7 +97,7 @@ public class BeaconScannerService extends Service {
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .build();
 
-        notification.contentIntent=intent;
+        notification.contentIntent = intent;
 
 
         startForeground(101, notification);
@@ -109,7 +112,7 @@ public class BeaconScannerService extends Service {
         }*/
         try {
             startBeacon();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.getMessage();
         }
         // startTimerThread();
@@ -180,7 +183,13 @@ public class BeaconScannerService extends Service {
 
         timerUI = new Timer();
         timerTask = new UITimerTask(new WeakReference<BeaconScannerService>((BeaconScannerService) this));
-        timerUI.schedule(timerTask, 100, 100);
+        timerUI.schedule(timerTask, 0, 1500);
+
+        /* @param task   task to be scheduled.
+           @param delay  delay in milliseconds before task is to be executed.
+           @param period time in milliseconds between successive task executions.
+        */
+
     }
 
 
@@ -259,10 +268,10 @@ public class BeaconScannerService extends Service {
         return false;
     }
 
-    public static void clearBeaconsList() {
-        mDevices.clear();
-    }
-
+    /*   public static void clearBeaconsList() {
+           mDevices.clear();
+       }
+   */
     boolean isBlackListedBeacon(BluetoothDeviceWrapper deviceDetail) {
         String strBeacons = SharedPreferencesUtil.getBlacklistBeacon(this);
         List<BlackListedBeacon> blackListedBeacons = Utility.convertJSONStringBeaconsList(strBeacons);
@@ -296,11 +305,16 @@ public class BeaconScannerService extends Service {
     void getNonBlacklistedDevices() {
         String strBeacons = SharedPreferencesUtil.getBlacklistBeacon(this);
         List<BlackListedBeacon> blackListedBeacons = Utility.convertJSONStringBeaconsList(strBeacons);
-        nonBlacklistedDevices.clear();
-        if (blackListedBeacons.isEmpty()) {
-            nonBlacklistedDevices.addAll(mDevices);
-            return;
+        // nonBlacklistedDevices.clear();
+        try {
+            nonBlacklistedDevices = Collections.synchronizedList(new ArrayList<BluetoothDeviceWrapper>());
+            if (blackListedBeacons == null || blackListedBeacons.isEmpty()) {
+                nonBlacklistedDevices.addAll(mDevices);
+                return;
+            }
+        } catch (Exception e) {
         }
+
         for (int i = 0; i < mDevices.size(); i++) {
             try {
                 BluetoothDeviceWrapper deviceDetail = mDevices.get(i);
@@ -310,18 +324,17 @@ public class BeaconScannerService extends Service {
                         nonBlacklistedDevices.add(deviceDetail);
                     }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
             }
-
         }
     }
 
     private void sendBroadcast(BluetoothDeviceWrapper deviceDetail) {
         getNonBlacklistedDevices();
         Intent intent = new Intent("custom-event-name");
-        intent.putExtra("message", getBeaconList().size() + "");
+        intent.putExtra("message", String.valueOf(getBeaconList().size()));
         intent.putExtra("deviceDetail", deviceDetail);
-        intent.putExtra("deviceList", nonBlacklistedDevices);  // mDevices
+        intent.putExtra("deviceList", new ArrayList<BluetoothDeviceWrapper>(nonBlacklistedDevices));  // mDevices
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -419,8 +432,9 @@ public class BeaconScannerService extends Service {
             Log.e(TAG, "Error in Thread Stopping: ");
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(NotificationManager notificationManager){
+    private String createNotificationChannel(NotificationManager notificationManager) {
         String channelId = "my_service_channelid";
         String channelName = "My Foreground Service";
         NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
