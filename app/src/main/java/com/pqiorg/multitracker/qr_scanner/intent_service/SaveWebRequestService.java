@@ -86,7 +86,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     String strongestSignalBeaconUUID = "";
 
 
-    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
+//    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
     String LevyLab_project_gid = "", LevyLab_workspace_gid = "";
 
 
@@ -255,6 +255,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     }
 
     private void hitAPIGetAsanaUserDetails() {
+         RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getUserDetails(this, this, Constants.API_TYPE.GET_USER_DETAILS, false);
     }
 
@@ -271,27 +272,32 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             }
             return;
         }
-
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.searchTaskByWorkspace(this, this, Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
     }
 
     private void hitAPIGetTaskDetails(String task_gid) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getTaskDetails(this, this, Constants.API_TYPE.TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIGetFeasybeaconTaskDetails(String task_gid) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getTaskDetails(this, SaveWebRequestService.this, Constants.API_TYPE.FEASYBEACON_TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIUpdateTask(String task_gid, JsonObject input) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_TASK, task_gid, input, false);
     }
 
     private void hitAPIUpdateFeasybeaconTask(String task_gid, JsonObject input) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_FEASYBEACON_TASK, task_gid, input, false);
     }
 
     private void hitAPIUploadAttachments(String task_gid, MultipartBody.Part IMAGE) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
 
@@ -668,7 +674,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         protected Integer doInBackground(Void... params) {
 
             try {
-
+           /************************Preparing data for QR Sheet*******************************/
                 List<List<Object>> QR_dataList = new ArrayList<>();
                 for (int i = 0; i < AsanaTaskDataList.size(); i++) {
                     List<Object> list1 = new ArrayList<>();
@@ -681,9 +687,11 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     list1.add(AsanaTaskDataList.get(i).getQrText());
                     list1.add(AsanaTaskDataList.get(i).getGdriveFileThumbnail());
                     list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
+                    list1.add(AsanaTaskDataList.get(i).getErrors()); // for updating error details in 'errors' column in QR spreadsheet
                     QR_dataList.add(list1);
                 }
 
+             /************************Preparing data for Bluetooth Sheet*******************************/
                 //updating timestamp in bluetooth sheet
                 //  List<List<Object>> Bluetooth_dataList = BeaconScannerService.getBeaconList();
                 List<List<Object>> BluetoothBeacons_dataList = new ArrayList<>();
@@ -710,6 +718,8 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     list1.set(2, ++timestampBluetoothSheet); // to nearly match with QRSheetTimestamp
                 }
                 if (strongestSignalBeaconUUID == null) strongestSignalBeaconUUID = "";
+
+                /************************Ready to Write data to Sheets*******************************/
                 writeToQRSheet(QR_dataList);
                 writeToBLUETOOTHSheet(BluetoothBeacons_dataList);
 
@@ -976,22 +986,27 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         }
 
         void saveQRRecordsInLocalDB() {
-            try {
-                for (TaskData task : AsanaTaskDataList) {
+
+                for (int i=0;i<AsanaTaskDataList.size();i++) {
+                    TaskData task = AsanaTaskDataList.get(i);
+                    try {
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .taskDao()
                             .insert(task);
+                    } catch (Exception e) {
+                        addErrorDetail(i,"Error in inserting QR record in local db");
+                        Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
+                    }
                 }
 
-            } catch (Exception e) {
-                Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
-            }
+
         }
 
         void saveBeaconRecordsInLocalDB() {
             if (Bluetooth_dataList == null || Bluetooth_dataList.isEmpty()) return;
-            try {
+
                 for (List<Object> beaconData : Bluetooth_dataList) {
+                    try {
                     Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
                             AsanaTaskDataList.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
                             String.valueOf(beaconData.get(1)),
@@ -1004,11 +1019,12 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .beaconDao()
                             .insert(beacon);
+                    } catch (Exception e) {
+                        Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
+                    }
                 }
 
-            } catch (Exception e) {
-                Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
-            }
+
         }
 
 
@@ -1031,6 +1047,17 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 .getAll();
 
     }
+
+    void addErrorDetail(int TaskPos, String errorDetail){
+      String prevErrors=  AsanaTaskDataList.get(TaskPos).getErrors();
+      if(prevErrors.equals("")){
+          AsanaTaskDataList.get(TaskPos).setErrors(prevErrors+errorDetail);
+      }else {
+          AsanaTaskDataList.get(TaskPos).setErrors(prevErrors+"\n"+errorDetail);
+      }
+
+    }
+
 }
 
 

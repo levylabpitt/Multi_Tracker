@@ -210,7 +210,7 @@ public class RetrofitManager implements OnRetryCallback {
                 }
 
 
-//                mRequestListener.onFailure(t, mApiType);
+             //  mRequestListener.onFailure(null, mApiType);
 
 
             }

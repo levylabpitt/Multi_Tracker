@@ -85,7 +85,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
     String strongestSignalBeaconUUID;
 
 
-    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
+    //  private RetrofitManager retrofitManager = RetrofitManager.getInstance();
     String LevyLab_project_gid = "";
     String LevyLab_workspace_gid = "";
 
@@ -253,6 +253,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
     }
 
     private void hitAPIGetAsanaUserDetails() {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getUserDetails(this, this, Constants.API_TYPE.GET_USER_DETAILS, false);
     }
 
@@ -270,27 +271,32 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
             return;
         }
 
-
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.searchTaskByWorkspace(this, this, Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
     }
 
     private void hitAPIGetTaskDetails(String task_gid) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getTaskDetails(this, this, Constants.API_TYPE.TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIGetFeasybeaconTaskDetails(String task_gid) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getTaskDetails(this, UpdateWebRequestService.this, Constants.API_TYPE.FEASYBEACON_TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIUpdateTask(String task_gid, JsonObject input) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_TASK, task_gid, input, false);
     }
 
     private void hitAPIUpdateFeasybeaconTask(String task_gid, JsonObject input) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_FEASYBEACON_TASK, task_gid, input, false);
     }
 
     private void hitAPIUploadAttachments(String task_gid, MultipartBody.Part IMAGE) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
 
@@ -684,7 +690,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
         protected Integer doInBackground(Void... params) {
 
             try {
-
+                /************************Preparing data for QR Sheet*******************************/
                 List<List<Object>> QR_dataList = new ArrayList<>();
                 for (int i = 0; i < AsanaTaskDataList.size(); i++) {
                     List<Object> list1 = new ArrayList<>();
@@ -699,7 +705,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                     list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
                     QR_dataList.add(list1);
                 }
-
+                /************************Preparing data for Bluetooth Sheet*******************************/
                 //updating timestamp in bluetooth sheet
                 List<List<Object>> BluetoothBeacons_dataList = new ArrayList<>();
                 BluetoothBeacons_dataList.addAll(Bluetooth_dataList);
@@ -727,7 +733,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                 }
                 if (strongestSignalBeaconUUID == null) strongestSignalBeaconUUID = "";
 
-
+                /************************Ready to Update data to Sheets*******************************/
                 String QRTimestamp = AsanaTaskDataList.get(0).getTimestamp();
                 String position = findRowPositionInQRSheet(QRTimestamp);
                 updateRowInQRSheet(QR_dataList, position);
@@ -1072,15 +1078,18 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
         }
 
         void updateQRStatusInLocalDB() {
-            try {
-                for (TaskData task : AsanaTaskDataList) {
+
+            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                TaskData task = AsanaTaskDataList.get(i);
+                try {
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .taskDao()
                             .updateStatus(task.getTimestamp(), task.getTaskId(), task.getFeasybeacon_UUID_gid(), task.getFeasybeacon_task_gid(), task.getGdriveFileId(), task.getGdriveFileParentId(), task.getGdriveFileThumbnail(), task.getBeacon1_RSSI_gid(), task.getBeacon1_URL(), task.getBeacon1_gid(), task.getStatus());
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("updateQRStatusInLocalDB", e.getMessage());
                 }
-            } catch (Exception e) {
-                Utility.ReportNonFatalError("updateQRStatusInLocalDB", e.getMessage());
             }
+
         }
 
     }

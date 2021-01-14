@@ -65,8 +65,12 @@ public class TaskData implements Serializable {
     String timestampBeacon;
 
 
+    // column for details of errors, if any
+    @ColumnInfo(name = "errors")
+    String errors;
 
-    public TaskData(String qrText, String dateTime, String timestamp, String bitmapFilePath, String gdriveFileThumbnail, String gdriveFileId, String gdriveFileParentId, String taskId, String beacon1_gid, String beacon1_RSSI_gid, String beacon1_URL, String feasybeacon_task_gid, String feasybeacon_UUID_gid, String status,String timestampBeacon, boolean isAnchor, String barcode, String nearAnchor_gid) {
+
+    public TaskData(String qrText, String dateTime, String timestamp, String bitmapFilePath, String gdriveFileThumbnail, String gdriveFileId, String gdriveFileParentId, String taskId, String beacon1_gid, String beacon1_RSSI_gid, String beacon1_URL, String feasybeacon_task_gid, String feasybeacon_UUID_gid, String status,String timestampBeacon, boolean isAnchor, String barcode, String nearAnchor_gid, String errors) {
         this.qrText = qrText;
         this.dateTime = dateTime;
         this.timestamp = timestamp;
@@ -85,7 +89,7 @@ public class TaskData implements Serializable {
         this.nearAnchor_gid=nearAnchor_gid;
         this.status=status;
         this.timestampBeacon=timestampBeacon;
-
+        this.errors=errors;
 
 
     }
@@ -240,5 +244,13 @@ public class TaskData implements Serializable {
 
     public void setNearAnchor_gid(String nearAnchor_gid) {
         this.nearAnchor_gid = nearAnchor_gid;
+    }
+
+    public String getErrors() {
+        return errors;
+    }
+
+    public void setErrors(String errors) {
+        this.errors = errors;
     }
 }

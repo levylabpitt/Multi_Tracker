@@ -354,6 +354,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
                     timestampBeacon,
                     false,
                     "",
+                    "",
                     ""));
         }
         hideprogressdialog();
