@@ -80,21 +80,25 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     final String LevyLabProject = "LevyLab AoT (all items)";
 
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
-    private DriveServiceHelper mDriveServiceHelper;
-    GoogleAccountCredential mCredential;
+    //  private DriveServiceHelper mDriveServiceHelper;
+    // GoogleAccountCredential mCredential;
     int strongestSignalBeaconRSSI = 0;
     String strongestSignalBeaconUUID = "";
 
 
-//    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
-    String LevyLab_project_gid = "", LevyLab_workspace_gid = "";
+    //    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
+    //  String LevyLab_project_gid = "";
+    String LevyLab_workspace_gid = "";
 
 
     /*private Sheets mService = null;
     private Exception mLastError = null;
     private Context mContext;
 */
+
+
     long timestampBluetoothSheet = 0;
+    String accountName = "";
 
     public SaveWebRequestService() {
         super("MyWebRequestService");
@@ -104,12 +108,13 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     @Override
     public void onCreate() {
         super.onCreate();
-
-        initDriveServiceHelper();
-        initGoogleSheetServiceHelper();
+        accountName = SharedPreferencesUtil.getAccountName(this);
+        Utility.ReportNonFatalError("accountName", accountName);
+        //  initDriveServiceHelper();
+        //  initGoogleSheetServiceHelper();
 
     }
-
+/*
     void initDriveServiceHelper() {
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
         if (account != null) {
@@ -118,8 +123,6 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(new ExponentialBackOff());
     }
-
-
     void initGoogleSheetServiceHelper() {
         String accountName = SharedPreferencesUtil.getAccountName(this);
         Utility.ReportNonFatalError("accountName", accountName);
@@ -127,21 +130,13 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             mCredential.setSelectedAccountName(accountName);
         }
 
-     /*   mContext = this;
-        HttpTransport transport = AndroidHttp.newCompatibleTransport();
-        JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-        mService = new Sheets.Builder(
-                transport, jsonFactory, mCredential)
-                .setApplicationName(getResources().getString(R.string.app_name))
-
-                .build();*/
     }
+*/
 
     @Override
     protected void onHandleIntent(Intent intent) {
         AsanaTaskDataList = (List<TaskData>) intent.getSerializableExtra(QR_DATA_LIST);
         Bluetooth_dataList = BeaconScannerService.getBeaconList();
-
         timestampBluetoothSheet = Long.parseLong(AsanaTaskDataList.get(AsanaTaskDataList.size() - 1).getTimestamp());
 
         new saveQRRecordsInLocalDBAsync().execute();
@@ -155,19 +150,24 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         if (driveUploadAPICount < AsanaTaskDataList.size()) {
             uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
         } else {
-            //   getGoogleDriveFileThumbnails();
+            //   getGoogleDriveFileThumbnails(); // should not use because thumbnail link works only for few days
             for (int i = 0; i < AsanaTaskDataList.size(); i++) {
                 AsanaTaskDataList.get(i).setGdriveFileThumbnail("Parent_Id=" + AsanaTaskDataList.get(i).getGdriveFileParentId() + "," + "File_Id=" + AsanaTaskDataList.get(i).getGdriveFileId());
             }
-            new writeQRRecordsInSpreadsheet(mCredential, SaveWebRequestService.this).execute();
+            new writeQRRecordsInSpreadsheet().execute();
 
         }
     }
 
 
     void uploadFileOnGoogleDriveFolder(String filePath, int index) {
-
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
+        DriveServiceHelper mDriveServiceHelper = null;
+        if (account != null) {
+            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
+        }
         if (mDriveServiceHelper == null) {
+            //Log error here
             return;
         }
 
@@ -192,7 +192,6 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e(this.toString(), "Error_Log_uploadFileOnGoogleDriveFolder:" + e.getMessage());
                         Utility.ReportNonFatalError("uploadFileOnGoogleDriveFolder", e.getMessage());
                         continueUploadFileOnGoogleDrive();
                     }
@@ -200,7 +199,13 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     }
 
     private void getGoogleDriveFileThumbnails() {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
+        DriveServiceHelper mDriveServiceHelper = null;
+        if (account != null) {
+            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
+        }
         if (mDriveServiceHelper == null) {
+            //Log error here
             return;
         }
 
@@ -223,7 +228,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                             }
                         }
 
-                        new writeQRRecordsInSpreadsheet(mCredential, SaveWebRequestService.this).execute();
+                        new writeQRRecordsInSpreadsheet().execute();
 
 
                     }
@@ -243,7 +248,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         //    String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
         //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
         LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(this);
-        LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
+        // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
         Utility.ReportNonFatalError("AsanaTaskDataList", AsanaTaskDataList.toString());
         Log.e("AsanaTaskDataList", AsanaTaskDataList.toString());
         if (LevyLab_workspace_gid.equals("")) {
@@ -255,7 +260,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     }
 
     private void hitAPIGetAsanaUserDetails() {
-         RetrofitManager retrofitManager = RetrofitManager.getInstance();
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getUserDetails(this, this, Constants.API_TYPE.GET_USER_DETAILS, false);
     }
 
@@ -301,12 +306,21 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
 
-    void logResponseToFirebaseConsole(Response<ResponseBody> response) {
+    void logResponseToFirebaseConsole(Response<ResponseBody> response, String strResponse) {
         try {
-            Log.e("APIResponse---->", response.body().toString());
-            String url = response.raw().request().url().toString();
-            String headers = response.raw().request().headers().toString();
-            Utility.ReportNonFatalError("onSuccess----", "<-url->\n " + url + " <-headers->\n " + headers + " <-Response->\n " + response.body().string());
+
+            String       url = "", headers = "";
+            if (response != null && response.body() != null) {
+                strResponse = response.body().toString();
+            }
+            if (response != null && response.raw() != null && response.raw().request() != null && response.raw().request().url() != null) {
+                url = response.raw().request().url().toString();
+            }
+            if (response != null && response.raw() != null && response.raw().request() != null && response.raw().request().headers() != null) {
+                headers = response.raw().request().headers().toString();
+            }
+            Utility.ReportNonFatalError("onSuccess----", "<-url->\n " + url + " <-headers->\n " + headers + " <-Response->\n " + strResponse);
+
         } catch (Exception e) {
             e.getMessage();
         }
@@ -314,46 +328,47 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
     @Override
     public void onSuccess(Response<ResponseBody> response, Constants.API_TYPE apiType) {
-        try {
-            logResponseToFirebaseConsole(response);
 
+      //OKHttp 2.4..the response body (response.body().string()) is a one-shot value that may be consumed only once
+      //response.body().toString(): This returns your object in string format.
+      //response.body().string(): This returns your response.
+
+        try {
 
             if (apiType == Constants.API_TYPE.GET_USER_DETAILS) {
-                try{
-                if (!response.isSuccessful()) {
-                    return;
-                }
-                String strResponse = response.body().string();
-                UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
-                // String user_gid = userDetailsResponse.getData().getGid();
-                //   SharedPreferencesUtil.setAsanaUserId(this, user_gid);
-                List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
-                if (workspaces.size() > 0) {
-                    // String workspace_gid = workspaces.get(0).getGid();
-                    // SharedPreferencesUtil.setAsanaWorkspaceId(this, workspace_gid);
-                    for (int i = 0; i < workspaces.size(); i++) {
-                        if (workspaces.get(i).getName().equals("levylab.org")) {
-                            LevyLab_workspace_gid = workspaces.get(i).getGid();
-                            SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
-                            //  hitAPIGetProjectsByWorkspace(workspaces.get(i).getGid());
-                            taskSearchAPICount = 0;
-                            hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
-                            break;
-                        } else if (i == workspaces.size() - 1) {
-                            // Toast.makeText(this, "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana. ", Toast.LENGTH_SHORT).show();
-                            Utility.ReportNonFatalError("onSuccess", "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana.");
+                try {
+                    if (response != null && response.body() != null && response.isSuccessful()) {
+                        String strResponse = response.body().string();
+                        logResponseToFirebaseConsole(response,strResponse);
+                        UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
+                        List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
+                        if (workspaces.size() > 0) {
+                            for (int i = 0; i < workspaces.size(); i++) {
+                                if (workspaces.get(i).getName().equals("levylab.org")) {
+                                    LevyLab_workspace_gid = workspaces.get(i).getGid();
+                                    SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
+                                    taskSearchAPICount = 0;
+                                    hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                                    break;
+                                } else if (i == workspaces.size() - 1) {
+                                    Utility.ReportNonFatalError("onSuccess", "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana.");
+                                }
+                            }
                         }
+                    } else {
+                        // Log Error here
                     }
-                }
 
-            } catch (Exception e) {
-                Utility.ReportNonFatalError("Exception-"+apiType, e.getMessage());
-            }
+                } catch (Exception e) {
+                    // Log Error here
+                    Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                }
 
             } else if (apiType == Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE) {
                 try {
-                    if (response.isSuccessful()) {
+                    if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
+                        logResponseToFirebaseConsole(response,strResponse);
                         SearchTaskByWorkspace searchTaskResponse = new Gson().fromJson(strResponse, SearchTaskByWorkspace.class);
                         if (searchTaskResponse.getData() == null || searchTaskResponse.getData().isEmpty()) {
                             //  Utility.showToast(this, "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
@@ -374,8 +389,11 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                                 }
                             }
                         }
+                    } else {
+                        // Log Error here
                     }
                 } catch (Exception e) {
+                    // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
                 taskSearchAPICount++;
@@ -387,8 +405,9 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 }
             } else if (apiType == Constants.API_TYPE.TASK_DETAILS) {
                 try {
-                    if (response.isSuccessful()) {
+                    if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
+                        logResponseToFirebaseConsole(response,strResponse);
                         TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
                         List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
                         if (fieldList == null) return;
@@ -432,8 +451,11 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                         task_data.setBarcode(barcode);
                         task_data.setNearAnchor_gid(nearAnchor_gid);
                         AsanaTaskDataList.set(taskDetailAPICount, task_data);
+                    } else {
+                        // Log Error here
                     }
                 } catch (Exception e) {
+                    // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
 
@@ -449,8 +471,9 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
             } else if (apiType == Constants.API_TYPE.FEASYBEACON_TASK_DETAILS) {
                 try {
-                    if (response.isSuccessful()) {
+                    if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
+                        logResponseToFirebaseConsole(response,strResponse);
                         TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
                         List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
                         if (fieldList == null) return;
@@ -471,8 +494,11 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                                 break;
                             }
                         }
+                    } else {
+                        // Log Error here
                     }
                 } catch (Exception e) {
+                    // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
 
                 }
@@ -484,11 +510,15 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
             } else if (apiType == Constants.API_TYPE.UPDATE_TASK) {
                 try {
-                    if (response.isSuccessful()) {
+                    if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
+                        logResponseToFirebaseConsole(response,strResponse);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
+                    } else {
+                        // Log Error here
                     }
                 } catch (Exception e) {
+                    // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
 
                 }
@@ -505,11 +535,15 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
             } else if (apiType == Constants.API_TYPE.UPDATE_FEASYBEACON_TASK) {
                 try {
-                    if (response.isSuccessful()) {
+                    if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
+                        logResponseToFirebaseConsole(response,strResponse);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
+                    } else {
+                        // Log Error here
                     }
                 } catch (Exception e) {
+                    // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
 
                 }
@@ -519,14 +553,17 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
             } else if (apiType == Constants.API_TYPE.UPLOAD_ATTACHMENTS) {
                 try {
-                    if (response.isSuccessful()) {
+                    if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
+                        logResponseToFirebaseConsole(response,strResponse);
                         UploadAttachmentsResponse uploadAttachmentsResponse = new Gson().fromJson(strResponse, UploadAttachmentsResponse.class);
                         AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Completed");
                     } else {
+                        // Log Error here
                         AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Failed");
                     }
                 } catch (Exception e) {
+                    // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
 
                 }
@@ -534,7 +571,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 if (attachmentUploadAPICount < AsanaTaskDataList.size()) {
                     hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
                 } else {
-                    new UpdateStatusInQRSheet(mCredential, this).execute();
+                    new UpdateStatusInQRSheet().execute();
                     new updateStatusInLocalDBAsync().execute();
                 }
 
@@ -546,13 +583,17 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
     @Override
     public void onFailure(Response<ResponseBody> response, Constants.API_TYPE apiType) {
-        Utility.ReportNonFatalError("onFailure", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        if (response != null && response.errorBody() != null) {
+            Utility.ReportNonFatalError("onFailure", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        }
         onSuccess(response, apiType); // So that api call flow will not break due to a failed api call
     }
 
     @Override
     public void onApiException(APIError error, Response<ResponseBody> response, Constants.API_TYPE apiType) {
-        Utility.ReportNonFatalError("onApiException", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        if (response != null && response.errorBody() != null) {
+            Utility.ReportNonFatalError("onApiException", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        }
         onSuccess(response, apiType);   // So that api call flow will not break due to a failed api call
     }
 
@@ -656,17 +697,23 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     private class writeQRRecordsInSpreadsheet extends AsyncTask<Void, Void, Integer> {
         private Sheets mService = null;
         private Exception mLastError = null;
-        private Context mContext;
 
-        writeQRRecordsInSpreadsheet(GoogleAccountCredential credential, Context context) {
+        @Override
+        protected void onPreExecute() {
 
-            mContext = context;
+        }
+
+        writeQRRecordsInSpreadsheet() {
+            GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
+            if (accountName != null) {
+                mCredential.setSelectedAccountName(accountName);
+            }
+
             HttpTransport transport = AndroidHttp.newCompatibleTransport();
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new Sheets.Builder(
-                    transport, jsonFactory, credential)
+                    transport, jsonFactory, mCredential)
                     .setApplicationName(getResources().getString(R.string.app_name))
-
                     .build();
         }
 
@@ -674,7 +721,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         protected Integer doInBackground(Void... params) {
 
             try {
-           /************************Preparing data for QR Sheet*******************************/
+                /************************Preparing data for QR Sheet*******************************/
                 List<List<Object>> QR_dataList = new ArrayList<>();
                 for (int i = 0; i < AsanaTaskDataList.size(); i++) {
                     List<Object> list1 = new ArrayList<>();
@@ -691,7 +738,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     QR_dataList.add(list1);
                 }
 
-             /************************Preparing data for Bluetooth Sheet*******************************/
+                /************************Preparing data for Bluetooth Sheet*******************************/
                 //updating timestamp in bluetooth sheet
                 //  List<List<Object>> Bluetooth_dataList = BeaconScannerService.getBeaconList();
                 List<List<Object>> BluetoothBeacons_dataList = new ArrayList<>();
@@ -737,9 +784,6 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             return 1;
         }
 
-        @Override
-        protected void onPreExecute() {
-        }
 
         @Override
         protected void onPostExecute(Integer result) {
@@ -800,15 +844,18 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     private class UpdateStatusInQRSheet extends AsyncTask<Void, Void, Integer> {
         private Sheets mService = null;
         private Exception mLastError = null;
-        private Context mContext;
 
-        UpdateStatusInQRSheet(GoogleAccountCredential credential, Context context) {
 
-            this.mContext = context;
+        UpdateStatusInQRSheet() {
+            GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
+            if (accountName != null) {
+                mCredential.setSelectedAccountName(accountName);
+            }
+
             HttpTransport transport = AndroidHttp.newCompatibleTransport();
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new Sheets.Builder(
-                    transport, jsonFactory, credential)
+                    transport, jsonFactory, mCredential)
                     .setApplicationName(getResources().getString(R.string.app_name))
 
                     .build();
@@ -987,17 +1034,17 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
         void saveQRRecordsInLocalDB() {
 
-                for (int i=0;i<AsanaTaskDataList.size();i++) {
-                    TaskData task = AsanaTaskDataList.get(i);
-                    try {
+            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                TaskData task = AsanaTaskDataList.get(i);
+                try {
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .taskDao()
                             .insert(task);
-                    } catch (Exception e) {
-                        addErrorDetail(i,"Error in inserting QR record in local db");
-                        Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
-                    }
+                } catch (Exception e) {
+                    addErrorDetail(i, "Error in inserting QR record in local db");
+                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
                 }
+            }
 
 
         }
@@ -1005,8 +1052,8 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         void saveBeaconRecordsInLocalDB() {
             if (Bluetooth_dataList == null || Bluetooth_dataList.isEmpty()) return;
 
-                for (List<Object> beaconData : Bluetooth_dataList) {
-                    try {
+            for (List<Object> beaconData : Bluetooth_dataList) {
+                try {
                     Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
                             AsanaTaskDataList.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
                             String.valueOf(beaconData.get(1)),
@@ -1019,10 +1066,10 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .beaconDao()
                             .insert(beacon);
-                    } catch (Exception e) {
-                        Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
-                    }
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
                 }
+            }
 
 
         }
@@ -1031,9 +1078,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     }
 
     List<TaskData> getAllQRRecordsFromLocalStorage() {
-        return DatabaseClient
-                .getInstance(getApplicationContext())
-                .getAppDatabase()
+        return DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                 .taskDao()
                 .getAll();
 
@@ -1048,13 +1093,13 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
     }
 
-    void addErrorDetail(int TaskPos, String errorDetail){
-      String prevErrors=  AsanaTaskDataList.get(TaskPos).getErrors();
-      if(prevErrors.equals("")){
-          AsanaTaskDataList.get(TaskPos).setErrors(prevErrors+errorDetail);
-      }else {
-          AsanaTaskDataList.get(TaskPos).setErrors(prevErrors+"\n"+errorDetail);
-      }
+    void addErrorDetail(int TaskPos, String errorDetail) {
+        String prevErrors = AsanaTaskDataList.get(TaskPos).getErrors();
+        if (prevErrors.equals("")) {
+            AsanaTaskDataList.get(TaskPos).setErrors(prevErrors + errorDetail);
+        } else {
+            AsanaTaskDataList.get(TaskPos).setErrors(prevErrors + "\n" + errorDetail);
+        }
 
     }
 
