@@ -869,13 +869,21 @@ public class Utility {
         }
         return barcode;
     }
-    public static String getNearAnchorURLNew(TaskData taskData) {
+    public static String getNearAnchorURL_v1(TaskData taskData) {
                String barcode = "";
                 barcode = taskData.getBarcode();
                 barcode = "http://qlv.me/" + barcode;
 
         return barcode;
     }
+    public static String getNearAnchorURL_v2(String barcode) {
+        String nearAnchorURL = "";
+
+        nearAnchorURL = "http://qlv.me/" + barcode;
+
+        return nearAnchorURL;
+    }
+
     public static String getLastScannedAnchorTaskID(List<TaskData> AsanaTaskDataList) {
        String lastScannedAnchorGID="";
         for (TaskData taskData : AsanaTaskDataList) {
@@ -884,6 +892,19 @@ public class Utility {
             }
         }
         return lastScannedAnchorGID;
+    }
+
+    public static int getRecentlyScannedAnchorPosition(List<TaskData> AsanaTaskDataList, int taskPosition) {
+       int recentScannedAnchorPosition=-1;
+        String recentScannedAnchorGID="";
+        for (int i=0;i<taskPosition;i++) {
+            TaskData taskData =AsanaTaskDataList.get(i);
+            if (taskData.isAnchor()) {  // if this is an Anchor
+                recentScannedAnchorGID = taskData.getTaskId();
+                recentScannedAnchorPosition=i;
+            }
+        }
+        return recentScannedAnchorPosition;
     }
 
 
@@ -924,7 +945,7 @@ public class Utility {
     }
 
 
-    public static JsonObject getJSONForUpdatingAnchorTaskNew(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI, String nearAnchor_gid, String nearAnchorURL) {
+    public static JsonObject getJSONForUpdatingAnchorTask_v1(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI, String nearAnchor_gid, String nearAnchorURL) {
         JsonObject obj3 = new JsonObject();
         try {
             JsonObject obj = new JsonObject();
@@ -941,8 +962,24 @@ public class Utility {
         }
         return obj3;
     }
+    public static JsonObject getJSONForUpdatingOrdinaryTask_v2(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI, String nearAnchor_gid, String nearAnchorURL) {
+        JsonObject obj3 = new JsonObject();
+        try {
+            JsonObject obj = new JsonObject();
+            obj.addProperty(beacon1_gid, UUID);
+            obj.addProperty(beacon1_RSSI_gid, RSSI);
+            obj.addProperty(nearAnchor_gid, nearAnchorURL);
+            JsonObject obj2 = new JsonObject();
+            obj2.add("custom_fields", obj);
+            obj3.add("data", obj2);
 
-    public static JsonObject getJSONForUpdatingNormalTaskNew(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI) {
+
+        } catch (Exception e) {
+            e.getCause();
+        }
+        return obj3;
+    }
+    public static JsonObject getJSONForUpdatingNormalTask_v1(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI) {
         JsonObject obj3 = new JsonObject();
         try {
             JsonObject obj = new JsonObject();
@@ -960,7 +997,23 @@ public class Utility {
         return obj3;
     }
 
+    public static JsonObject getJSONForUpdatingAnchorTask_v2(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI) {
+        JsonObject obj3 = new JsonObject();
+        try {
+            JsonObject obj = new JsonObject();
+            obj.addProperty(beacon1_gid, UUID);
+            obj.addProperty(beacon1_RSSI_gid, RSSI);
 
+            JsonObject obj2 = new JsonObject();
+            obj2.add("custom_fields", obj);
+            obj3.add("data", obj2);
+
+
+        } catch (Exception e) {
+            e.getCause();
+        }
+        return obj3;
+    }
 
     public static String getRealPathFromURI(Uri contentURI, Context context) {
         String result;

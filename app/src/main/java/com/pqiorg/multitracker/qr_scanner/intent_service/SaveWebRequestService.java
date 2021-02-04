@@ -1,7 +1,6 @@
 package com.pqiorg.multitracker.qr_scanner.intent_service;
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -70,6 +69,8 @@ import retrofit2.Response;
 
 import static com.ammarptn.gdriverest.DriveServiceHelper.getGoogleDriveService;
 
+/************************************** Note***************************************************************/
+//Changes done in this file should also be done in UpdateWebRequestService file
 
 public class SaveWebRequestService extends IntentService implements RequestListener {
 
@@ -306,10 +307,10 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
 
-    void logResponseToFirebaseConsole(Response<ResponseBody> response, String strResponse) {
+    void logResponseToFirebaseConsole(Response<ResponseBody> response) {
         try {
 
-            String       url = "", headers = "";
+            String url = "", headers = "", strResponse = "";
             if (response != null && response.body() != null) {
                 strResponse = response.body().toString();
             }
@@ -329,9 +330,9 @@ public class SaveWebRequestService extends IntentService implements RequestListe
     @Override
     public void onSuccess(Response<ResponseBody> response, Constants.API_TYPE apiType) {
 
-      //OKHttp 2.4..the response body (response.body().string()) is a one-shot value that may be consumed only once
-      //response.body().toString(): This returns your object in string format.
-      //response.body().string(): This returns your response.
+        //OKHttp 2.4..the response body (response.body().string()) is a one-shot value that may be consumed only once
+        //response.body().toString(): This returns your object in string format.
+        //response.body().string(): This returns your response.
 
         try {
 
@@ -339,7 +340,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
-                        logResponseToFirebaseConsole(response,strResponse);
+                        logResponseToFirebaseConsole(response);
                         UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
                         List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
                         if (workspaces.size() > 0) {
@@ -368,7 +369,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
-                        logResponseToFirebaseConsole(response,strResponse);
+                        logResponseToFirebaseConsole(response);
                         SearchTaskByWorkspace searchTaskResponse = new Gson().fromJson(strResponse, SearchTaskByWorkspace.class);
                         if (searchTaskResponse.getData() == null || searchTaskResponse.getData().isEmpty()) {
                             //  Utility.showToast(this, "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
@@ -407,7 +408,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
-                        logResponseToFirebaseConsole(response,strResponse);
+                        logResponseToFirebaseConsole(response);
                         TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
                         List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
                         if (fieldList == null) return;
@@ -473,7 +474,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
-                        logResponseToFirebaseConsole(response,strResponse);
+                        logResponseToFirebaseConsole(response);
                         TaskDetail taskDetailsResponse = new Gson().fromJson(strResponse, TaskDetail.class);
                         List<CustomField> fieldList = taskDetailsResponse.getData().getCustomFields();
                         if (fieldList == null) return;
@@ -512,7 +513,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
-                        logResponseToFirebaseConsole(response,strResponse);
+                        logResponseToFirebaseConsole(response);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
                     } else {
                         // Log Error here
@@ -525,7 +526,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 taskUpdateAPICount++;
                 if (taskUpdateAPICount < AsanaTaskDataList.size()) {
                     // updateTask();
-                    updateTaskNew();
+                    updateTask_v2();
                 } else {
                     //taskUpdateAPICount = 0;
                     feasybeaconTaskUpdateAPICount = 0;
@@ -537,7 +538,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
-                        logResponseToFirebaseConsole(response,strResponse);
+                        logResponseToFirebaseConsole(response);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
                     } else {
                         // Log Error here
@@ -555,7 +556,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
-                        logResponseToFirebaseConsole(response,strResponse);
+                        logResponseToFirebaseConsole(response);
                         UploadAttachmentsResponse uploadAttachmentsResponse = new Gson().fromJson(strResponse, UploadAttachmentsResponse.class);
                         AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Completed");
                     } else {
@@ -612,7 +613,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         } else {
             taskUpdateAPICount = 0;
             //  updateTask();
-            updateTaskNew();
+            updateTask_v2();
 
         }
     }
@@ -632,16 +633,35 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
     }
 
-    void updateTaskNew() {
+    void updateTask_v1() {
         JsonObject input;
         if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor() && AsanaTaskDataList.get(taskUpdateAPICount).getTaskId().equals(Utility.getLastScannedAnchorTaskID(AsanaTaskDataList))) {
             // find logic here- https://app.asana.com/0/1190079917488218/1197159241924214
-            String nearAnchorURL = Utility.getNearAnchorURLNew(AsanaTaskDataList.get(taskUpdateAPICount));
-            input = Utility.getJSONForUpdatingAnchorTaskNew(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
+            String nearAnchorURL = Utility.getNearAnchorURL_v1(AsanaTaskDataList.get(taskUpdateAPICount));
+            input = Utility.getJSONForUpdatingAnchorTask_v1(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
         } else {
-            input = Utility.getJSONForUpdatingNormalTaskNew(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
+            input = Utility.getJSONForUpdatingNormalTask_v1(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
         }
         hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
+    }
+
+    void updateTask_v2() {
+        JsonObject input;
+        if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor()) {
+            input = Utility.getJSONForUpdatingAnchorTask_v2(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
+        } else {
+            int recentScannedAnchorPosition = Utility.getRecentlyScannedAnchorPosition(AsanaTaskDataList, taskUpdateAPICount);
+            if (recentScannedAnchorPosition == -1) { // means no anchor was scanned before this QR(Task)
+                input = Utility.getJSONForUpdatingAnchorTask_v2(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
+            }else {
+                String nearAnchorURL = Utility. getNearAnchorURL_v2(AsanaTaskDataList.get(recentScannedAnchorPosition).getBarcode());
+                input = Utility.getJSONForUpdatingOrdinaryTask_v2(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
+            }
+        }
+
+        hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
+
+
     }
 
     public void callAPI_UpdateFeasybeaconTask() {
@@ -764,6 +784,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     // list1.set(2, Utility.getCurrentTimestamp()); // for showing in bluetooth sheet only
                     list1.set(2, ++timestampBluetoothSheet); // to nearly match with QRSheetTimestamp
                 }
+
                 if (strongestSignalBeaconUUID == null) strongestSignalBeaconUUID = "";
 
                 /************************Ready to Write data to Sheets*******************************/

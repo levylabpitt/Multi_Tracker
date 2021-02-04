@@ -54,7 +54,7 @@ public class RetrofitManager implements OnRetryCallback {
     //private Call<AuthenticationToken> call2 = null;
 
     private Callback<ResponseBody> mCallback = null;
-    private final String format = "json";
+  //  private final String format = "json";
     private String TAG = "RetrofitManager";
     Context activity = null;
     private OnRetryCallback mRetryCallback = this;
