@@ -366,6 +366,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
         finishActivity();
 
 
+
         //   driveUploadAPICount = 0;
         //   uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
 

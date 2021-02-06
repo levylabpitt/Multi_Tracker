@@ -31,8 +31,8 @@ android {
        //  versionCode 1
       //  versionName "1.0"
 
-        versionCode 9000
-        versionName "13Jan21"
+        versionCode 9001
+        versionName "05Feb2021"
         useLibrary 'org.apache.http.legacy'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {

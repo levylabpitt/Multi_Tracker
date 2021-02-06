@@ -69,16 +69,14 @@ public class RetrofitManager implements OnRetryCallback {
 
     private RetrofitManager() {
 
-
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
-        httpClient.readTimeout(30, TimeUnit.SECONDS);
-        httpClient.connectTimeout(30, TimeUnit.SECONDS);
-        httpClient.writeTimeout(100, TimeUnit.SECONDS);
+        httpClient.readTimeout(60, TimeUnit.SECONDS);
+        httpClient.connectTimeout(60, TimeUnit.SECONDS);
+        httpClient.writeTimeout(200, TimeUnit.SECONDS);
         httpClient.addInterceptor(new ConnectivityInterceptor(GlobalVar.get()));
         httpClient.addInterceptor(new SupportInterceptor());
 
         if (BuildConfig.DEBUG) {
-
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
             logging.setLevel(HttpLoggingInterceptor.Level.BODY);
             httpClient.addInterceptor(logging);
