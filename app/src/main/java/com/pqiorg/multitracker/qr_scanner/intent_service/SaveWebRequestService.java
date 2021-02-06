@@ -432,18 +432,18 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                         // get data from custom fields
                         for (int i = 0; i < fieldList.size(); i++) {
                             CustomField customField = fieldList.get(i);
-                            if (customField.getName().equals("Beacon1")) {
+                            if (customField.getName().equalsIgnoreCase("Beacon1")) {
                                 beacon1_gid = customField.getGid();
-                            } else if (customField.getName().equals("Beacon1 RSSI")) {
+                            } else if (customField.getName().equalsIgnoreCase("Beacon1 RSSI")) {
                                 beacon1_RSSI_gid = customField.getGid();
-                            } else if (customField.getName().equals("Beacon1 URL")) {
+                            } else if (customField.getName().equalsIgnoreCase("Beacon1 URL")) {
                                 beacon1_URL = customField.getTextValue();
                                 if (beacon1_URL != null && !beacon1_URL.isEmpty() && beacon1_URL.contains("/")) {
                                     feasybeacon_task_gid = beacon1_URL.substring(beacon1_URL.lastIndexOf("/") + 1);
                                 } else if (beacon1_URL == null) beacon1_URL = "";
-                            } else if (customField.getName().equals("Barcode")) {
+                            } else if (customField.getName().equalsIgnoreCase("Barcode")) {
                                 barcode = customField.getTextValue();
-                            } else if (customField.getName().equals("Near Anchor")) {
+                            } else if (customField.getName().equalsIgnoreCase("Near Anchor")) {
                                 nearAnchor_gid = customField.getGid();
                             }
                         }

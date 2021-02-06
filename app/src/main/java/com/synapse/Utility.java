@@ -877,6 +877,8 @@ public class Utility {
         return barcode;
     }
     public static String getNearAnchorURL_v2(String barcode) {
+        if(barcode==null || barcode.isEmpty()) return "";
+
         String nearAnchorURL = "";
 
         nearAnchorURL = "http://qlv.me/" + barcode;
