@@ -82,7 +82,9 @@ public class ProgressHUD extends Dialog {
 		lp.dimAmount = 0.2f;
 		dialog.getWindow().setAttributes(lp);
 		//dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
-		dialog.show();
+		if(!dialog.isShowing()) {
+			dialog.show();
+		}
 		return dialog;
 	}
 }

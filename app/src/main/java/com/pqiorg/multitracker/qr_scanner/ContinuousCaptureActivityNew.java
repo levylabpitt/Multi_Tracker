@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.JobIntentService;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.feasycom.controler.FscBeaconApi;
@@ -42,6 +43,7 @@ import com.synapse.ProgressHUD;
 import com.synapse.Utility;
 import com.synapse.model.TaskData;
 import com.synapse.model.Task_data;
+import com.synapse.network.NetworkUtil;
 import com.synapse.service.BeaconScannerService;
 
 import java.io.Serializable;
@@ -324,7 +326,10 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
 
     void saveQRBitmapToDeviceStorage() {
         //  showprogressdialog();
+
+
         for (int j = 0; j < AsanaTaskDataList.size(); j++) {
+            Log.e("Debugging...",j +"Saving bitmap to local storage...");
             Task_data scannedData = AsanaTaskDataList.get(j);
             String filePath = Utility.saveImage(scannedData.getBitmap());
             scannedData.setBitmapFilePath(filePath);
@@ -358,17 +363,24 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
                     ""));
         }
         hideprogressdialog();
-        Toast.makeText(this, "Uploading started in background...", Toast.LENGTH_SHORT).show();
 
-        Intent msgIntent = new Intent(ContinuousCaptureActivityNew.this, SaveWebRequestService.class);
+        if (!NetworkUtil.isOnline(this)) {
+            Utility.showToast(this,"No internet available!");
+            return;
+        }
+
+       /* Intent msgIntent = new Intent(ContinuousCaptureActivityNew.this, SaveWebRequestService.class);
         msgIntent.putExtra(SaveWebRequestService.QR_DATA_LIST, (Serializable) dataListWithoutBitmap);
-        startService(msgIntent);
+        startService(msgIntent);*/
+
+
+        Intent intent = new Intent();
+        intent.putExtra(SaveWebRequestService.QR_DATA_LIST, (Serializable) dataListWithoutBitmap);
+        JobIntentService.enqueueWork(ContinuousCaptureActivityNew.this, SaveWebRequestService.class, 56789, intent); //Utility.getCurrentTimeStamp()
+
+        Toast.makeText(this, "Uploading started in background...", Toast.LENGTH_SHORT).show();
         finishActivity();
 
-
-
-        //   driveUploadAPICount = 0;
-        //   uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
 
 
     }
@@ -381,6 +393,9 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             saveQRBitmapToDeviceStorage();
             return;
         }
+
+        Log.e("Debugging...",URLCount +" URL Unshorten in Progress...");
+
         String url = AsanaTaskDataList.get(URLCount).getQrText();
         boolean isValidURL = Patterns.WEB_URL.matcher(url).matches();
         if (isValidURL && !url.startsWith("http://")) {

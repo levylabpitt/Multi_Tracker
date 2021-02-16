@@ -7,6 +7,7 @@ import android.util.Log;
 import android.util.Patterns;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.JobIntentService;
 
 import com.ammarptn.gdriverest.DriveServiceHelper;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
@@ -72,13 +73,13 @@ import static com.ammarptn.gdriverest.DriveServiceHelper.getGoogleDriveService;
 /************************************** Note***************************************************************/
 //Changes done in this file should also be done in UpdateWebRequestService file
 
-public class SaveWebRequestService extends IntentService implements RequestListener {
+public class SaveWebRequestService extends JobIntentService implements RequestListener {
 
     public static final String QR_DATA_LIST = "qr_data_list";
     List<TaskData> AsanaTaskDataList = new ArrayList<>();
     List<List<Object>> Bluetooth_dataList = new ArrayList<>();
     int taskDetailAPICount = 0, taskUpdateAPICount = 0, attachmentUploadAPICount = 0, feasybeaconTaskDetailAPICount = 0, feasybeaconTaskUpdateAPICount = 0, driveUploadAPICount = 0, taskSearchAPICount = 0;
-    final String LevyLabProject = "LevyLab AoT (all items)";
+   // final String LevyLabProject = "LevyLab AoT (all items)";
 
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
     //  private DriveServiceHelper mDriveServiceHelper;
@@ -100,9 +101,11 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
     long timestampBluetoothSheet = 0;
     String accountName = "";
+    String updatedRangeOfDataWrittenInQRSheet = ""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
 
+    // the same range to update status in spreadsheet
     public SaveWebRequestService() {
-        super("MyWebRequestService");
+       // super("MyWebRequestService");
     }
 
 
@@ -115,6 +118,8 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         //  initGoogleSheetServiceHelper();
 
     }
+
+
 /*
     void initDriveServiceHelper() {
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
@@ -135,29 +140,15 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 */
 
     @Override
-    protected void onHandleIntent(Intent intent) {
+    protected void onHandleWork(Intent intent) {
         AsanaTaskDataList = (List<TaskData>) intent.getSerializableExtra(QR_DATA_LIST);
         Bluetooth_dataList = BeaconScannerService.getBeaconList();
         timestampBluetoothSheet = Long.parseLong(AsanaTaskDataList.get(AsanaTaskDataList.size() - 1).getTimestamp());
-
+        new writeQRRecordsInSpreadsheet().execute();
         new saveQRRecordsInLocalDBAsync().execute();
 
         uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
 
-    }
-
-    void continueUploadFileOnGoogleDrive() {
-        driveUploadAPICount++;
-        if (driveUploadAPICount < AsanaTaskDataList.size()) {
-            uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
-        } else {
-            //   getGoogleDriveFileThumbnails(); // should not use because thumbnail link works only for few days
-            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                AsanaTaskDataList.get(i).setGdriveFileThumbnail("Parent_Id=" + AsanaTaskDataList.get(i).getGdriveFileParentId() + "," + "File_Id=" + AsanaTaskDataList.get(i).getGdriveFileId());
-            }
-            new writeQRRecordsInSpreadsheet().execute();
-
-        }
     }
 
 
@@ -184,6 +175,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 .addOnSuccessListener(new OnSuccessListener<GoogleDriveFileHolder>() {
                     @Override
                     public void onSuccess(GoogleDriveFileHolder googleDriveFileHolder) {
+                        Log.e("Debugging..., ","photo:" + index+"uploaded successfully");
                         AsanaTaskDataList.get(index).setGdriveFileId(googleDriveFileHolder.getId());
                         AsanaTaskDataList.get(index).setGdriveFileParentId(folderId);
                         continueUploadFileOnGoogleDrive();
@@ -193,11 +185,28 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        Log.e("Debugging...photo:" + index, "uploaded failed: " + e.getMessage());
                         Utility.ReportNonFatalError("uploadFileOnGoogleDriveFolder", e.getMessage());
                         addErrorDetail(index, "Failed uploading file in google drive folder."); //Log error here
                         continueUploadFileOnGoogleDrive();
                     }
                 });
+    }
+
+    void continueUploadFileOnGoogleDrive() {
+        driveUploadAPICount++;
+        if (driveUploadAPICount < AsanaTaskDataList.size()) {
+            uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
+        } else {
+            //   getGoogleDriveFileThumbnails(); // should not use because thumbnail link works only for few days
+            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                AsanaTaskDataList.get(i).setGdriveFileThumbnail("Parent_Id=" + AsanaTaskDataList.get(i).getGdriveFileParentId() + "," + "File_Id=" + AsanaTaskDataList.get(i).getGdriveFileId());
+            }
+            new UpdateStatusInQRSheetNew().execute();
+            // new writeQRRecordsInSpreadsheet().execute();
+            callApiToWriteDataOnAsana();
+
+        }
     }
 
     private void getGoogleDriveFileThumbnails() {
@@ -244,7 +253,6 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     }
                 });
     }
-
 
     private void callApiToWriteDataOnAsana() {
         //    String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
@@ -400,6 +408,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     }
                 } catch (Exception e) {
                     // Log Error here
+                    addErrorDetail(taskSearchAPICount, "Error in processing response of SEARCH_TASK_BY_WORKSPACE API!");
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
                 taskSearchAPICount++;
@@ -584,7 +593,8 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 if (attachmentUploadAPICount < AsanaTaskDataList.size()) {
                     hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
                 } else {
-                    new UpdateStatusInQRSheet().execute();
+                    // new UpdateStatusInQRSheet().execute();
+                    new UpdateStatusInQRSheetNew().execute();
                     new updateStatusInLocalDBAsync().execute();
                 }
 
@@ -671,7 +681,15 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             }
         }
 
-        hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
+        if (input.size() != 0) {
+            hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
+        } else if (taskUpdateAPICount < AsanaTaskDataList.size()) {
+            taskUpdateAPICount++;
+            updateTask_v2();
+        } else {
+            feasybeaconTaskUpdateAPICount = 0;
+            callAPI_UpdateFeasybeaconTask();
+        }
 
 
     }
@@ -689,6 +707,8 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         if (feasybeaconTaskUpdateAPICount < AsanaTaskDataList.size()) {
             JsonObject input = getJSONObjectFeasybeacon(AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getFeasybeacon_UUID_gid(), strongestSignalBeaconUUID);
             hitAPIUpdateFeasybeaconTask(AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getFeasybeacon_task_gid(), input);
+
+
         } else {
             attachmentUploadAPICount = 0;
             hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
@@ -804,8 +824,6 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
 
                 }
-
-
                 if (strongestSignalBeaconUUID == null) strongestSignalBeaconUUID = "";
 
                 /************************Ready to Write data to Sheets*******************************/
@@ -819,7 +837,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                 if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
                 } else if (mLastError instanceof UserRecoverableAuthIOException) {
                 } else {
-                    Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
+                    Log.e("Debugging...", "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
                 }
 
                 return 0;
@@ -830,8 +848,12 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
         @Override
         protected void onPostExecute(Integer result) {
-            //  new saveQRRecordsInLocalDB().execute();
-            callApiToWriteDataOnAsana();
+            if (result == 1) {
+                Log.e("Debugging...QR Sheet Written:" , " successfully");
+            }else {
+                Log.e("Debugging...QR Sheet Written:" , " failed");
+            }
+
         }
 
 
@@ -852,14 +874,15 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             String valueInputOption = "USER_ENTERED";
             ValueRange requestBody = new ValueRange();
 
-            Utility.ReportNonFatalError("writeToQRSheet1", "1");
+            //  Utility.ReportNonFatalError("writeToQRSheet1", "1");
             if (QR_dataList.size() > 0) {
                 requestBody.setValues(QR_dataList);
                 Sheets.Spreadsheets.Values.Append request =
                         mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
                 request.setValueInputOption(valueInputOption);
                 AppendValuesResponse response = request.execute();
-                Utility.ReportNonFatalError("writeToQRSheet2", response.toString());
+                updatedRangeOfDataWrittenInQRSheet = response.getUpdates().getUpdatedRange();
+                //  Utility.ReportNonFatalError("writeToQRSheet2", response.toString());
                 Log.e(this.toString(), response.toString());
             }
         }
@@ -870,7 +893,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
             String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(SaveWebRequestService.this);
             String range = com.synapse.Constants.SheetTwo;
             ;// name of sheet and range
-            Utility.ReportNonFatalError("Check", "3");
+            //   Utility.ReportNonFatalError("Check", "3");
             String valueInputOption = "USER_ENTERED";
             ValueRange requestBody = new ValueRange();
             requestBody.setValues(Bluetooth_dataList);
@@ -878,7 +901,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
             request.setValueInputOption(valueInputOption);
             AppendValuesResponse response = request.execute();
-            Utility.ReportNonFatalError("Check3", response.toString());
+            // Utility.ReportNonFatalError("Check3", response.toString());
             Log.e(this.toString(), response.toString());
 
         }
@@ -911,25 +934,25 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         protected Integer doInBackground(Void... params) {
 
 
-                for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                    try {
+            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                try {
                     String timestamp = AsanaTaskDataList.get(i).getTimestamp();
                     String position = findCellPositionInSheet(timestamp);
                     String status = AsanaTaskDataList.get(i).getStatus();
                     updateStatusQRSheet(position, status);
-                    } catch (Exception e) {
-                        mLastError = e;
-                        Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
-                        addErrorDetail(0, "Error in updating status to spreadsheet!");
-                        if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
-                        } else if (mLastError instanceof UserRecoverableAuthIOException) {
-                        } else {
-                            Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
-                        }
-                        Log.e(this.toString(), e + "");
-                        return 0;
+                } catch (Exception e) {
+                    mLastError = e;
+                    Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
+                    addErrorDetail(0, "Error in updating status to spreadsheet!");
+                    if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
+                    } else if (mLastError instanceof UserRecoverableAuthIOException) {
+                    } else {
+                        Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
                     }
+                    Log.e(this.toString(), e + "");
+                    return 0;
                 }
+            }
 
             return 1;
         }
@@ -1022,6 +1045,98 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
     }
 
+    private class UpdateStatusInQRSheetNew extends AsyncTask<Void, Void, Integer> {
+        private Sheets mService = null;
+        private Exception mLastError = null;
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        UpdateStatusInQRSheetNew() {
+            GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
+            if (accountName != null) {
+                mCredential.setSelectedAccountName(accountName);
+            }
+
+            HttpTransport transport = AndroidHttp.newCompatibleTransport();
+            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+            mService = new Sheets.Builder(
+                    transport, jsonFactory, mCredential)
+                    .setApplicationName(getResources().getString(R.string.app_name))
+                    .build();
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+
+            try {
+                /************************Preparing data for QR Sheet*******************************/
+                List<List<Object>> QR_dataList = new ArrayList<>();
+                for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                    try {
+                        List<Object> list1 = new ArrayList<>();
+                        list1.add(AsanaTaskDataList.get(i).getDateTime());
+                        list1.add(AsanaTaskDataList.get(i).getTimestamp());
+                        list1.add(AsanaTaskDataList.get(i).getQrText());
+                        list1.add(AsanaTaskDataList.get(i).getGdriveFileThumbnail());
+                        list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
+                        list1.add(AsanaTaskDataList.get(i).getErrors()); // for updating error details in 'errors' column in QR spreadsheet
+                        QR_dataList.add(list1);
+                    } catch (Exception e) {
+                    }
+                }
+
+                /************************Ready to Write data to Sheets*******************************/
+                updateToQRSheet(QR_dataList);
+
+
+            } catch (Exception e) {
+                mLastError = e;
+                Utility.ReportNonFatalError("OverwriteToRange", e.getMessage());
+                addErrorDetail(0, "Error in overwriting data to spreadsheet!");
+                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
+                } else if (mLastError instanceof UserRecoverableAuthIOException) {
+                } else {
+                    Log.e("Debugging...", "Error_Log_overwriting:" + mLastError.getMessage());
+                }
+
+                return 0;
+            }
+            return 1;
+        }
+
+
+        @Override
+        protected void onPostExecute(Integer result) {
+            if (result == 1) {
+                Log.e("Debugging...QR Sheet Updated:" , " successfully");
+            }else {
+                Log.e("Debugging...QR Sheet Updated:" , " failed");
+            }
+        }
+
+
+        @Override
+        protected void onCancelled() {
+        }
+
+        private void updateToQRSheet(List<List<Object>> QR_dataList) throws IOException {
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(SaveWebRequestService.this);
+            String range = updatedRangeOfDataWrittenInQRSheet;
+            String valueInputOption = "USER_ENTERED";
+            ValueRange valueRange = new ValueRange();
+            valueRange.setValues(QR_dataList);
+            UpdateValuesResponse response = mService.spreadsheets().values().update(spreadsheetId, range, valueRange)
+                    .setValueInputOption(valueInputOption)
+                    .execute();
+            Log.e(this.toString(), response.toString());
+
+
+        }
+
+
+    }
 
     private class updateStatusInLocalDBAsync extends AsyncTask<Void, Void, Void> {
 
@@ -1044,16 +1159,24 @@ public class SaveWebRequestService extends IntentService implements RequestListe
         }
 
         void updateQRStatusInLocalDB() {
-            try {
-                for (TaskData task : AsanaTaskDataList) {
+
+            for (TaskData task : AsanaTaskDataList) {
+                try {
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .taskDao()
                             .updateStatus(task.getTimestamp(), task.getTaskId(), task.getFeasybeacon_UUID_gid(), task.getFeasybeacon_task_gid(), task.getGdriveFileId(), task.getGdriveFileParentId(), task.getGdriveFileThumbnail(), task.getBeacon1_RSSI_gid(), task.getBeacon1_URL(), task.getBeacon1_gid(), task.getStatus());
+                    Log.e("Debugging...Local DB Updated:" , " successfully");
+                } catch (Exception e) {
+                    Log.e("Debugging...Local DB Updated:" , " failed" +e.getMessage());
+                    Utility.ReportNonFatalError("updateQRStatusInLocalDB", e.getMessage());
+                    addErrorDetail(0, "Error in updating status to spreadsheet!");
                 }
-            } catch (Exception e) {
-                Utility.ReportNonFatalError("updateQRStatusInLocalDB", e.getMessage());
-                addErrorDetail(0, "Error in updating status to spreadsheet!");
+
             }
+
+
+
+
         }
 
     }
@@ -1085,7 +1208,10 @@ public class SaveWebRequestService extends IntentService implements RequestListe
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .taskDao()
                             .insert(task);
+
+                    Log.e("Debugging...Local DB Written:" , " successfully");
                 } catch (Exception e) {
+                    Log.e("Debugging...Local DB Written:" , " failed: "+e.getMessage());
                     addErrorDetail(i, "Error in inserting QR record in local db");
                     Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
                 }
@@ -1137,7 +1263,7 @@ public class SaveWebRequestService extends IntentService implements RequestListe
 
     void addErrorDetail(int TaskPos, String errorDetail) {
         String prevErrors = AsanaTaskDataList.get(TaskPos).getErrors();
-        if (prevErrors.equals("")) {
+        if (prevErrors.isEmpty()) {
             AsanaTaskDataList.get(TaskPos).setErrors(prevErrors + errorDetail);
         } else {
             AsanaTaskDataList.get(TaskPos).setErrors(prevErrors + "\n" + errorDetail);

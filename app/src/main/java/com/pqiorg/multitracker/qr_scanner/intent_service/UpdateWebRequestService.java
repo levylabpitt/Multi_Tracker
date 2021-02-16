@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 
 import com.ammarptn.gdriverest.DriveServiceHelper;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.pqiorg.multitracker.drive.MimeUtils;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -93,6 +94,9 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
     //  private Exception mLastError = null;
     //  private Context mContext;
     String accountName = "";
+    String updatedRangeOfDataWrittenInQRSheet=""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
+    // the same range to update status in spreadsheet
+
 
     public UpdateWebRequestService() {
         super("MyWebRequestService");
@@ -161,6 +165,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
         }
         if (mDriveServiceHelper == null) {
             //Log error here
+            addErrorDetail(index, "Update : Can't upload file in google drive folder. Reason: DriveServiceHelper object is null"); //Log error here
             return;
         }
 
@@ -185,7 +190,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-
+                        addErrorDetail(index, "Update: Failed uploading file in google drive folder."); //Log error here
                         Utility.ReportNonFatalError("uploadFileOnGoogleDriveFolder", e.getMessage());
                         continueUploadFileOnGoogleDrive();
 
@@ -355,11 +360,13 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                             }
                         }
                     } else {
+                        addErrorDetail(0, "Update : Response of GET_ASANA_USER_DETAILS API  is empty!");
                         // Log Error here
                     }
 
                 } catch (Exception e) {
                     // Log Error here
+                    addErrorDetail(0, "Update :Error in processing response of GET_ASANA_USER_DETAILS API");
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
 
@@ -372,8 +379,9 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                         logResponseToFirebaseConsole(response);
                         SearchTaskByWorkspace searchTaskResponse = new Gson().fromJson(strResponse, SearchTaskByWorkspace.class);
                         if (searchTaskResponse.getData() == null || searchTaskResponse.getData().isEmpty()) {
-                            // Utility.showToast(this, "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                            addErrorDetail(taskSearchAPICount, "Update : No matching task found ");
                             Utility.ReportNonFatalError("onSuccess", "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+
                         } else {
                             //  Utility.showToast(this, "Multiple matching tasks found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
                             TaskData task_data = AsanaTaskDataList.get(taskSearchAPICount);
@@ -386,15 +394,18 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                                     break;
                                 } else if (j == listMatchingTasks.size() - 1) {
                                     /*     Utility.showToast(this, "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());*/
+                                    addErrorDetail(taskSearchAPICount, "Update: No Task can be matched.");
                                     Utility.ReportNonFatalError("onSuccess", "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
                                 }
                             }
                         }
                     } else {
+                        addErrorDetail(taskSearchAPICount, "Update: Response of SEARCH_TASK_BY_WORKSPACE API  is empty!");
                         // Log Error here
                     }
                 } catch (Exception e) {
                     // Log Error here
+                    addErrorDetail(taskSearchAPICount, "Update: Error in processing response of SEARCH_TASK_BY_WORKSPACE API!");
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
                 taskSearchAPICount++;
@@ -457,11 +468,13 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
                     } else {
                         // Log Error here
+                        addErrorDetail(taskDetailAPICount, "Update: Response of TASK_DETAILS API  is empty!");
                     }
 
                 } catch (Exception e) {
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                    addErrorDetail(taskDetailAPICount, "Update: Error in processing response of API TASK_DETAILS API");
                 }
 
 
@@ -504,9 +517,11 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                             }
                         }
                     } else {
+                        addErrorDetail(feasybeaconTaskDetailAPICount, "Update: Response of FEASYBEACON_TASK_DETAILS API is empty");
                         // Log Error here
                     }
                 } catch (Exception e) {
+                    addErrorDetail(feasybeaconTaskDetailAPICount, "Update: Error in processing response of FEASYBEACON_TASK_DETAILS API");
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
@@ -522,10 +537,12 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                         logResponseToFirebaseConsole(response);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
                     } else {
+                        addErrorDetail(taskUpdateAPICount, "Update: Response of UPDATE_TASK API  is empty!");
                         // Log Error here
                     }
 
                 } catch (Exception e) {
+                    addErrorDetail(taskUpdateAPICount, "Update: Error in processing response of UPDATE_TASK API");
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
@@ -550,9 +567,11 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                         logResponseToFirebaseConsole(response);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
                     } else {
+                        addErrorDetail(feasybeaconTaskUpdateAPICount, "Update: Response of UPDATE_FEASYBEACON_TASK API  is empty!");
                         // Log Error here
                     }
                 } catch (Exception e) {
+                    addErrorDetail(feasybeaconTaskUpdateAPICount, "Update: Error in processing response of UPDATE_FEASYBEACON_TASK API");
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
@@ -567,11 +586,13 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                         UploadAttachmentsResponse uploadAttachmentsResponse = new Gson().fromJson(strResponse, UploadAttachmentsResponse.class);
                         AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Completed");
                     } else {
+                        addErrorDetail(attachmentUploadAPICount, "Update: Response of UPLOAD_ATTACHMENTS API  is empty!");
                         // Log Error here
                         AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Failed");
                     }
                 } catch (Exception e) {
                     // Log Error here
+                    addErrorDetail(attachmentUploadAPICount, "Update: Error in processing response of UPLOAD_ATTACHMENTS API!");
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
 
@@ -772,8 +793,6 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                             RSSI = Integer.parseInt(String.valueOf(list1.get(3)));
                         } catch (Exception e) {
                         }
-
-
                         if (strongestSignalBeaconRSSI == 0) {
                             strongestSignalBeaconRSSI = RSSI;
                             strongestSignalBeaconUUID = String.valueOf(list1.get(4));
@@ -801,12 +820,12 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
             } catch (Exception e) {
                 mLastError = e;
                 Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
+                addErrorDetail(0, "Update: Error in writing data to spreadsheet!");
+                Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
                 if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
                 } else if (mLastError instanceof UserRecoverableAuthIOException) {
                 } else {
-                    Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
                 }
-                Log.e(this.toString(), e + "");
                 return 0;
             }
             return 1;
@@ -835,21 +854,15 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
         private void updateRowInQRSheet(List<List<Object>> QR_dataList, String rowPosition) throws IOException, GeneralSecurityException {
             String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            //   String range = com.synapse.Constants.SheetOne;
             String range = com.synapse.Constants.SheetOne + "!" + rowPosition;
             String valueInputOption = "USER_ENTERED";
-            //   ValueRange requestBody = new ValueRange();
-
-            Utility.ReportNonFatalError("writeToQRSheet1", "1");
 
             if (QR_dataList.size() > 0) {
                 // requestBody.setValues(QR_dataList);
-
               /*  Sheets.Spreadsheets.Values.Append request =
                         mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
                 request.setValueInputOption(valueInputOption);
                 AppendValuesResponse response = request.execute();*/
-
 
                 ValueRange valueRange = new ValueRange();
                 valueRange.setValues(QR_dataList);
@@ -857,8 +870,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                         .setValueInputOption(valueInputOption)
                         .execute();
 
-
-                Utility.ReportNonFatalError("writeToQRSheet2", response.toString());
+                Utility.ReportNonFatalError("updateToQRSheet2", response.toString());
                 Log.e(this.toString(), response.toString());
             }
         }
@@ -869,7 +881,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
             //String range = com.synapse.Constants.SheetTwo;
             String range = com.synapse.Constants.SheetTwo + "!" + rowPosition;
             ;// name of sheet and range
-            Utility.ReportNonFatalError("Check", "3");
+           // Utility.ReportNonFatalError("Check", "3");
             String valueInputOption = "USER_ENTERED";
             //  ValueRange requestBody = new ValueRange();
             //  requestBody.setValues(Bluetooth_dataList);
@@ -894,7 +906,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
           */
 
 
-            Utility.ReportNonFatalError("Check3", response.toString());
+           // Utility.ReportNonFatalError("Check3", response.toString());
             Log.e(this.toString(), response.toString());
 
         }
@@ -1011,6 +1023,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
             } catch (Exception e) {
                 mLastError = e;
                 Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
+                addErrorDetail(0, "Update: Error in updating status to spreadsheet!");
                 if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
                 } else if (mLastError instanceof UserRecoverableAuthIOException) {
                 } else {
@@ -1113,6 +1126,101 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
 
     }
 
+    private class UpdateStatusInQRSheetNew extends AsyncTask<Void, Void, Integer> {
+        private Sheets mService = null;
+        private Exception mLastError = null;
+        @Override
+        protected void onPreExecute() {
+        }
+
+        UpdateStatusInQRSheetNew() {
+            GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
+            if (accountName != null) {
+                mCredential.setSelectedAccountName(accountName);
+            }
+
+            HttpTransport transport = AndroidHttp.newCompatibleTransport();
+            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+            mService = new Sheets.Builder(
+                    transport, jsonFactory, mCredential)
+                    .setApplicationName(getResources().getString(R.string.app_name))
+                    .build();
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+
+            try {
+                /************************Preparing data for QR Sheet*******************************/
+                List<List<Object>> QR_dataList = new ArrayList<>();
+                for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                    try {
+                        List<Object> list1 = new ArrayList<>();
+                        list1.add(AsanaTaskDataList.get(i).getDateTime());
+                        list1.add(AsanaTaskDataList.get(i).getTimestamp());
+                        list1.add(AsanaTaskDataList.get(i).getQrText());
+                        list1.add(AsanaTaskDataList.get(i).getGdriveFileThumbnail());
+                        list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
+                        list1.add(AsanaTaskDataList.get(i).getErrors()); // for updating error details in 'errors' column in QR spreadsheet
+                        QR_dataList.add(list1);
+                    } catch (Exception e) {
+                    }
+                }
+
+                /************************Ready to Write data to Sheets*******************************/
+                writeToQRSheet(QR_dataList);
+
+
+            } catch (Exception e) {
+                mLastError = e;
+                Utility.ReportNonFatalError("OverwriteToRange", e.getMessage());
+                addErrorDetail(0, "Error in overwriting data to spreadsheet!");
+                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
+                } else if (mLastError instanceof UserRecoverableAuthIOException) {
+                } else {
+                    Log.e(this.toString(), "Error_Log_overwriting:" + mLastError.getMessage());
+                }
+
+                return 0;
+            }
+            return 1;
+        }
+
+
+        @Override
+        protected void onPostExecute(Integer result) {
+            //  new saveQRRecordsInLocalDB().execute();
+            callApiToWriteDataOnAsana();
+        }
+
+
+        @Override
+        protected void onCancelled() {
+        }
+
+        private void writeToQRSheet(List<List<Object>> QR_dataList) throws
+                IOException {
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+            String range = updatedRangeOfDataWrittenInQRSheet;
+            String valueInputOption = "USER_ENTERED";
+            ValueRange requestBody = new ValueRange();
+
+            if (QR_dataList.size() > 0) {
+                requestBody.setValues(QR_dataList);
+                Sheets.Spreadsheets.Values.Append request =
+                        mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
+                request.setValueInputOption(valueInputOption);
+                AppendValuesResponse response = request.execute();
+                Log.e(this.toString(), response.toString());
+            }
+        }
+
+
+
+
+    }
+
+
     private class updateQRStatusInLocalDBAsync extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -1142,6 +1250,7 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
                             .taskDao()
                             .updateStatus(task.getTimestamp(), task.getTaskId(), task.getFeasybeacon_UUID_gid(), task.getFeasybeacon_task_gid(), task.getGdriveFileId(), task.getGdriveFileParentId(), task.getGdriveFileThumbnail(), task.getBeacon1_RSSI_gid(), task.getBeacon1_URL(), task.getBeacon1_gid(), task.getStatus());
                 } catch (Exception e) {
+                    addErrorDetail(0, "Update: Error in updating status to spreadsheet!");
                     Utility.ReportNonFatalError("updateQRStatusInLocalDB", e.getMessage());
                 }
             }
@@ -1217,6 +1326,15 @@ public class UpdateWebRequestService extends IntentService implements RequestLis
         }
     }
 
+    void addErrorDetail(int TaskPos, String errorDetail) {
+        String prevErrors = AsanaTaskDataList.get(TaskPos).getErrors();
+        if (prevErrors.isEmpty()) {
+            AsanaTaskDataList.get(TaskPos).setErrors(prevErrors + errorDetail);
+        } else {
+            AsanaTaskDataList.get(TaskPos).setErrors(prevErrors + "\n" + errorDetail);
+        }
+
+    }
 
 }
 

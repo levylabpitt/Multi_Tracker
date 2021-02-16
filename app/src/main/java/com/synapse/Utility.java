@@ -20,7 +20,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -32,9 +31,7 @@ import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
-import androidx.core.util.Preconditions;
 
-import com.google.api.client.http.HttpResponse;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
@@ -43,7 +40,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.JsonObject;
-import com.journeyapps.barcodescanner.Util;
 import com.pqiorg.multitracker.R;
 import com.pqiorg.multitracker.help.TabbedActivity;
 import com.room_db.Beacon;
@@ -51,16 +47,7 @@ import com.room_db.Beacon;
 import com.synapse.model.BlackListedBeacon;
 import com.synapse.model.TaskData;
 import com.synapse.model.Task_data;
-import com.synapse.model.ScannedData;
 import com.synapse.model.SpreadsheetItem;
-
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.CloseableHttpResponse;
-
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -68,8 +55,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -79,7 +64,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.pqiorg.multitracker.anoto.activities.sdk.util.DevLog.TAG;
@@ -138,7 +122,16 @@ public class Utility {
         return folder2;
     }
 
-    public static void startNotification(Context context) {
+
+public static int getCurrentTimeStamp(){
+   long t= System.currentTimeMillis()/1000;
+
+     return (int)t;
+}
+
+
+
+public static void startNotification(Context context) {
         // TODO Auto-generated method stub
         NotificationCompat.Builder notification;
         PendingIntent pIntent;
@@ -641,7 +634,7 @@ public class Utility {
         }
         try {
             FileOutputStream fos = new FileOutputStream(pictureFile);
-            image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            image.compress(Bitmap.CompressFormat.PNG, 80, fos);
             fos.close();
         } catch (FileNotFoundException e) {
             Log.d(TAG, "File not found: " + e.getMessage());
@@ -869,15 +862,17 @@ public class Utility {
         }
         return barcode;
     }
+
     public static String getNearAnchorURL_v1(TaskData taskData) {
-               String barcode = "";
-                barcode = taskData.getBarcode();
-                barcode = "http://qlv.me/" + barcode;
+        String barcode = "";
+        barcode = taskData.getBarcode();
+        barcode = "http://qlv.me/" + barcode;
 
         return barcode;
     }
+
     public static String getNearAnchorURL_v2(String barcode) {
-        if(barcode==null || barcode.isEmpty()) return "";
+        if (barcode == null || barcode.isEmpty()) return "";
 
         String nearAnchorURL = "";
 
@@ -887,7 +882,7 @@ public class Utility {
     }
 
     public static String getLastScannedAnchorTaskID(List<TaskData> AsanaTaskDataList) {
-       String lastScannedAnchorGID="";
+        String lastScannedAnchorGID = "";
         for (TaskData taskData : AsanaTaskDataList) {
             if (taskData.isAnchor()) {  // if this is an Anchor
                 lastScannedAnchorGID = taskData.getTaskId();
@@ -897,13 +892,13 @@ public class Utility {
     }
 
     public static int getRecentlyScannedAnchorPosition(List<TaskData> AsanaTaskDataList, int taskPosition) {
-       int recentScannedAnchorPosition=-1;
-        String recentScannedAnchorGID="";
-        for (int i=0;i<taskPosition;i++) {
-            TaskData taskData =AsanaTaskDataList.get(i);
+        int recentScannedAnchorPosition = -1;
+        String recentScannedAnchorGID = "";
+        for (int i = 0; i < taskPosition; i++) {
+            TaskData taskData = AsanaTaskDataList.get(i);
             if (taskData.isAnchor()) {  // if this is an Anchor
                 recentScannedAnchorGID = taskData.getTaskId();
-                recentScannedAnchorPosition=i;
+                recentScannedAnchorPosition = i;
             }
         }
         return recentScannedAnchorPosition;
@@ -951,9 +946,12 @@ public class Utility {
         JsonObject obj3 = new JsonObject();
         try {
             JsonObject obj = new JsonObject();
+
             obj.addProperty(beacon1_gid, UUID);
             obj.addProperty(beacon1_RSSI_gid, RSSI);
+
             obj.addProperty(nearAnchor_gid, nearAnchorURL);
+
             JsonObject obj2 = new JsonObject();
             obj2.add("custom_fields", obj);
             obj3.add("data", obj2);
@@ -964,23 +962,8 @@ public class Utility {
         }
         return obj3;
     }
-    public static JsonObject getJSONForUpdatingOrdinaryTask_v2(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI, String nearAnchor_gid, String nearAnchorURL) {
-        JsonObject obj3 = new JsonObject();
-        try {
-            JsonObject obj = new JsonObject();
-            obj.addProperty(beacon1_gid, UUID);
-            obj.addProperty(beacon1_RSSI_gid, RSSI);
-            obj.addProperty(nearAnchor_gid, nearAnchorURL);
-            JsonObject obj2 = new JsonObject();
-            obj2.add("custom_fields", obj);
-            obj3.add("data", obj2);
 
 
-        } catch (Exception e) {
-            e.getCause();
-        }
-        return obj3;
-    }
     public static JsonObject getJSONForUpdatingNormalTask_v1(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI) {
         JsonObject obj3 = new JsonObject();
         try {
@@ -999,16 +982,53 @@ public class Utility {
         return obj3;
     }
 
+
+    public static JsonObject getJSONForUpdatingOrdinaryTask_v2(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI, String nearAnchor_gid, String nearAnchorURL) {
+        JsonObject obj3 = new JsonObject();
+        try {
+            JsonObject obj = new JsonObject();
+            if (beacon1_gid != null && !beacon1_gid.trim().isEmpty()) {
+                obj.addProperty(beacon1_gid, UUID);
+            }
+            if (beacon1_RSSI_gid != null && !beacon1_RSSI_gid.trim().isEmpty()) {
+                obj.addProperty(beacon1_RSSI_gid, RSSI);
+            }
+            if (nearAnchor_gid != null && !nearAnchor_gid.trim().isEmpty()) {
+                obj.addProperty(nearAnchor_gid, nearAnchorURL);
+            }
+            if (obj.size() != 0) {
+                JsonObject obj2 = new JsonObject();
+                obj2.add("custom_fields", obj);
+                obj3.add("data", obj2);
+            } else {
+                return new JsonObject();
+            }
+
+        } catch (Exception e) {
+            e.getCause();
+        }
+        return obj3;
+    }
+
     public static JsonObject getJSONForUpdatingAnchorTask_v2(String beacon1_gid, String beacon1_RSSI_gid, String UUID, int RSSI) {
         JsonObject obj3 = new JsonObject();
         try {
             JsonObject obj = new JsonObject();
-            obj.addProperty(beacon1_gid, UUID);
-            obj.addProperty(beacon1_RSSI_gid, RSSI);
+            if (beacon1_gid != null && !beacon1_gid.trim().isEmpty()) {
+                obj.addProperty(beacon1_gid, UUID);
+            }
+            if (beacon1_RSSI_gid != null && !beacon1_RSSI_gid.trim().isEmpty()) {
+                obj.addProperty(beacon1_RSSI_gid, RSSI);
+            }
+            if (obj.size() != 0) {
+                JsonObject obj2 = new JsonObject();
+                obj2.add("custom_fields", obj);
+                obj3.add("data", obj2);
+            } else {
+                return new JsonObject();
+            }
 
-            JsonObject obj2 = new JsonObject();
-            obj2.add("custom_fields", obj);
-            obj3.add("data", obj2);
+
 
 
         } catch (Exception e) {

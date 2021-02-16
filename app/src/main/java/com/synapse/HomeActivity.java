@@ -40,6 +40,8 @@ import com.pqiorg.multitracker.spreadsheet.creater.SpreadSheetListActivity;
 import com.pqiorg.multitracker.help.TabbedActivity;
 import com.synapse.network.APIError;
 import com.synapse.network.Constants;
+import com.synapse.network.NetworkUtil;
+import com.synapse.network.NoConnectivityException;
 import com.synapse.network.RequestListener;
 import com.synapse.network.RetrofitManager;
 import com.synapse.service.BeaconScannerService;
@@ -220,20 +222,41 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
                 startActivity(new Intent(this, TabbedActivityBeacon.class));
                 break;
             case R.id.btn_qr:
+                if (!NetworkUtil.isOnline(this)) {
+                    Utility.showToast(this,"No internet available!");
+                    return;
+                }
+
                 checkDefaultSpreadSheetAvailability();
 
                 break;
 
             case R.id.btn_spreadsheet:
 
+                if (!NetworkUtil.isOnline(this)) {
+                   Utility.showToast(this,"No internet available!");
+                   return;
+                }
+
+
                 startActivity(new Intent(HomeActivity.this, SpreadSheetListActivity.class));
                 break;
             case R.id.btn_drive:
+                if (!NetworkUtil.isOnline(this)) {
+                    Utility.showToast(this,"No internet available!");
+                    return;
+                }
+
                 startActivity(new Intent(HomeActivity.this, DriveActivity.class));
 
                 break;
 
             case R.id.btn_asana:
+                if (!NetworkUtil.isOnline(this)) {
+                    Utility.showToast(this,"No internet available!");
+                    return;
+                }
+
                 startActivity(new Intent(HomeActivity.this, AsanaLoginActivity.class));
 
                 break;
