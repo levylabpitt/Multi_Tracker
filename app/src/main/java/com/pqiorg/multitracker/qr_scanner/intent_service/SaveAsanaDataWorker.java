@@ -1,19 +1,29 @@
 package com.pqiorg.multitracker.qr_scanner.intent_service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 import android.util.Patterns;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.JobIntentService;
+import androidx.core.app.NotificationCompat;
+import androidx.work.Data;
+import androidx.work.ForegroundInfo;
+import androidx.work.WorkManager;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 
 import com.ammarptn.gdriverest.DriveServiceHelper;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.services.sheets.v4.model.AppendValuesResponse;
-import com.pqiorg.multitracker.drive.MimeUtils;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -22,21 +32,27 @@ import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.pqiorg.multitracker.R;
+import com.pqiorg.multitracker.drive.MimeUtils;
+import com.pqiorg.multitracker.feasybeacon.TabbedActivityBeacon;
+import com.pqiorg.multitracker.spreadsheet.creater.SpreadSheetListActivity;
 import com.room_db.Beacon;
 import com.room_db.DatabaseClient;
-import com.pqiorg.multitracker.spreadsheet.creater.SpreadSheetListActivity;
+import com.synapse.HomeActivity;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
 import com.synapse.model.TaskData;
@@ -53,6 +69,7 @@ import com.synapse.network.APIError;
 import com.synapse.network.Constants;
 import com.synapse.network.RequestListener;
 import com.synapse.network.RetrofitManager;
+import com.synapse.service.BeaconScannerService;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,110 +85,181 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
+import static androidx.core.app.NotificationCompat.PRIORITY_HIGH;
+import static androidx.core.app.NotificationCompat.PRIORITY_MIN;
 import static com.ammarptn.gdriverest.DriveServiceHelper.getGoogleDriveService;
 
+/************************************** Note***************************************************************/
+//Changes done in this file should also be done in UpdateWebRequestService file
 
-public class UpdateWebRequestService extends JobIntentService implements RequestListener {
+public class SaveAsanaDataWorker extends Worker implements RequestListener {
 
-    //public static final String QR_DATA_LIST = "qr_data_list";
-    public static final String QRTimestamp = "QRTimestamp";
+    public static final String QR_DATA_LIST = "qr_data_list";
     List<TaskData> AsanaTaskDataList = new ArrayList<>();
     List<List<Object>> BluetoothBeaconDataList = new ArrayList<>();
     int taskDetailAPICount = 0, taskUpdateAPICount = 0, attachmentUploadAPICount = 0, feasybeaconTaskDetailAPICount = 0, feasybeaconTaskUpdateAPICount = 0, driveUploadAPICount = 0, taskSearchAPICount = 0;
-    final String LevyLabProject = "LevyLab AoT (all items)";
-    long timestampBluetoothSheet = 0;
+    // final String LevyLabProject = "LevyLab AoT (all items)";
+
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
-    // private DriveServiceHelper mDriveServiceHelper;
+    //  private DriveServiceHelper mDriveServiceHelper;
     // GoogleAccountCredential mCredential;
     int strongestSignalBeaconRSSI = 0;
-    String strongestSignalBeaconUUID;
+    String strongestSignalBeaconUUID = "";
 
 
-    //  private RetrofitManager retrofitManager = RetrofitManager.getInstance();
+    //    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
     //  String LevyLab_project_gid = "";
     String LevyLab_workspace_gid = "";
 
 
-    // private Sheets mService = null;
-    //  private Exception mLastError = null;
-    //  private Context mContext;
+    /*private Sheets mService = null;
+    private Exception mLastError = null;
+    private Context mContext;
+*/
+
+
+    //  long timestampBluetoothSheet = 0;
     String accountName = "";
     String updatedRangeOfDataWrittenInQRSheet = ""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
-    // the same range to update status in spreadsheet
+    NotificationManager notificationManager;
 
+    public SaveAsanaDataWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+        super(context, workerParams);
 
-    public UpdateWebRequestService() {
-        //super("MyWebRequestService");
+        accountName = SharedPreferencesUtil.getAccountName(getApplicationContext());
+        Utility.ReportNonFatalError("accountName", accountName);
+
     }
 
 
-    @Override
+    /*@Override
     public void onCreate() {
         super.onCreate();
-        accountName = SharedPreferencesUtil.getAccountName(this);
+        accountName = SharedPreferencesUtil.getAccountName(getApplicationContext());
         Utility.ReportNonFatalError("accountName", accountName);
         //  initDriveServiceHelper();
         //  initGoogleSheetServiceHelper();
 
-    }
-
-    @Override
-    protected void onHandleWork(@NonNull Intent intent) {
-        String QRTimestamp = intent.getStringExtra(UpdateWebRequestService.QRTimestamp);
-        new findRecordByTimestampAsync(QRTimestamp).execute();
-    }
-
-    /*  void initDriveServiceHelper() {
-          GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
-          if (account != null) {
-              mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
-          }
-          mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES))
-                  .setBackOff(new ExponentialBackOff());
-      }
-
-
-      void initGoogleSheetServiceHelper() {
-          String accountName = SharedPreferencesUtil.getAccountName(this);
-          Utility.ReportNonFatalError("accountName", accountName);
-          if (accountName != null) {
-              mCredential.setSelectedAccountName(accountName);
-          }
-
-
-      }
-  */
-    /*@Override
-    protected void onHandleIntent(Intent intent) {
-        String QRTimestamp = intent.getStringExtra(UpdateWebRequestService.QRTimestamp);
-        new findRecordByTimestampAsync(QRTimestamp).execute();
     }*/
 
-    void continueUploadFileOnGoogleDrive() {
-        driveUploadAPICount++;
-        if (driveUploadAPICount < AsanaTaskDataList.size()) {
-            uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
-        } else {
-            //   getGoogleDriveFileThumbnails();
-            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                AsanaTaskDataList.get(i).setGdriveFileThumbnail("Parent_Id=" + AsanaTaskDataList.get(i).getGdriveFileParentId() + "," + "File_Id=" + AsanaTaskDataList.get(i).getGdriveFileId());
-            }
-            new writeQRRecordsInSpreadsheet().execute();
 
+    /*
+        void initDriveServiceHelper() {
+            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
+            if (account != null) {
+                mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
+            }
+            mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES))
+                    .setBackOff(new ExponentialBackOff());
+        }
+        void initGoogleSheetServiceHelper() {
+            String accountName = SharedPreferencesUtil.getAccountName(this);
+            Utility.ReportNonFatalError("accountName", accountName);
+            if (accountName != null) {
+                mCredential.setSelectedAccountName(accountName);
+            }
 
         }
+    */
+    @NonNull
+    @Override
+    public Result doWork() {
+
+        Data inputData = getInputData();
+        String[] timestamps = inputData.getStringArray("timestamps");
+
+
+        // Gson gson = new Gson();
+
+
+        // Type listType = new TypeToken<List<TaskData>>() {}.getType();
+        //  AsanaTaskDataList = gson.fromJson(jsonString, listType);
+
+        //  BluetoothBeaconDataList = BeaconScannerService.getBeaconList();
+
+
+        setForegroundAsync(createForegroundInfo());
+
+        new fetchQRRecordsAndBeaconsFromLocalDBAsync(timestamps).execute();
+
+
+       /* new writeQRRecordsInSpreadsheet().execute();
+        new saveQRRecordsInLocalDBAsync().execute();
+
+        uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
+*/
+
+        //  return null;
+        return null;
     }
 
+    @NonNull
+    private ForegroundInfo createForegroundInfo() {
+
+
+        notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("default", "Default", NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
+                //.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                //.setContentText(getApplicationContext().getString(R.string.app_name))
+                .setSmallIcon(R.mipmap.ic_launcher);
+
+        Notification notification = notificationbuilder
+                // .setOngoing(true)
+                //.setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getApplicationContext().getString(R.string.app_name))
+                .setTicker(getApplicationContext().getString(R.string.app_name))
+                .setContentText("Processing data in background")
+                .setPriority(PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build();
+
+
+        notificationManager.notify(Utility.getCurrentTimeStamp(), notification);
+
+
+        return new ForegroundInfo(1, notification);
+    }
+   /* @Override
+    protected void onHandleWork(Intent intent) {
+
+        AsanaTaskDataList = (List<TaskData>) intent.getSerializableExtra(QR_DATA_LIST);
+        BluetoothBeaconDataList = BeaconScannerService.getBeaconList();
+        // timestampBluetoothSheet = Long.parseLong(AsanaTaskDataList.get(AsanaTaskDataList.size() - 1).getTimestamp());
+        //  updateTimestampInQRAndBeaconList();
+
+        new writeQRRecordsInSpreadsheet().execute();
+        new saveQRRecordsInLocalDBAsync().execute();
+
+        uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
+
+    }*/
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(NotificationManager notificationManager) {
+        String channelId = getApplicationContext().getString(R.string.default_notification_channel_id_2);
+        String channelName = "My_Foreground_Service_Worker";
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
+        channel.setImportance(NotificationManager.IMPORTANCE_NONE);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        notificationManager.createNotificationChannel(channel);
+        return channelId;
+    }
 
     void uploadFileOnGoogleDriveFolder(String filePath, int index) {
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
         DriveServiceHelper mDriveServiceHelper = null;
         if (account != null) {
-            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
+            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getApplicationContext().getString(R.string.app_name)));
         }
         if (mDriveServiceHelper == null) {
-            //Log error here
-            addErrorDetail(index, "Update : Can't upload file in google drive folder. Reason: DriveServiceHelper object is null"); //Log error here
+            addErrorDetail(index, "Can't upload file in google drive folder. Reason: DriveServiceHelper object is null"); //Log error here
             return;
         }
 
@@ -182,7 +270,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         File file = new File(filePath);
         String mime_type = MimeUtils.guessMimeTypeFromExtension(fileExt);
 
-        String folderId = SharedPreferencesUtil.getDefaultDriveFolderId(this);
+        String folderId = SharedPreferencesUtil.getDefaultDriveFolderId(getApplicationContext());
         mDriveServiceHelper.uploadFile(file, mime_type, folderId)
                 .addOnSuccessListener(new OnSuccessListener<GoogleDriveFileHolder>() {
                     @Override
@@ -198,26 +286,41 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.e("Debugging...photo:" + index, "uploaded failed: " + e.getMessage());
-                        addErrorDetail(index, "Update: Failed uploading file in google drive folder."); //Log error here
                         Utility.ReportNonFatalError("uploadFileOnGoogleDriveFolder", e.getMessage());
+                        addErrorDetail(index, "Failed uploading file in google drive folder."); //Log error here
                         continueUploadFileOnGoogleDrive();
-
                     }
                 });
+    }
+
+    void continueUploadFileOnGoogleDrive() {
+        driveUploadAPICount++;
+        if (driveUploadAPICount < AsanaTaskDataList.size()) {
+            uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
+        } else {
+            //   getGoogleDriveFileThumbnails(); // should not use because thumbnail link works only for few days
+            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                AsanaTaskDataList.get(i).setGdriveFileThumbnail("Parent_Id=" + AsanaTaskDataList.get(i).getGdriveFileParentId() + "," + "File_Id=" + AsanaTaskDataList.get(i).getGdriveFileId());
+            }
+            new UpdateStatusInQRSheetNew().execute();
+            // new writeQRRecordsInSpreadsheet().execute();
+            callApiToWriteDataOnAsana();
+
+        }
     }
 
     private void getGoogleDriveFileThumbnails() {
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
         DriveServiceHelper mDriveServiceHelper = null;
         if (account != null) {
-            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
+            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getApplicationContext().getString(R.string.app_name)));
         }
         if (mDriveServiceHelper == null) {
             //Log error here
             return;
         }
 
-        String parentFolderid = SharedPreferencesUtil.getDefaultDriveFolderId(this);
+        String parentFolderid = SharedPreferencesUtil.getDefaultDriveFolderId(getApplicationContext());
         mDriveServiceHelper.queryFiles(parentFolderid)
                 .addOnSuccessListener(new OnSuccessListener<List<GoogleDriveFileHolder>>() {
                     @Override
@@ -252,15 +355,15 @@ public class UpdateWebRequestService extends JobIntentService implements Request
     }
 
     private void callApiToWriteDataOnAsana() {
-        //  String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
+        //    String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
         //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
-        LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(this);
+        LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(getApplicationContext());
         // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
-
+        Utility.ReportNonFatalError("AsanaTaskDataList", AsanaTaskDataList.toString());
+        Log.e("AsanaTaskDataList", AsanaTaskDataList.toString());
         if (LevyLab_workspace_gid.equals("")) {
             hitAPIGetAsanaUserDetails();
         } else {
-
             taskSearchAPICount = 0;
             hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
         }
@@ -268,7 +371,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
     private void hitAPIGetAsanaUserDetails() {
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.getUserDetails(this, this, Constants.API_TYPE.GET_USER_DETAILS, false);
+        retrofitManager.getUserDetails(this, getApplicationContext(), Constants.API_TYPE.GET_USER_DETAILS, false);
     }
 
     private void hitAPISearchTaskByWorkspace(String workspace_gid, String search_task) {
@@ -286,13 +389,16 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         }
 
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.searchTaskByWorkspace(this, this, Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
+        retrofitManager.searchTaskByWorkspace(this, getApplicationContext(), Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
     }
-
 
     private void hitAPIGetTaskDetails(String task_gid) {
 
         if (task_gid.isEmpty()) {
+
+            addErrorDetail(taskDetailAPICount, "Not a valid Asana URL. Failed fetching task details !!"); //Log error here
+            AsanaTaskDataList.get(taskDetailAPICount).setStatus("Failed!");
+
             taskDetailAPICount++;
             if (taskDetailAPICount < AsanaTaskDataList.size()) {
                 hitAPIGetTaskDetails(AsanaTaskDataList.get(taskDetailAPICount).getTaskId());
@@ -306,17 +412,23 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
 
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.getTaskDetails(this, this, Constants.API_TYPE.TASK_DETAILS, task_gid, false);
+        retrofitManager.getTaskDetails(this, getApplicationContext(), Constants.API_TYPE.TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIGetFeasybeaconTaskDetails(String task_gid) {
+
+
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.getTaskDetails(this, UpdateWebRequestService.this, Constants.API_TYPE.FEASYBEACON_TASK_DETAILS, task_gid, false);
+        retrofitManager.getTaskDetails(this, getApplicationContext(), Constants.API_TYPE.FEASYBEACON_TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIUpdateTask(String task_gid, JsonObject input) {
 
         if (task_gid.isEmpty()) {
+
+            addErrorDetail(taskUpdateAPICount, "Not a valid Asana URL. Failed updating task !!"); //Log error here
+            AsanaTaskDataList.get(taskUpdateAPICount).setStatus("Failed!");
+
             taskUpdateAPICount++;
             if (taskUpdateAPICount < AsanaTaskDataList.size()) {
                 updateTask_v2();
@@ -329,26 +441,26 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         }
 
 
-
-
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_TASK, task_gid, input, false);
+        retrofitManager.updateTask1(this, getApplicationContext(), Constants.API_TYPE.UPDATE_TASK, task_gid, input, false);
     }
 
     private void hitAPIUpdateFeasybeaconTask(String task_gid, JsonObject input) {
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_FEASYBEACON_TASK, task_gid, input, false);
+        retrofitManager.updateTask1(this, getApplicationContext(), Constants.API_TYPE.UPDATE_FEASYBEACON_TASK, task_gid, input, false);
     }
 
     private void hitAPIUploadAttachments(String task_gid, MultipartBody.Part IMAGE) {
 
         if (task_gid.isEmpty()) {
+            addErrorDetail(attachmentUploadAPICount, "Not a valid Asana URL. Failed uploading attachment !!"); //Log error here
+            AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Failed!");
             attachmentUploadAPICount++;
             if (attachmentUploadAPICount < AsanaTaskDataList.size()) {
                 hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
             } else {
-                new UpdateStatusInQRSheet().execute();
-                new updateQRStatusInLocalDBAsync().execute();
+                new UpdateStatusInQRSheetNew().execute();
+                new updateStatusInLocalDBAsync().execute();
             }
 
 
@@ -357,7 +469,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
 
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
+        retrofitManager.uploadAttachment(this, getApplicationContext(), Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
 
     void logResponseToFirebaseConsole(Response<ResponseBody> response) {
@@ -387,7 +499,6 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         //response.body().toString(): This returns your object in string format.
         //response.body().string(): This returns your response.
 
-
         try {
 
             if (apiType == Constants.API_TYPE.GET_USER_DETAILS) {
@@ -401,10 +512,9 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                             for (int i = 0; i < workspaces.size(); i++) {
                                 if (workspaces.get(i).getName().equals("levylab.org")) {
                                     LevyLab_workspace_gid = workspaces.get(i).getGid();
-                                    SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
+                                    SharedPreferencesUtil.setLevyLabWorkspaceId(getApplicationContext(), workspaces.get(i).getGid());
                                     taskSearchAPICount = 0;
                                     hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
-
                                     break;
                                 } else if (i == workspaces.size() - 1) {
                                     Utility.ReportNonFatalError("onSuccess", "'Levy Lab' workspace not found.\n Please get access of this project for updating info on Asana.");
@@ -412,30 +522,27 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                             }
                         }
                     } else {
-                        addErrorDetail(0, "Update : Response of GET_ASANA_USER_DETAILS API  is empty!");
                         // Log Error here
+                        addErrorDetail(0, "Response of GET_ASANA_USER_DETAILS API  is empty!");
                     }
 
                 } catch (Exception e) {
                     // Log Error here
-                    addErrorDetail(0, "Update :Error in processing response of GET_ASANA_USER_DETAILS API");
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                    addErrorDetail(0, "Error in processing response of GET_ASANA_USER_DETAILS API");
                 }
 
-
             } else if (apiType == Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE) {
-
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
                         logResponseToFirebaseConsole(response);
                         SearchTaskByWorkspace searchTaskResponse = new Gson().fromJson(strResponse, SearchTaskByWorkspace.class);
                         if (searchTaskResponse.getData() == null || searchTaskResponse.getData().isEmpty()) {
-                            addErrorDetail(taskSearchAPICount, "Update : No matching task found ");
                             Utility.ReportNonFatalError("onSuccess", "No matching task found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
-
+                            addErrorDetail(taskSearchAPICount, "No matching task found ");
                         } else {
-                            //  Utility.showToast(this, "Multiple matching tasks found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                            //   Utility.showToast(this, " matching tasks found for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
                             TaskData task_data = AsanaTaskDataList.get(taskSearchAPICount);
                             List<Datum> listMatchingTasks = searchTaskResponse.getData();
                             for (int j = 0; j < listMatchingTasks.size(); j++) {
@@ -446,18 +553,18 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                                     break;
                                 } else if (j == listMatchingTasks.size() - 1) {
                                     /*     Utility.showToast(this, "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());*/
-                                    addErrorDetail(taskSearchAPICount, "Update: No Task can be matched.");
                                     Utility.ReportNonFatalError("onSuccess", "No task can be matched for " + AsanaTaskDataList.get(taskSearchAPICount).getQrText());
+                                    addErrorDetail(taskSearchAPICount, "No Task can be matched.");
                                 }
                             }
                         }
                     } else {
-                        addErrorDetail(taskSearchAPICount, "Update: Response of SEARCH_TASK_BY_WORKSPACE API  is empty!");
                         // Log Error here
+                        addErrorDetail(taskSearchAPICount, "Response of SEARCH_TASK_BY_WORKSPACE API  is empty!");
                     }
                 } catch (Exception e) {
                     // Log Error here
-                    addErrorDetail(taskSearchAPICount, "Update: Error in processing response of SEARCH_TASK_BY_WORKSPACE API!");
+                    addErrorDetail(taskSearchAPICount, "Error in processing response of SEARCH_TASK_BY_WORKSPACE API!");
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
                 }
                 taskSearchAPICount++;
@@ -481,7 +588,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                         // Check if this Qr code is an Anchor or not
                         List<Tag> tagList = taskDetailsResponse.getData().getTags();
                         for (Tag tag : tagList) {
-                            if (tag.getName().equalsIgnoreCase("Anchor")) {
+                            if (String.valueOf(tag.getName()).equalsIgnoreCase("Anchor")) {
                                 isAnchor = true;
                                 break;
                             }
@@ -490,18 +597,18 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                         // get data from custom fields
                         for (int i = 0; i < fieldList.size(); i++) {
                             CustomField customField = fieldList.get(i);
-                            if (customField.getName().equals("Beacon1")) {
+                            if (customField.getName().equalsIgnoreCase("Beacon1")) {
                                 beacon1_gid = customField.getGid();
-                            } else if (customField.getName().equals("Beacon1 RSSI")) {
+                            } else if (customField.getName().equalsIgnoreCase("Beacon1 RSSI")) {
                                 beacon1_RSSI_gid = customField.getGid();
-                            } else if (customField.getName().equals("Beacon1 URL")) {
+                            } else if (customField.getName().equalsIgnoreCase("Beacon1 URL")) {
                                 beacon1_URL = customField.getTextValue();
                                 if (beacon1_URL != null && !beacon1_URL.isEmpty() && beacon1_URL.contains("/")) {
                                     feasybeacon_task_gid = beacon1_URL.substring(beacon1_URL.lastIndexOf("/") + 1);
                                 } else if (beacon1_URL == null) beacon1_URL = "";
-                            } else if (customField.getName().equals("Barcode")) {
+                            } else if (customField.getName().equalsIgnoreCase("Barcode")) {
                                 barcode = customField.getTextValue();
-                            } else if (customField.getName().equals("Near Anchor")) {
+                            } else if (customField.getName().equalsIgnoreCase("Near Anchor")) {
                                 nearAnchor_gid = customField.getGid();
                             }
                         }
@@ -514,36 +621,31 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                         task_data.setAnchor(isAnchor);
                         task_data.setBarcode(barcode);
                         task_data.setNearAnchor_gid(nearAnchor_gid);
-
-
                         AsanaTaskDataList.set(taskDetailAPICount, task_data);
-
                     } else {
                         // Log Error here
-                        addErrorDetail(taskDetailAPICount, "Update: Response of TASK_DETAILS API  is empty!");
+                        if (response != null && response.code() == 403)
+                            addErrorDetail(taskDetailAPICount, "You don't have access to this project!");
+                        else
+                            addErrorDetail(taskDetailAPICount, "Response of TASK_DETAILS API  is empty!");
                     }
-
                 } catch (Exception e) {
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
-                    addErrorDetail(taskDetailAPICount, "Update: Error in processing response of API TASK_DETAILS API");
+                    addErrorDetail(taskDetailAPICount, "Error in processing response of API TASK_DETAILS API");
                 }
-
 
                 taskDetailAPICount++;
                 if (taskDetailAPICount < AsanaTaskDataList.size()) {
                     hitAPIGetTaskDetails(AsanaTaskDataList.get(taskDetailAPICount).getTaskId());
                 } else {
-
                     //  taskDetailAPICount = 0;
                     feasybeaconTaskDetailAPICount = 0;
                     callAPI_getFeasyBeaconTaskDetails();
-
                 }
 
 
             } else if (apiType == Constants.API_TYPE.FEASYBEACON_TASK_DETAILS) {
-
                 try {
                     if (response != null && response.body() != null && response.isSuccessful()) {
                         String strResponse = response.body().string();
@@ -569,14 +671,15 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                             }
                         }
                     } else {
-                        addErrorDetail(feasybeaconTaskDetailAPICount, "Update: Response of FEASYBEACON_TASK_DETAILS API is empty");
                         // Log Error here
+                        addErrorDetail(feasybeaconTaskDetailAPICount, "Response of FEASYBEACON_TASK_DETAILS API is empty");
                     }
                 } catch (Exception e) {
-                    addErrorDetail(feasybeaconTaskDetailAPICount, "Update: Error in processing response of FEASYBEACON_TASK_DETAILS API");
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                    addErrorDetail(feasybeaconTaskDetailAPICount, "Error in processing response of FEASYBEACON_TASK_DETAILS API");
                 }
+
 
                 feasybeaconTaskDetailAPICount++;
                 callAPI_getFeasyBeaconTaskDetails();
@@ -589,26 +692,22 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                         logResponseToFirebaseConsole(response);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
                     } else {
-                        addErrorDetail(taskUpdateAPICount, "Update: Response of UPDATE_TASK API  is empty!");
                         // Log Error here
+                        addErrorDetail(taskUpdateAPICount, "Response of UPDATE_TASK API  is empty!");
                     }
-
                 } catch (Exception e) {
-                    addErrorDetail(taskUpdateAPICount, "Update: Error in processing response of UPDATE_TASK API");
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                    addErrorDetail(taskUpdateAPICount, "Error in processing response of UPDATE_TASK API");
                 }
-
                 taskUpdateAPICount++;
                 if (taskUpdateAPICount < AsanaTaskDataList.size()) {
                     // updateTask();
                     updateTask_v2();
                 } else {
-
                     //taskUpdateAPICount = 0;
                     feasybeaconTaskUpdateAPICount = 0;
                     callAPI_UpdateFeasybeaconTask();
-
                 }
 
 
@@ -619,14 +718,15 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                         logResponseToFirebaseConsole(response);
                         UpdateTAskResponse updateTAskResponse = new Gson().fromJson(strResponse, UpdateTAskResponse.class);
                     } else {
-                        addErrorDetail(feasybeaconTaskUpdateAPICount, "Update: Response of UPDATE_FEASYBEACON_TASK API  is empty!");
                         // Log Error here
+                        addErrorDetail(feasybeaconTaskUpdateAPICount, "Response of UPDATE_FEASYBEACON_TASK API  is empty!");
                     }
                 } catch (Exception e) {
-                    addErrorDetail(feasybeaconTaskUpdateAPICount, "Update: Error in processing response of UPDATE_FEASYBEACON_TASK API");
                     // Log Error here
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                    addErrorDetail(feasybeaconTaskUpdateAPICount, "Error in processing response of UPDATE_FEASYBEACON_TASK API");
                 }
+
                 feasybeaconTaskUpdateAPICount++;
                 callAPI_UpdateFeasybeaconTask();
 
@@ -638,28 +738,33 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                         UploadAttachmentsResponse uploadAttachmentsResponse = new Gson().fromJson(strResponse, UploadAttachmentsResponse.class);
                         AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Completed");
                     } else {
-                        addErrorDetail(attachmentUploadAPICount, "Update: Response of UPLOAD_ATTACHMENTS API  is empty!");
                         // Log Error here
                         AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Failed");
+                        addErrorDetail(attachmentUploadAPICount, "Response of UPLOAD_ATTACHMENTS API  is empty!");
                     }
                 } catch (Exception e) {
                     // Log Error here
-                    addErrorDetail(attachmentUploadAPICount, "Update: Error in processing response of UPLOAD_ATTACHMENTS API!");
                     Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+                    addErrorDetail(attachmentUploadAPICount, "Error in processing response of UPLOAD_ATTACHMENTS API!");
+
                 }
-
-
                 attachmentUploadAPICount++;
                 if (attachmentUploadAPICount < AsanaTaskDataList.size()) {
                     hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
                 } else {
-                    new UpdateStatusInQRSheet().execute();
-                    new updateQRStatusInLocalDBAsync().execute();
+                    // new UpdateStatusInQRSheet().execute();
+                    new UpdateStatusInQRSheetNew().execute();
+                    new updateStatusInLocalDBAsync().execute();
                 }
 
 
             }
         } catch (Exception e) {
+
+            Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+            addErrorDetail(attachmentUploadAPICount, apiType + " :  " + e.getMessage());
+
+            notificationManager.cancelAll();
         }
     }
 
@@ -678,7 +783,6 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         }
         onSuccess(response, apiType);   // So that api call flow will not break due to a failed api call
     }
-
 
     public void callAPI_getFeasyBeaconTaskDetails() {
         // because it is possible that Feasybeacon_task_gid may OR MAY NOT be available
@@ -703,11 +807,12 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
     void updateTask() {
         //if AsanaTaskDataList has an Anchor. Update NearAnchor URL to normal task containing no Anchor tag
-        String nearAnchorURL = Utility.getNearAnchorURL(AsanaTaskDataList);
+
         JsonObject input;
         if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor()) {
             input = Utility.getJSONForUpdatingAnchorTask(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
         } else {
+            String nearAnchorURL = Utility.getNearAnchorURL(AsanaTaskDataList);
             input = Utility.getJSONForUpdatingNormalTask(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
         }
 
@@ -715,9 +820,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
     }
 
-
     void updateTask_v1() {
-
         JsonObject input;
         if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor() && AsanaTaskDataList.get(taskUpdateAPICount).getTaskId().equals(Utility.getLastScannedAnchorTaskID(AsanaTaskDataList))) {
             // find logic here- https://app.asana.com/0/1190079917488218/1197159241924214
@@ -745,24 +848,21 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         if (input.size() != 0) {
             hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
-        } else if (taskUpdateAPICount < AsanaTaskDataList.size()) {
+        } else if (taskUpdateAPICount < AsanaTaskDataList.size() - 1) {
             taskUpdateAPICount++;
             updateTask_v2();
         } else {
             feasybeaconTaskUpdateAPICount = 0;
             callAPI_UpdateFeasybeaconTask();
         }
-
-
     }
-
 
     public void callAPI_UpdateFeasybeaconTask() {
         // because it is possible that Feasybeacon_UUID_gid may OR MAY NOT be available
         while (feasybeaconTaskUpdateAPICount < AsanaTaskDataList.size()) {
             String Feasybeacon_UUID_gid = AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getFeasybeacon_UUID_gid();
             String task_gid = AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getTaskId();
-            if (task_gid ==null || task_gid.isEmpty() || Feasybeacon_UUID_gid == null || Feasybeacon_UUID_gid.isEmpty()) {
+            if (task_gid == null || task_gid.isEmpty() || Feasybeacon_UUID_gid == null || Feasybeacon_UUID_gid.isEmpty()) {
                 feasybeaconTaskUpdateAPICount++;
             } else {
                 break;
@@ -810,10 +910,15 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         return surveyImage;
     }
 
+
     private class writeQRRecordsInSpreadsheet extends AsyncTask<Void, Void, Integer> {
         private Sheets mService = null;
         private Exception mLastError = null;
 
+        @Override
+        protected void onPreExecute() {
+
+        }
 
         writeQRRecordsInSpreadsheet() {
             GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
@@ -825,7 +930,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new Sheets.Builder(
                     transport, jsonFactory, mCredential)
-                    .setApplicationName(getResources().getString(R.string.app_name))
+                    .setApplicationName(getApplicationContext().getResources().getString(R.string.app_name))
                     .setHttpRequestInitializer(createHttpRequestInitializer(mCredential))
                     .build();
         }
@@ -837,83 +942,81 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                 /************************Preparing data for QR Sheet*******************************/
                 List<List<Object>> QR_dataList = new ArrayList<>();
                 for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                    List<Object> list1 = new ArrayList<>();
-                    list1.add(AsanaTaskDataList.get(i).getDateTime());
-                    //     list1.add(scannedDataList.get(i).getTimestamp());
-                    //  String timestamp = Utility.getCurrentTimestamp();
-                    list1.add(AsanaTaskDataList.get(i).getTimestamp());
-                    //  list1.add(currentTimestamp);
-                    //   AsanaTaskDataList.get(i).setTimestamp(timestamp);
-                    list1.add(AsanaTaskDataList.get(i).getQrText());
-                    list1.add(AsanaTaskDataList.get(i).getGdriveFileThumbnail());
-                    list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
-                    QR_dataList.add(list1);
+                    try {
+                        List<Object> list1 = new ArrayList<>();
+                        list1.add(AsanaTaskDataList.get(i).getDateTime());
+                        //     list1.add(scannedDataList.get(i).getTimestamp());
+                        //  String timestamp = Utility.getCurrentTimestamp();
+                        list1.add(AsanaTaskDataList.get(i).getTimestamp());
+                        //  list1.add(currentTimestamp);
+                        //   AsanaTaskDataList.get(i).setTimestamp(timestamp);
+                        list1.add(AsanaTaskDataList.get(i).getQrText());
+                        list1.add(AsanaTaskDataList.get(i).getGdriveFileThumbnail());
+                        list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
+                        list1.add(AsanaTaskDataList.get(i).getErrors()); // for updating error details in 'errors' column in QR spreadsheet
+                        QR_dataList.add(list1);
+                    } catch (Exception e) {
+                    }
                 }
+
                 /************************Preparing data for Bluetooth Sheet*******************************/
                 //updating timestamp in bluetooth sheet
+                //  List<List<Object>> Bluetooth_dataList = BeaconScannerService.getBeaconList();
                 List<List<Object>> BluetoothBeacons_dataList = new ArrayList<>();
                 BluetoothBeacons_dataList.addAll(BluetoothBeaconDataList);
                 for (int i = 0; i < BluetoothBeacons_dataList.size(); i++) {
-                    List<Object> list1 = BluetoothBeacons_dataList.get(i);
-                    if (list1.size() > 4) {
-                        int RSSI = 0;
-                        try {
-                            RSSI = Integer.parseInt(String.valueOf(list1.get(3)));
-                        } catch (Exception e) {
+                    try {
+                        List<Object> list1 = BluetoothBeacons_dataList.get(i);
+                        if (list1.size() > 4) {
+                            int RSSI = 0;
+                            try {
+                                RSSI = Integer.parseInt(String.valueOf(list1.get(3)));
+                            } catch (Exception e) {
+                            }
+                            if (strongestSignalBeaconRSSI == 0) {
+                                strongestSignalBeaconRSSI = RSSI;
+                                strongestSignalBeaconUUID = String.valueOf(list1.get(4));
+                            } else if (RSSI > strongestSignalBeaconRSSI) {
+                                strongestSignalBeaconRSSI = RSSI;
+                                strongestSignalBeaconUUID = String.valueOf(list1.get(4));
+                            }
                         }
-                        if (strongestSignalBeaconRSSI == 0) {
-                            strongestSignalBeaconRSSI = RSSI;
-                            strongestSignalBeaconUUID = String.valueOf(list1.get(4));
-                        } else if (RSSI > strongestSignalBeaconRSSI) {
-                            strongestSignalBeaconRSSI = (Integer) RSSI;
-                            strongestSignalBeaconUUID = String.valueOf(list1.get(4));
-                        }
+
+                        //  list1.set(2, ++timestampBluetoothSheet); // to nearly match with QRSheetTimestamp
+                    } catch (Exception e) {
                     }
-                    // list1.set(2, Utility.getCurrentTimestamp());
-                    //list1.set(2, ++timestampBluetoothSheet); // to nearly match with QRSheetTimestamp
+
                 }
                 if (strongestSignalBeaconUUID == null) strongestSignalBeaconUUID = "";
 
-                /************************Ready to Update data to Sheets*******************************/
-                String QRTimestamp = AsanaTaskDataList.get(0).getTimestamp();
-                String position = findRowPositionInQRSheet(QRTimestamp);
-                updateRowInQRSheet(QR_dataList, position);
-
-                for (List<Object> BeaconData : BluetoothBeaconDataList) {
-                    String BluetoothTimestamp = String.valueOf(BeaconData.get(2));
-                    String RowPosition = findRowPositionInBluetoothSheet(BluetoothTimestamp);
-                    updateRowInBLUETOOTHSheet(BeaconData, RowPosition);
-                }
+                /************************Ready to Write data to Sheets*******************************/
+                writeToQRSheet(QR_dataList);
+                writeToBLUETOOTHSheet(BluetoothBeacons_dataList);
 
             } catch (Exception e) {
                 mLastError = e;
                 Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
-                addErrorDetail(0, "Update: Error in writing data to spreadsheet!");
-                Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
+                addErrorDetail(0, "Error in writing data to spreadsheet!");
                 if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
                 } else if (mLastError instanceof UserRecoverableAuthIOException) {
                 } else {
+                    Log.e("Debugging...", "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
                 }
+
                 return 0;
             }
             return 1;
         }
 
-        @Override
-        protected void onPreExecute() {
-        }
 
         @Override
         protected void onPostExecute(Integer result) {
-            //  new saveQRRecordsInLocalDB().execute();
-
             if (result == 1) {
-                Log.e("Debugging...find/update row:", " successfully");
+                Log.e("Debugging...QR Sheet Written:", " successfully");
             } else {
-                Log.e("Debugging...find/update row:", " failed");
+                Log.e("Debugging...QR Sheet Written:", " failed");
             }
 
-            callApiToWriteDataOnAsana();
         }
 
 
@@ -927,148 +1030,52 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             }
         }
 
-        private void updateRowInQRSheet(List<List<Object>> QR_dataList, String rowPosition) throws IOException, GeneralSecurityException {
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            String range = com.synapse.Constants.SheetOne + "!" + rowPosition;
+        private void writeToQRSheet(List<List<Object>> QR_dataList) throws
+                IOException, GeneralSecurityException {
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
+            String range = com.synapse.Constants.SheetOne;
             String valueInputOption = "USER_ENTERED";
+            ValueRange requestBody = new ValueRange();
 
+            //  Utility.ReportNonFatalError("writeToQRSheet1", "1");
             if (QR_dataList.size() > 0) {
-                // requestBody.setValues(QR_dataList);
-              /*  Sheets.Spreadsheets.Values.Append request =
+                requestBody.setValues(QR_dataList);
+                Sheets.Spreadsheets.Values.Append request =
                         mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
                 request.setValueInputOption(valueInputOption);
-                AppendValuesResponse response = request.execute();*/
-
-                ValueRange valueRange = new ValueRange();
-                valueRange.setValues(QR_dataList);
-                UpdateValuesResponse response = mService.spreadsheets().values().update(spreadsheetId, range, valueRange)
-                        .setValueInputOption(valueInputOption)
-                        .execute();
-
-                Utility.ReportNonFatalError("updateToQRSheet2", response.toString());
+                AppendValuesResponse response = request.execute();
+                updatedRangeOfDataWrittenInQRSheet = response.getUpdates().getUpdatedRange();
+                //  Utility.ReportNonFatalError("writeToQRSheet2", response.toString());
                 Log.e(this.toString(), response.toString());
             }
         }
 
-        private void updateRowInBLUETOOTHSheet(List<Object> Bluetooth_data, String rowPosition) throws IOException, GeneralSecurityException {
+        private void writeToBLUETOOTHSheet(List<List<Object>> Bluetooth_dataList) throws
+                IOException, GeneralSecurityException {
             // String spreadsheetId = SharedPreferencesUtil.getDefaultBluetoothSheet(ContinuousCaptureActivity.this);
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            //String range = com.synapse.Constants.SheetTwo;
-            String range = com.synapse.Constants.SheetTwo + "!" + rowPosition;
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
+            String range = com.synapse.Constants.SheetTwo;
             ;// name of sheet and range
-            // Utility.ReportNonFatalError("Check", "3");
+            //   Utility.ReportNonFatalError("Check", "3");
             String valueInputOption = "USER_ENTERED";
-            //  ValueRange requestBody = new ValueRange();
-            //  requestBody.setValues(Bluetooth_dataList);
-
-            List<List<Object>> bluetoothDataList = new ArrayList<>();
-            bluetoothDataList.add(Bluetooth_data);
-
-            ValueRange valueRange = new ValueRange();
-            valueRange.setValues(bluetoothDataList);
-            UpdateValuesResponse response = mService.spreadsheets().values().update(spreadsheetId, range, valueRange)
-                    .setValueInputOption(valueInputOption)
-                    .execute();
-
-
-
-
-
-         /*   Sheets.Spreadsheets.Values.Append request =
+            ValueRange requestBody = new ValueRange();
+            requestBody.setValues(Bluetooth_dataList);
+            Sheets.Spreadsheets.Values.Append request =
                     mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
             request.setValueInputOption(valueInputOption);
             AppendValuesResponse response = request.execute();
-          */
-
-
             // Utility.ReportNonFatalError("Check3", response.toString());
             Log.e(this.toString(), response.toString());
 
         }
 
-        private String findRowPositionInQRSheet(String searchText) throws IOException, GeneralSecurityException {
 
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            String range = SpreadSheetListActivity.SheetOne;// name of sheet!range
-            Sheets.Spreadsheets.Values.Get request =
-                    mService.spreadsheets().values().get(spreadsheetId, range);
-
-            ValueRange response = request.execute();
-            Log.e(this.toString(), response.toPrettyString());
-
-
-            List<List<Object>> values = response.getValues();
-            List<List<Object>> columns = new ArrayList<>();
-            if (values != null) columns.addAll(values);
-
-            int columnNum = 4, rowNum = 0;
-            Boolean found = false;
-            for (int i = 0; i < columns.size(); i++) {
-                if (found) break;
-                List<Object> row = columns.get(i);
-                for (int j = 0; j < row.size(); j++) {
-                    /*if (i == 0) {
-                        columnNum = row.indexOf("Status"); // get 'Status' column number
-                        break;
-                    }*/
-                    if (row.contains(searchText)) {
-                        rowNum = i;
-                        found = true;
-                        break;
-                    }
-                }
-
-            }
-
-
-            /// return Utility.getCellByIndex(columnNum, rowNum);
-            return "A" + String.valueOf(rowNum + 1);
-        }
-
-        private String findRowPositionInBluetoothSheet(String searchText) throws IOException, GeneralSecurityException {
-
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            String range = SpreadSheetListActivity.SheetTwo;// name of sheet!range
-            Sheets.Spreadsheets.Values.Get request =
-                    mService.spreadsheets().values().get(spreadsheetId, range);
-
-            ValueRange response = request.execute();
-            Log.e(this.toString(), response.toPrettyString());
-
-
-            List<List<Object>> values = response.getValues();
-            List<List<Object>> columns = new ArrayList<>();
-            if (values != null) columns.addAll(values);
-
-            // int columnNum = 4;
-            int rowNum = -2;
-            Boolean found = false;
-            for (int i = 0; i < columns.size(); i++) {
-                if (found) break;
-                List<Object> row = columns.get(i);
-                for (int j = 0; j < row.size(); j++) {
-                    /*if (i == 0) {
-                        columnNum = row.indexOf("Status"); // get 'Status' column number
-                        break;
-                    }*/
-                    if (row.contains(searchText)) {
-                        rowNum = i;
-                        found = true;
-                        break;
-                    }
-                }
-
-            }
-
-
-            /// return Utility.getCellByIndex(columnNum, rowNum);
-            return "A" + String.valueOf(rowNum + 1);
-        }
     }
 
     private class UpdateStatusInQRSheet extends AsyncTask<Void, Void, Integer> {
         private Sheets mService = null;
         private Exception mLastError = null;
+
 
         UpdateStatusInQRSheet() {
             GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
@@ -1080,8 +1087,8 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new Sheets.Builder(
                     transport, jsonFactory, mCredential)
-                    .setApplicationName(getResources().getString(R.string.app_name))
-                    .setHttpRequestInitializer(createHttpRequestInitializer(mCredential))
+                    .setApplicationName(getApplicationContext().getResources().getString(R.string.app_name))
+
                     .build();
 
         }
@@ -1089,25 +1096,27 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         @Override
         protected Integer doInBackground(Void... params) {
 
-            try {
-                for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+
+            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                try {
                     String timestamp = AsanaTaskDataList.get(i).getTimestamp();
                     String position = findCellPositionInSheet(timestamp);
                     String status = AsanaTaskDataList.get(i).getStatus();
                     updateStatusQRSheet(position, status);
+                } catch (Exception e) {
+                    mLastError = e;
+                    Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
+                    addErrorDetail(0, "Error in updating status to spreadsheet!");
+                    if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
+                    } else if (mLastError instanceof UserRecoverableAuthIOException) {
+                    } else {
+                        Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
+                    }
+                    Log.e(this.toString(), e + "");
+                    return 0;
                 }
-            } catch (Exception e) {
-                mLastError = e;
-                Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
-                addErrorDetail(0, "Update: Error in updating status to spreadsheet!");
-                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
-                } else if (mLastError instanceof UserRecoverableAuthIOException) {
-                } else {
-                    Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
-                }
-                Log.e(this.toString(), e + "");
-                return 0;
             }
+
             return 1;
         }
 
@@ -1117,11 +1126,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         @Override
         protected void onPostExecute(Integer result) {
-            if (result == 1) {
-                Log.e("Debugging...QR Sheet Updated:", " successfully");
-            } else {
-                Log.e("Debugging...QR Sheet Updated:", " failed");
-            }
+
         }
 
 
@@ -1129,23 +1134,20 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         protected void onCancelled() {
             if (mLastError != null) {
                 Utility.ReportNonFatalError("onCancelled", mLastError.getMessage());
-                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
-                } else if (mLastError instanceof UserRecoverableAuthIOException) {
-                }
             }
         }
 
-        private void updateStatusQRSheet(String cellPosition, String status) throws IOException, GeneralSecurityException {
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+        private void updateStatusQRSheet(String cellPosition, String status) throws IOException {
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
             String range = com.synapse.Constants.SheetOne + "!" + cellPosition;
             String valueInputOption = "USER_ENTERED";
-            ValueRange requestBody = new ValueRange();
+            // ValueRange requestBody = new ValueRange();
             List<List<Object>> dataList = new ArrayList<>();
             List<Object> list = new ArrayList<>();
             list.add(status);
             dataList.add(list);
 
-            requestBody.setValues(dataList);
+            //  requestBody.setValues(dataList);
 
           /*  Sheets.Spreadsheets.Values.Append request =
                     mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
@@ -1165,9 +1167,9 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         }
 
-        private String findCellPositionInSheet(String searchText) throws IOException, GeneralSecurityException {
+        private String findCellPositionInSheet(String searchText) throws IOException {
 
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
             String range = SpreadSheetListActivity.SheetOne;// name of sheet!range
             Sheets.Spreadsheets.Values.Get request =
                     mService.spreadsheets().values().get(spreadsheetId, range);
@@ -1224,7 +1226,8 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new Sheets.Builder(
                     transport, jsonFactory, mCredential)
-                    .setApplicationName(getResources().getString(R.string.app_name))
+                    .setApplicationName(getApplicationContext().getResources().getString(R.string.app_name))
+                    .setHttpRequestInitializer(createHttpRequestInitializer(mCredential))
                     .build();
         }
 
@@ -1249,7 +1252,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                 }
 
                 /************************Ready to Write data to Sheets*******************************/
-                writeToQRSheet(QR_dataList);
+                updateToQRSheet(QR_dataList);
 
 
             } catch (Exception e) {
@@ -1259,7 +1262,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                 if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
                 } else if (mLastError instanceof UserRecoverableAuthIOException) {
                 } else {
-                    Log.e(this.toString(), "Error_Log_overwriting:" + mLastError.getMessage());
+                    Log.e("Debugging...", "Error_Log_overwriting:" + mLastError.getMessage());
                 }
 
                 return 0;
@@ -1270,8 +1273,11 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         @Override
         protected void onPostExecute(Integer result) {
-            //  new saveQRRecordsInLocalDB().execute();
-            callApiToWriteDataOnAsana();
+            if (result == 1) {
+                Log.e("Debugging...QR Sheet Updated:", " successfully");
+            } else {
+                Log.e("Debugging...QR Sheet Updated:", " failed");
+            }
         }
 
 
@@ -1279,28 +1285,24 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         protected void onCancelled() {
         }
 
-        private void writeToQRSheet(List<List<Object>> QR_dataList) throws
-                IOException {
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+        private void updateToQRSheet(List<List<Object>> QR_dataList) throws IOException {
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
             String range = updatedRangeOfDataWrittenInQRSheet;
             String valueInputOption = "USER_ENTERED";
-            ValueRange requestBody = new ValueRange();
+            ValueRange valueRange = new ValueRange();
+            valueRange.setValues(QR_dataList);
+            UpdateValuesResponse response = mService.spreadsheets().values().update(spreadsheetId, range, valueRange)
+                    .setValueInputOption(valueInputOption)
+                    .execute();
+            Log.e(this.toString(), response.toString());
 
-            if (QR_dataList.size() > 0) {
-                requestBody.setValues(QR_dataList);
-                Sheets.Spreadsheets.Values.Append request =
-                        mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
-                request.setValueInputOption(valueInputOption);
-                AppendValuesResponse response = request.execute();
-                Log.e(this.toString(), response.toString());
-            }
+
         }
 
 
     }
 
-
-    private class updateQRStatusInLocalDBAsync extends AsyncTask<Void, Void, Void> {
+    private class updateStatusInLocalDBAsync extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected void onPreExecute() {
@@ -1310,99 +1312,115 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         @Override
         protected Void doInBackground(Void... params) {
             updateQRStatusInLocalDB();
-            List<TaskData> s = getAllQRRecordsFromLocalStorage();
+            //  List<TaskData> s = getAllQRRecordsFromLocalStorage();
             return null;
         }
 
 
         @Override
         protected void onPostExecute(Void result) {
-
+            notificationManager.cancelAll();
         }
 
         void updateQRStatusInLocalDB() {
 
-            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                TaskData task = AsanaTaskDataList.get(i);
+            for (TaskData task : AsanaTaskDataList) {
                 try {
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .taskDao()
                             .updateStatus(task.getTimestamp(), task.getTaskId(), task.getFeasybeacon_UUID_gid(), task.getFeasybeacon_task_gid(), task.getGdriveFileId(), task.getGdriveFileParentId(), task.getGdriveFileThumbnail(), task.getBeacon1_RSSI_gid(), task.getBeacon1_URL(), task.getBeacon1_gid(), task.getStatus());
+                    Log.e("Debugging..", " .Local DB Updated: successfully");
                 } catch (Exception e) {
-                    addErrorDetail(0, "Update: Error in updating status to spreadsheet!");
+                    Log.e("Debugging..", ".Local DB Updated: failed" + e.getMessage());
                     Utility.ReportNonFatalError("updateQRStatusInLocalDB", e.getMessage());
+                    addErrorDetail(0, "Error in updating status to local db !");
                 }
+
             }
+
 
         }
 
     }
 
-    List<TaskData> getAllQRRecordsFromLocalStorage() {
-        return DatabaseClient
-                .getInstance(getApplicationContext())
-                .getAppDatabase()
-                .taskDao()
-                .getAll();
-
-    }
-
-    private class findRecordByTimestampAsync extends AsyncTask<Void, Void, TaskData> {
-        String QRTimestamp;
-
+    private class saveQRRecordsInLocalDBAsync extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected void onPreExecute() {
         }
 
-        findRecordByTimestampAsync(String QRTimestamp) {
-            this.QRTimestamp = QRTimestamp;
-
-
+        @Override
+        protected Void doInBackground(Void... params) {
+            saveQRRecordsInLocalDB();
+            saveBeaconRecordsInLocalDB();
+            List<TaskData> QRRecords = getAllQRRecordsFromLocalStorage();
+            List<Beacon> beacons = getAllBeaconsRecordsFromLocalStorage();
+            return null;
         }
 
-        @Override
-        protected TaskData doInBackground(Void... params) {
 
-            TaskData QRData = _findQRRecordByTimestamp(QRTimestamp);
-            if (QRData != null) {
-                String BeaconTimestamp = QRData.getTimestampBeacon();
-                List<Beacon> beaconList = _findBeaconRecordsByTimestamp(BeaconTimestamp);
-                if (beaconList != null && !beaconList.isEmpty()) {
-                    List<List<Object>> bluetoothList = Utility.convertToSheetCompatibleList(beaconList);
-                    BluetoothBeaconDataList.addAll(bluetoothList);
+        @Override
+        protected void onPostExecute(Void result) {
+        }
+
+        void saveQRRecordsInLocalDB() {
+            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                TaskData task = AsanaTaskDataList.get(i);
+                try {
+                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                            .taskDao()
+                            .insert(task);
+
+                    Log.e("Debugging...Local DB Written:", " successfully");
+                } catch (Exception e) {
+                    Log.e("Debugging...Local DB Written:", " failed: " + e.getMessage());
+                    addErrorDetail(i, "Error in inserting QR record in local db");
+                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
                 }
-                AsanaTaskDataList.add(QRData);
-                timestampBluetoothSheet = Long.parseLong(AsanaTaskDataList.get(AsanaTaskDataList.size() - 1).getTimestamp());
             }
-            return QRData;
+        }
+
+        void saveBeaconRecordsInLocalDB() {
+            if (BluetoothBeaconDataList == null || BluetoothBeaconDataList.isEmpty()) return;
+            for (List<Object> beaconData : BluetoothBeaconDataList) {
+                try {
+                    Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
+                            AsanaTaskDataList.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
+                            String.valueOf(beaconData.get(1)),
+                            String.valueOf(beaconData.get(3)),
+                            String.valueOf(beaconData.get(4)),
+                            String.valueOf(beaconData.get(5)),
+                            String.valueOf(beaconData.get(6)),
+                            String.valueOf(beaconData.get(7)));
+
+                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                            .beaconDao()
+                            .insert(beacon);
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
+                }
+            }
+
+
         }
 
 
-        @Override
-        protected void onPostExecute(TaskData result) {
-            uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
+    }
 
+    List<TaskData> getAllQRRecordsFromLocalStorage() {
+        return DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                .taskDao()
+                .getAll();
 
-        }
+    }
 
-        TaskData _findQRRecordByTimestamp(String timestamp) {
-            TaskData taskData = DatabaseClient
-                    .getInstance(getApplicationContext())
-                    .getAppDatabase()
-                    .taskDao()
-                    .findByTimestamp(timestamp);
-            return taskData;
-        }
+    List<Beacon> getAllBeaconsRecordsFromLocalStorage() {
+        return DatabaseClient
+                .getInstance(getApplicationContext())
+                .getAppDatabase()
+                .beaconDao()
+                .getAll();
 
-        List<Beacon> _findBeaconRecordsByTimestamp(String timestamp) {
-            List<Beacon> beacons = DatabaseClient
-                    .getInstance(getApplicationContext())
-                    .getAppDatabase()
-                    .beaconDao()
-                    .findByTimestamp(timestamp);
-            return beacons;
-        }
     }
 
     void addErrorDetail(int TaskPos, String errorDetail) {
@@ -1415,6 +1433,35 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
     }
 
+    public void updateTimestampInQRAndBeaconList() {
+        for (TaskData task_data : AsanaTaskDataList) {
+            ArrayList<String> dateAndTimestampList = Utility.getCurrentDateWithTimestamp();
+            String currentDate = "", currentTimestamp = "";
+            if (dateAndTimestampList.size() > 0) currentDate = dateAndTimestampList.get(0);
+            if (dateAndTimestampList.size() > 1) currentTimestamp = dateAndTimestampList.get(1);
+
+            task_data.setDateTime(currentDate);
+            task_data.setTimestamp(currentTimestamp);
+
+        }
+
+        for (List<Object> beaconData : BluetoothBeaconDataList) {
+            ArrayList<String> dateAndTimestampList = Utility.getCurrentDateWithTimestamp();
+            String currentDate = "", currentTimestamp = "";
+            if (dateAndTimestampList.size() > 0) currentDate = dateAndTimestampList.get(0);
+            if (dateAndTimestampList.size() > 1) currentTimestamp = dateAndTimestampList.get(1);
+
+            beaconData.set(0, currentDate);
+            beaconData.set(2, currentTimestamp);
+
+        }
+
+        Log.e("Debugging...", "Updated datetime and timestamp in both qr/beacon list");
+
+
+    }
+
+
     private HttpRequestInitializer createHttpRequestInitializer(final HttpRequestInitializer requestInitializer) {
         return new HttpRequestInitializer() {
             @Override
@@ -1425,9 +1472,63 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             }
         };
     }
+
+    private class fetchQRRecordsAndBeaconsFromLocalDBAsync extends AsyncTask<Void, Void, Void> {
+        String[] timestamps;
+
+        fetchQRRecordsAndBeaconsFromLocalDBAsync(String[] timestamps) {
+            this.timestamps = timestamps;
+        }
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            ArrayList<String> timestampsList = new ArrayList<String>(Arrays.asList(timestamps));
+            AsanaTaskDataList = getAllQRRecordsByTimestampsFromLocalDB(timestampsList);
+
+            if (!AsanaTaskDataList.isEmpty()) {
+                String BeaconTimestamp = AsanaTaskDataList.get(0).getTimestampBeacon();
+                List<Beacon> beaconList = _findBeaconRecordsByTimestamp(BeaconTimestamp);
+                if (beaconList != null && !beaconList.isEmpty()) {
+                    List<List<Object>> bluetoothList = Utility.convertToSheetCompatibleList(beaconList);
+                    BluetoothBeaconDataList.addAll(bluetoothList);
+                }
+            }
+
+
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(Void result) {
+            new writeQRRecordsInSpreadsheet().execute();
+            uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
+
+        }
+
+        List<TaskData> getAllQRRecordsByTimestampsFromLocalDB(ArrayList<String> timestamps) {
+            return DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                    .taskDao()
+                    .findAllQRDataByTimestampsList(timestamps);
+
+        }
+
+        List<Beacon> _findBeaconRecordsByTimestamp(String timestamp) {
+            List<Beacon> beacons = DatabaseClient
+                    .getInstance(getApplicationContext())
+                    .getAppDatabase()
+                    .beaconDao()
+                    .findByTimestamp(timestamp);
+            return beacons;
+        }
+
+
+    }
+
 }
-
-
-
 
 

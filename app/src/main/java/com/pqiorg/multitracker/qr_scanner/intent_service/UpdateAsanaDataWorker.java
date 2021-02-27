@@ -1,19 +1,23 @@
 package com.pqiorg.multitracker.qr_scanner.intent_service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Patterns;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.JobIntentService;
+import androidx.core.app.NotificationCompat;
+import androidx.work.Data;
+import androidx.work.ForegroundInfo;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 
 import com.ammarptn.gdriverest.DriveServiceHelper;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.services.sheets.v4.model.AppendValuesResponse;
-import com.pqiorg.multitracker.drive.MimeUtils;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -22,21 +26,25 @@ import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.pqiorg.multitracker.R;
+import com.pqiorg.multitracker.drive.MimeUtils;
+import com.pqiorg.multitracker.spreadsheet.creater.SpreadSheetListActivity;
 import com.room_db.Beacon;
 import com.room_db.DatabaseClient;
-import com.pqiorg.multitracker.spreadsheet.creater.SpreadSheetListActivity;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
 import com.synapse.model.TaskData;
@@ -68,10 +76,11 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
+import static androidx.core.app.NotificationCompat.PRIORITY_HIGH;
 import static com.ammarptn.gdriverest.DriveServiceHelper.getGoogleDriveService;
 
 
-public class UpdateWebRequestService extends JobIntentService implements RequestListener {
+public class UpdateAsanaDataWorker extends Worker implements RequestListener {
 
     //public static final String QR_DATA_LIST = "qr_data_list";
     public static final String QRTimestamp = "QRTimestamp";
@@ -91,36 +100,90 @@ public class UpdateWebRequestService extends JobIntentService implements Request
     //  String LevyLab_project_gid = "";
     String LevyLab_workspace_gid = "";
 
-
+    String updatedRangeOfDataWrittenInQRSheet = "";
     // private Sheets mService = null;
     //  private Exception mLastError = null;
     //  private Context mContext;
     String accountName = "";
-    String updatedRangeOfDataWrittenInQRSheet = ""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
+    //   String updatedRangeOfDataWrittenInQRSheet = ""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
     // the same range to update status in spreadsheet
+    NotificationManager notificationManager;
 
-
-    public UpdateWebRequestService() {
+   /* public UpdateAsanaDataService() {
         //super("MyWebRequestService");
     }
+*/
 
+    /* @Override
+     public void onCreate() {
+         super.onCreate();
+         accountName = SharedPreferencesUtil.getAccountName(this);
+         Utility.ReportNonFatalError("accountName", accountName);
+         //  initDriveServiceHelper();
+         //  initGoogleSheetServiceHelper();
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        accountName = SharedPreferencesUtil.getAccountName(this);
-        Utility.ReportNonFatalError("accountName", accountName);
-        //  initDriveServiceHelper();
-        //  initGoogleSheetServiceHelper();
-
-    }
-
+     }*/
+/*
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-        String QRTimestamp = intent.getStringExtra(UpdateWebRequestService.QRTimestamp);
+        String QRTimestamp = intent.getStringExtra(UpdateAsanaDataWorker.QRTimestamp);
         new findRecordByTimestampAsync(QRTimestamp).execute();
+    }*/
+    public UpdateAsanaDataWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+        super(context, workerParams);
+
+        accountName = SharedPreferencesUtil.getAccountName(getApplicationContext());
+        Utility.ReportNonFatalError("accountName", accountName);
+
     }
 
+    @NonNull
+    @Override
+    public Result doWork() {
+
+
+        Data inputData = getInputData();
+        String QRTimestamp = inputData.getString(UpdateAsanaDataWorker.QRTimestamp);
+
+        setForegroundAsync(createForegroundInfo());
+
+        new findRecordByTimestampAsync(QRTimestamp).execute();
+
+        return Result.success();
+    }
+
+    @NonNull
+    private ForegroundInfo createForegroundInfo() {
+
+
+        notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("default", "Default", NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
+                //.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                //.setContentText(getApplicationContext().getString(R.string.app_name))
+                .setSmallIcon(R.mipmap.ic_launcher);
+
+        Notification notification = notificationbuilder
+                // .setOngoing(true)
+                //.setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getApplicationContext().getString(R.string.app_name))
+                .setTicker(getApplicationContext().getString(R.string.app_name))
+                .setContentText("Processing data in background")
+                .setPriority(PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build();
+
+
+        notificationManager.notify(Utility.getCurrentTimeStamp(), notification);
+
+
+        return new ForegroundInfo(1, notification);
+    }
     /*  void initDriveServiceHelper() {
           GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
           if (account != null) {
@@ -132,7 +195,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
 
       void initGoogleSheetServiceHelper() {
-          String accountName = SharedPreferencesUtil.getAccountName(this);
+          String accountName = SharedPreferencesUtil.getAccountName(getApplicationContext());
           Utility.ReportNonFatalError("accountName", accountName);
           if (accountName != null) {
               mCredential.setSelectedAccountName(accountName);
@@ -167,7 +230,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
         DriveServiceHelper mDriveServiceHelper = null;
         if (account != null) {
-            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
+            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getApplicationContext().getString(R.string.app_name)));
         }
         if (mDriveServiceHelper == null) {
             //Log error here
@@ -182,7 +245,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         File file = new File(filePath);
         String mime_type = MimeUtils.guessMimeTypeFromExtension(fileExt);
 
-        String folderId = SharedPreferencesUtil.getDefaultDriveFolderId(this);
+        String folderId = SharedPreferencesUtil.getDefaultDriveFolderId(getApplicationContext());
         mDriveServiceHelper.uploadFile(file, mime_type, folderId)
                 .addOnSuccessListener(new OnSuccessListener<GoogleDriveFileHolder>() {
                     @Override
@@ -210,14 +273,14 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
         DriveServiceHelper mDriveServiceHelper = null;
         if (account != null) {
-            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
+            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getApplicationContext().getString(R.string.app_name)));
         }
         if (mDriveServiceHelper == null) {
             //Log error here
             return;
         }
 
-        String parentFolderid = SharedPreferencesUtil.getDefaultDriveFolderId(this);
+        String parentFolderid = SharedPreferencesUtil.getDefaultDriveFolderId(getApplicationContext());
         mDriveServiceHelper.queryFiles(parentFolderid)
                 .addOnSuccessListener(new OnSuccessListener<List<GoogleDriveFileHolder>>() {
                     @Override
@@ -244,7 +307,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e(this.toString(), "Error_Log_viewFileFolder:" + e.getMessage());
+                        Log.e(getApplicationContext().toString(), "Error_Log_viewFileFolder:" + e.getMessage());
                         Utility.ReportNonFatalError("viewFileFolder", e.getMessage());
 
                     }
@@ -252,10 +315,10 @@ public class UpdateWebRequestService extends JobIntentService implements Request
     }
 
     private void callApiToWriteDataOnAsana() {
-        //  String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
-        //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
-        LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(this);
-        // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
+        //  String user_gid = SharedPreferencesUtil.getAsanaUserId(getApplicationContext());
+        //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(getApplicationContext());
+        LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(getApplicationContext());
+        // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(getApplicationContext());
 
         if (LevyLab_workspace_gid.equals("")) {
             hitAPIGetAsanaUserDetails();
@@ -268,7 +331,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
     private void hitAPIGetAsanaUserDetails() {
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.getUserDetails(this, this, Constants.API_TYPE.GET_USER_DETAILS, false);
+        retrofitManager.getUserDetails(this, getApplicationContext(), Constants.API_TYPE.GET_USER_DETAILS, false);
     }
 
     private void hitAPISearchTaskByWorkspace(String workspace_gid, String search_task) {
@@ -286,13 +349,17 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         }
 
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.searchTaskByWorkspace(this, this, Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
+        retrofitManager.searchTaskByWorkspace(this, getApplicationContext(), Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
     }
 
 
     private void hitAPIGetTaskDetails(String task_gid) {
 
         if (task_gid.isEmpty()) {
+
+            addErrorDetail(taskDetailAPICount, "Not a valid Asana URL. Failed fetching task details !!"); //Log error here
+            AsanaTaskDataList.get(taskDetailAPICount).setStatus("Failed!");
+
             taskDetailAPICount++;
             if (taskDetailAPICount < AsanaTaskDataList.size()) {
                 hitAPIGetTaskDetails(AsanaTaskDataList.get(taskDetailAPICount).getTaskId());
@@ -306,17 +373,21 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
 
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.getTaskDetails(this, this, Constants.API_TYPE.TASK_DETAILS, task_gid, false);
+        retrofitManager.getTaskDetails(this, getApplicationContext(), Constants.API_TYPE.TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIGetFeasybeaconTaskDetails(String task_gid) {
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.getTaskDetails(this, UpdateWebRequestService.this, Constants.API_TYPE.FEASYBEACON_TASK_DETAILS, task_gid, false);
+        retrofitManager.getTaskDetails(this, getApplicationContext(), Constants.API_TYPE.FEASYBEACON_TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIUpdateTask(String task_gid, JsonObject input) {
 
         if (task_gid.isEmpty()) {
+
+            addErrorDetail(taskUpdateAPICount, "Not a valid Asana URL. Failed updating task !!"); //Log error here
+            AsanaTaskDataList.get(taskUpdateAPICount).setStatus("Failed!");
+
             taskUpdateAPICount++;
             if (taskUpdateAPICount < AsanaTaskDataList.size()) {
                 updateTask_v2();
@@ -329,20 +400,21 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         }
 
 
-
-
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_TASK, task_gid, input, false);
+        retrofitManager.updateTask1(this, getApplicationContext(), Constants.API_TYPE.UPDATE_TASK, task_gid, input, false);
     }
 
     private void hitAPIUpdateFeasybeaconTask(String task_gid, JsonObject input) {
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_FEASYBEACON_TASK, task_gid, input, false);
+        retrofitManager.updateTask1(this, getApplicationContext(), Constants.API_TYPE.UPDATE_FEASYBEACON_TASK, task_gid, input, false);
     }
 
     private void hitAPIUploadAttachments(String task_gid, MultipartBody.Part IMAGE) {
 
         if (task_gid.isEmpty()) {
+            addErrorDetail(attachmentUploadAPICount, "Not a valid Asana URL. Failed uploading attachment !!"); //Log error here
+            AsanaTaskDataList.get(attachmentUploadAPICount).setStatus("Failed!");
+
             attachmentUploadAPICount++;
             if (attachmentUploadAPICount < AsanaTaskDataList.size()) {
                 hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
@@ -357,7 +429,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
 
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
-        retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
+        retrofitManager.uploadAttachment(this, getApplicationContext(), Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
 
     void logResponseToFirebaseConsole(Response<ResponseBody> response) {
@@ -401,7 +473,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                             for (int i = 0; i < workspaces.size(); i++) {
                                 if (workspaces.get(i).getName().equals("levylab.org")) {
                                     LevyLab_workspace_gid = workspaces.get(i).getGid();
-                                    SharedPreferencesUtil.setLevyLabWorkspaceId(this, workspaces.get(i).getGid());
+                                    SharedPreferencesUtil.setLevyLabWorkspaceId(getApplicationContext(), workspaces.get(i).getGid());
                                     taskSearchAPICount = 0;
                                     hitAPISearchTaskByWorkspace(LevyLab_workspace_gid, AsanaTaskDataList.get(taskSearchAPICount).getQrText());
 
@@ -520,7 +592,10 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
                     } else {
                         // Log Error here
-                        addErrorDetail(taskDetailAPICount, "Update: Response of TASK_DETAILS API  is empty!");
+                        if (response != null && response.code() == 403)
+                            addErrorDetail(taskDetailAPICount, "You don't have access to this project!");
+                        else
+                            addErrorDetail(taskDetailAPICount, "Response of TASK_DETAILS API  is empty!");
                     }
 
                 } catch (Exception e) {
@@ -660,6 +735,9 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
             }
         } catch (Exception e) {
+            Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+            addErrorDetail(attachmentUploadAPICount, apiType + " :  " + e.getMessage());
+            notificationManager.cancelAll();
         }
     }
 
@@ -745,7 +823,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         if (input.size() != 0) {
             hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
-        } else if (taskUpdateAPICount < AsanaTaskDataList.size()) {
+        } else if (taskUpdateAPICount < AsanaTaskDataList.size() - 1) {
             taskUpdateAPICount++;
             updateTask_v2();
         } else {
@@ -762,7 +840,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         while (feasybeaconTaskUpdateAPICount < AsanaTaskDataList.size()) {
             String Feasybeacon_UUID_gid = AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getFeasybeacon_UUID_gid();
             String task_gid = AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getTaskId();
-            if (task_gid ==null || task_gid.isEmpty() || Feasybeacon_UUID_gid == null || Feasybeacon_UUID_gid.isEmpty()) {
+            if (task_gid == null || task_gid.isEmpty() || Feasybeacon_UUID_gid == null || Feasybeacon_UUID_gid.isEmpty()) {
                 feasybeaconTaskUpdateAPICount++;
             } else {
                 break;
@@ -810,6 +888,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         return surveyImage;
     }
 
+
     private class writeQRRecordsInSpreadsheet extends AsyncTask<Void, Void, Integer> {
         private Sheets mService = null;
         private Exception mLastError = null;
@@ -825,7 +904,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new Sheets.Builder(
                     transport, jsonFactory, mCredential)
-                    .setApplicationName(getResources().getString(R.string.app_name))
+                    .setApplicationName(getApplicationContext().getResources().getString(R.string.app_name))
                     .setHttpRequestInitializer(createHttpRequestInitializer(mCredential))
                     .build();
         }
@@ -847,6 +926,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                     list1.add(AsanaTaskDataList.get(i).getQrText());
                     list1.add(AsanaTaskDataList.get(i).getGdriveFileThumbnail());
                     list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
+                    list1.add(AsanaTaskDataList.get(i).getErrors());
                     QR_dataList.add(list1);
                 }
                 /************************Preparing data for Bluetooth Sheet*******************************/
@@ -928,7 +1008,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         }
 
         private void updateRowInQRSheet(List<List<Object>> QR_dataList, String rowPosition) throws IOException, GeneralSecurityException {
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
             String range = com.synapse.Constants.SheetOne + "!" + rowPosition;
             String valueInputOption = "USER_ENTERED";
 
@@ -944,7 +1024,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
                 UpdateValuesResponse response = mService.spreadsheets().values().update(spreadsheetId, range, valueRange)
                         .setValueInputOption(valueInputOption)
                         .execute();
-
+                updatedRangeOfDataWrittenInQRSheet = response.getUpdatedRange();
                 Utility.ReportNonFatalError("updateToQRSheet2", response.toString());
                 Log.e(this.toString(), response.toString());
             }
@@ -952,7 +1032,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         private void updateRowInBLUETOOTHSheet(List<Object> Bluetooth_data, String rowPosition) throws IOException, GeneralSecurityException {
             // String spreadsheetId = SharedPreferencesUtil.getDefaultBluetoothSheet(ContinuousCaptureActivity.this);
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
             //String range = com.synapse.Constants.SheetTwo;
             String range = com.synapse.Constants.SheetTwo + "!" + rowPosition;
             ;// name of sheet and range
@@ -988,7 +1068,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         private String findRowPositionInQRSheet(String searchText) throws IOException, GeneralSecurityException {
 
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
             String range = SpreadSheetListActivity.SheetOne;// name of sheet!range
             Sheets.Spreadsheets.Values.Get request =
                     mService.spreadsheets().values().get(spreadsheetId, range);
@@ -1027,7 +1107,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         private String findRowPositionInBluetoothSheet(String searchText) throws IOException, GeneralSecurityException {
 
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
             String range = SpreadSheetListActivity.SheetTwo;// name of sheet!range
             Sheets.Spreadsheets.Values.Get request =
                     mService.spreadsheets().values().get(spreadsheetId, range);
@@ -1080,7 +1160,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new Sheets.Builder(
                     transport, jsonFactory, mCredential)
-                    .setApplicationName(getResources().getString(R.string.app_name))
+                    .setApplicationName(getApplicationContext().getResources().getString(R.string.app_name))
                     .setHttpRequestInitializer(createHttpRequestInitializer(mCredential))
                     .build();
 
@@ -1090,12 +1170,32 @@ public class UpdateWebRequestService extends JobIntentService implements Request
         protected Integer doInBackground(Void... params) {
 
             try {
-                for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                /*for (int i = 0; i < AsanaTaskDataList.size(); i++) {
                     String timestamp = AsanaTaskDataList.get(i).getTimestamp();
                     String position = findCellPositionInSheet(timestamp);
                     String status = AsanaTaskDataList.get(i).getStatus();
                     updateStatusQRSheet(position, status);
+                }*/
+                // String timestamp = AsanaTaskDataList.get(0).getTimestamp();
+                //   String position = findCellPositionInSheet(timestamp);
+
+                List<List<Object>> QR_dataList = new ArrayList<>();
+                //  for (int i = 0; i < AsanaTaskDataList.size(); i++) {
+                try {
+                    List<Object> list1 = new ArrayList<>();
+                    list1.add(AsanaTaskDataList.get(0).getDateTime());
+                    list1.add(AsanaTaskDataList.get(0).getTimestamp());
+                    list1.add(AsanaTaskDataList.get(0).getQrText());
+                    list1.add(AsanaTaskDataList.get(0).getGdriveFileThumbnail());
+                    list1.add(AsanaTaskDataList.get(0).getStatus()); // for status of updating spreadsheets and asana tasks
+                    list1.add(AsanaTaskDataList.get(0).getErrors()); // for updating error details in 'errors' column in QR spreadsheet
+                    QR_dataList.add(list1);
+                } catch (Exception e) {
                 }
+                // }
+
+                updateToQRSheet(QR_dataList, updatedRangeOfDataWrittenInQRSheet);
+
             } catch (Exception e) {
                 mLastError = e;
                 Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
@@ -1135,167 +1235,20 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             }
         }
 
-        private void updateStatusQRSheet(String cellPosition, String status) throws IOException, GeneralSecurityException {
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            String range = com.synapse.Constants.SheetOne + "!" + cellPosition;
+
+        private void updateToQRSheet(List<List<Object>> QR_dataList, String rangeToUpdate) throws IOException {
+            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
+            String range = rangeToUpdate;
             String valueInputOption = "USER_ENTERED";
-            ValueRange requestBody = new ValueRange();
-            List<List<Object>> dataList = new ArrayList<>();
-            List<Object> list = new ArrayList<>();
-            list.add(status);
-            dataList.add(list);
-
-            requestBody.setValues(dataList);
-
-          /*  Sheets.Spreadsheets.Values.Append request =
-                    mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
-            request.setValueInputOption(valueInputOption);
-             AppendValuesResponse response = request.execute();
-            */
-
             ValueRange valueRange = new ValueRange();
-            valueRange.setValues(dataList);
+            valueRange.setValues(QR_dataList);
             UpdateValuesResponse response = mService.spreadsheets().values().update(spreadsheetId, range, valueRange)
                     .setValueInputOption(valueInputOption)
                     .execute();
-
-
-            Utility.ReportNonFatalError("UpdateValuesResponse", response.toString());
             Log.e(this.toString(), response.toString());
 
-        }
-
-        private String findCellPositionInSheet(String searchText) throws IOException, GeneralSecurityException {
-
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            String range = SpreadSheetListActivity.SheetOne;// name of sheet!range
-            Sheets.Spreadsheets.Values.Get request =
-                    mService.spreadsheets().values().get(spreadsheetId, range);
-
-            ValueRange response = request.execute();
-            Log.e(this.toString(), response.toPrettyString());
-
-
-            List<List<Object>> values = response.getValues();
-            List<List<Object>> columns = new ArrayList<>();
-            if (values != null) columns.addAll(values);
-
-            int columnNum = 4, rowNum = 0;
-            Boolean found = false;
-            for (int i = 0; i < columns.size(); i++) {
-                if (found) break;
-                List<Object> row = columns.get(i);
-                for (int j = 0; j < row.size(); j++) {
-                    /*if (i == 0) {
-                        columnNum = row.indexOf("Status"); // get 'Status' column number
-                        break;
-                    }*/
-                    if (row.contains(searchText)) {
-                        rowNum = i;
-                        found = true;
-                        break;
-                    }
-                }
-
-            }
-
-
-            return Utility.getCellByIndex(columnNum, rowNum);
 
         }
-
-    }
-
-    private class UpdateStatusInQRSheetNew extends AsyncTask<Void, Void, Integer> {
-        private Sheets mService = null;
-        private Exception mLastError = null;
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        UpdateStatusInQRSheetNew() {
-            GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
-            if (accountName != null) {
-                mCredential.setSelectedAccountName(accountName);
-            }
-
-            HttpTransport transport = AndroidHttp.newCompatibleTransport();
-            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-            mService = new Sheets.Builder(
-                    transport, jsonFactory, mCredential)
-                    .setApplicationName(getResources().getString(R.string.app_name))
-                    .build();
-        }
-
-        @Override
-        protected Integer doInBackground(Void... params) {
-
-            try {
-                /************************Preparing data for QR Sheet*******************************/
-                List<List<Object>> QR_dataList = new ArrayList<>();
-                for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                    try {
-                        List<Object> list1 = new ArrayList<>();
-                        list1.add(AsanaTaskDataList.get(i).getDateTime());
-                        list1.add(AsanaTaskDataList.get(i).getTimestamp());
-                        list1.add(AsanaTaskDataList.get(i).getQrText());
-                        list1.add(AsanaTaskDataList.get(i).getGdriveFileThumbnail());
-                        list1.add(AsanaTaskDataList.get(i).getStatus()); // for status of updating spreadsheets and asana tasks
-                        list1.add(AsanaTaskDataList.get(i).getErrors()); // for updating error details in 'errors' column in QR spreadsheet
-                        QR_dataList.add(list1);
-                    } catch (Exception e) {
-                    }
-                }
-
-                /************************Ready to Write data to Sheets*******************************/
-                writeToQRSheet(QR_dataList);
-
-
-            } catch (Exception e) {
-                mLastError = e;
-                Utility.ReportNonFatalError("OverwriteToRange", e.getMessage());
-                addErrorDetail(0, "Error in overwriting data to spreadsheet!");
-                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
-                } else if (mLastError instanceof UserRecoverableAuthIOException) {
-                } else {
-                    Log.e(this.toString(), "Error_Log_overwriting:" + mLastError.getMessage());
-                }
-
-                return 0;
-            }
-            return 1;
-        }
-
-
-        @Override
-        protected void onPostExecute(Integer result) {
-            //  new saveQRRecordsInLocalDB().execute();
-            callApiToWriteDataOnAsana();
-        }
-
-
-        @Override
-        protected void onCancelled() {
-        }
-
-        private void writeToQRSheet(List<List<Object>> QR_dataList) throws
-                IOException {
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(UpdateWebRequestService.this);
-            String range = updatedRangeOfDataWrittenInQRSheet;
-            String valueInputOption = "USER_ENTERED";
-            ValueRange requestBody = new ValueRange();
-
-            if (QR_dataList.size() > 0) {
-                requestBody.setValues(QR_dataList);
-                Sheets.Spreadsheets.Values.Append request =
-                        mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
-                request.setValueInputOption(valueInputOption);
-                AppendValuesResponse response = request.execute();
-                Log.e(this.toString(), response.toString());
-            }
-        }
-
 
     }
 
@@ -1317,7 +1270,7 @@ public class UpdateWebRequestService extends JobIntentService implements Request
 
         @Override
         protected void onPostExecute(Void result) {
-
+            notificationManager.cancelAll();
         }
 
         void updateQRStatusInLocalDB() {

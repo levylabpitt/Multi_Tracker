@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
@@ -24,8 +25,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.JobIntentService;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.feasycom.controler.FscBeaconApi;
 import com.feasycom.controler.FscBeaconApiImp;
@@ -38,7 +43,9 @@ import com.journeyapps.barcodescanner.CaptureManager;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
 import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 import com.pqiorg.multitracker.R;
-import com.pqiorg.multitracker.qr_scanner.intent_service.SaveWebRequestService;
+import com.pqiorg.multitracker.qr_scanner.intent_service.SaveAsanaDataWorker;
+import com.room_db.Beacon;
+import com.room_db.DatabaseClient;
 import com.synapse.ProgressHUD;
 import com.synapse.Utility;
 import com.synapse.model.TaskData;
@@ -46,7 +53,6 @@ import com.synapse.model.Task_data;
 import com.synapse.network.NetworkUtil;
 import com.synapse.service.BeaconScannerService;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -114,7 +120,12 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             if (Utility.QRAlreadyScanned(AsanaTaskDataList, result.getText())) return;
             //  scannedQRDataList.add(new ScannedData(result.getText(), Utility.getCurrentDate(), "", "", "", "",bitmap,""));
             //   QR_count.setText("QR scanned: " + scannedQRDataList.size());
-            AsanaTaskDataList.add(new Task_data(result.getText(), Utility.getCurrentDate(), "", bitmap, "", "", "", "", "", "", "", "", "", ""));
+           ArrayList<String> dateAndTimestampList=Utility.getCurrentDateWithTimestamp();
+           String currentDate="",currentTimestamp="";
+            if(dateAndTimestampList.size()>0) currentDate=dateAndTimestampList.get(0);
+            if(dateAndTimestampList.size()>1) currentTimestamp=dateAndTimestampList.get(1);
+
+            AsanaTaskDataList.add(new Task_data(result.getText(), currentDate, currentTimestamp, bitmap, "", "", "", "", "", "", "", "", "", ""));
 
 
         }
@@ -327,7 +338,6 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
     void saveQRBitmapToDeviceStorage() {
         //  showprogressdialog();
 
-
         for (int j = 0; j < AsanaTaskDataList.size(); j++) {
             Log.e("Debugging...",j +"Saving bitmap to local storage...");
             Task_data scannedData = AsanaTaskDataList.get(j);
@@ -337,14 +347,14 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
         }
 
 
-        String timestampBeacon = Utility.getCurrentTimestamp();// timestamp for beacons should be same for all QR code scanned at a time
-        long timestamp = 0;
-        timestamp = Long.parseLong(Utility.getCurrentTimestamp());// timestamp for each QR code scanned must be unique
+        String timestampBeacon = Utility.getCurrentTimestamp();// timestamp for beacons should be same for all QR code scanned at a time. This timestamp will be written to local database in QR table and Beacon table both so that corrosponding beacons can be found for a QR  with each Beacon. this timestamp will not be written in spreadsheet
+    //    long timestamp = 0;
+    //    timestamp = Long.parseLong(Utility.getCurrentTimestamp());// timestamp for each QR code scanned must be unique
         List<TaskData> dataListWithoutBitmap = new ArrayList<>();
         for (Task_data task_data : AsanaTaskDataList) {
             dataListWithoutBitmap.add(new TaskData(task_data.getQrText(),
                     task_data.getDateTime(),
-                    String.valueOf(++timestamp),
+                    task_data.getTimestamp(), // String.valueOf(++timestamp)
                     task_data.getBitmapFilePath(),
                     "",
                     "",
@@ -356,7 +366,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
                     "",
                     "",
                     "In Progress",
-                    timestampBeacon,
+                    timestampBeacon,  ///
                     false,
                     "",
                     "",
@@ -369,19 +379,52 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             return;
         }
 
-       /* Intent msgIntent = new Intent(ContinuousCaptureActivityNew.this, SaveWebRequestService.class);
-        msgIntent.putExtra(SaveWebRequestService.QR_DATA_LIST, (Serializable) dataListWithoutBitmap);
-        startService(msgIntent);*/
 
+
+
+//        Intent intent = new Intent();
+//        intent.putExtra(SaveWebRequestService.QR_DATA_LIST, (Serializable) dataListWithoutBitmap);
+//        JobIntentService.enqueueWork(ContinuousCaptureActivityNew.this, SaveWebRequestService.class, 56789, intent);
+
+      /*  Toast.makeText(this, "Uploading started in background...", Toast.LENGTH_SHORT).show();
+        finishActivity();*/
+
+
+
+
+
+
+/*
 
         Intent intent = new Intent();
         intent.putExtra(SaveWebRequestService.QR_DATA_LIST, (Serializable) dataListWithoutBitmap);
-        JobIntentService.enqueueWork(ContinuousCaptureActivityNew.this, SaveWebRequestService.class, 56789, intent); //Utility.getCurrentTimeStamp()
+        JobIntentService.enqueueWork(ContinuousCaptureActivityNew.this, SaveWebRequestService.class, 56789, intent);
+*/
 
-        Toast.makeText(this, "Uploading started in background...", Toast.LENGTH_SHORT).show();
-        finishActivity();
+        new saveQRRecordsInLocalDBAsync(dataListWithoutBitmap).execute();
 
 
+      /*  Gson gson = new Gson();
+        String dataListWithoutBitmapStr = gson.toJson(
+                dataListWithoutBitmap,
+                new TypeToken<ArrayList<TaskData>>() {}.getType());
+
+        Data data = new Data.Builder()
+                .putString(SaveWebRequestWorker.QR_DATA_LIST, dataListWithoutBitmapStr)
+                .build();
+
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        OneTimeWorkRequest oneTimeWorkRequest =
+                new OneTimeWorkRequest.Builder(SaveWebRequestWorker.class)
+                        .setInputData(data)
+                        .setConstraints(constraints)
+                        .build();
+
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
+*/
 
     }
 
@@ -475,7 +518,106 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
         }
     };
 
+    private class saveQRRecordsInLocalDBAsync extends AsyncTask<Void, Void, Void> {
+        List<TaskData> dataListWithoutBitmap = new ArrayList<>();
+        List<List<Object>> BluetoothBeaconDataList = new ArrayList<>();
+        ArrayList<String> timestamps = new ArrayList<>();
+        saveQRRecordsInLocalDBAsync(List<TaskData> dataListWithoutBitmap){
+           this.dataListWithoutBitmap=dataListWithoutBitmap;
+            BluetoothBeaconDataList = BeaconScannerService.getBeaconList();
+        }
 
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            saveQRRecordsInLocalDB();
+            saveBeaconRecordsInLocalDB();
+
+            for(int i=0;i<dataListWithoutBitmap.size();i++){
+                timestamps.add( dataListWithoutBitmap.get(i).getTimestamp());
+            }
+
+           // List<TaskData> s = getAllQRRecordsFromLocalStorage(timestamps);
+
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(Void result) {
+            Toast.makeText(ContinuousCaptureActivityNew.this, "Uploading started in background...", Toast.LENGTH_SHORT).show();
+           finish();
+
+            String[] timestampsArr = timestamps.toArray(new String[timestamps.size()]);
+
+            Data data = new Data.Builder()
+                    .putStringArray("timestamps", timestampsArr)
+                    .build();
+
+            Constraints constraints = new Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build();
+
+            OneTimeWorkRequest oneTimeWorkRequest =
+                    new OneTimeWorkRequest.Builder(SaveAsanaDataWorker.class)
+                            .setInputData(data)
+                            .setConstraints(constraints)
+                            .build();
+
+            WorkManager.getInstance(ContinuousCaptureActivityNew.this).enqueue(oneTimeWorkRequest);
+
+
+        }
+        List<TaskData> getAllQRRecordsFromLocalStorage(ArrayList<String> timestamps) {
+            return DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                    .taskDao()
+                    .findAllQRDataByTimestampsList(timestamps);
+
+        }
+        void saveQRRecordsInLocalDB() {
+            for (int i = 0; i < dataListWithoutBitmap.size(); i++) {
+                TaskData task = dataListWithoutBitmap.get(i);
+                try {
+                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                            .taskDao()
+                            .insert(task);
+
+                    Log.e("Debugging...Local DB Written:", " successfully");
+                } catch (Exception e) {
+                    Log.e("Debugging...Local DB Written:", " failed: " + e.getMessage());
+                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
+                }
+            }
+        }
+        void saveBeaconRecordsInLocalDB() {
+            if (BluetoothBeaconDataList == null || BluetoothBeaconDataList.isEmpty()) return;
+            for (List<Object> beaconData : BluetoothBeaconDataList) {
+                try {
+                    Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
+                            dataListWithoutBitmap.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
+                            String.valueOf(beaconData.get(1)),
+                            String.valueOf(beaconData.get(3)),
+                            String.valueOf(beaconData.get(4)),
+                            String.valueOf(beaconData.get(5)),
+                            String.valueOf(beaconData.get(6)),
+                            String.valueOf(beaconData.get(7)));
+
+                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                            .beaconDao()
+                            .insert(beacon);
+                } catch (Exception e) {
+                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
+                }
+            }
+
+
+        }
+
+
+    }
 }
 
 

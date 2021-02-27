@@ -10,6 +10,7 @@ import com.pqiorg.multitracker.BuildConfig;
 import com.synapse.AppResumeListener;
 import com.synapse.AppVisibilityDetector;
 import com.synapse.Constants;
+import com.synapse.HomeActivity;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
 import com.synapse.service.BeaconScannerService;
@@ -48,8 +49,16 @@ public class GlobalVar extends Application {
             @Override
             public void onAppGotoForeground() {
                 //app is from background to foreground
+                Utility.ReportNonFatalError("Application-----", "GotoForeground");
+
                 SharedPreferencesUtil.setAppInForeground(mInstance, true);
+
+
+                if (!Utility.isMyServiceRunning(BeaconScannerService.class, mInstance)) {
+
                 startForegroundService(new Intent(getApplicationContext(), BeaconScannerService.class));
+                }
+
 
                 Log.e("CHECK", "background to foreground: ");
                 if (resumeEventReceiverListener != null) {
@@ -59,6 +68,7 @@ public class GlobalVar extends Application {
 
             @Override
             public void onAppGotoBackground() {
+                Utility.ReportNonFatalError("Application-----", "Gotobackground");
                 //app is from foreground to background
                 SharedPreferencesUtil.setAppInForeground(mInstance, false);
                 Log.e("CHECK", "foreground to background :");

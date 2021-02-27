@@ -35,6 +35,8 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.http.AbstractInputStreamContent;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.FileContent;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
@@ -119,6 +121,7 @@ public class DriveServiceHelper {
                         new GsonFactory(),
                         credential)
                         .setApplicationName(appName)
+                        .setHttpRequestInitializer(createHttpRequestInitializer(credential))
                         .build();
         return googleDriveService;
     }
@@ -127,7 +130,16 @@ public class DriveServiceHelper {
     /**
      * Creates a text file in the user's My Drive folder and returns its file ID.
      */
-
+    public static HttpRequestInitializer createHttpRequestInitializer(final HttpRequestInitializer requestInitializer) {
+        return new HttpRequestInitializer() {
+            @Override
+            public void initialize(final HttpRequest httpRequest) throws IOException {
+                requestInitializer.initialize(httpRequest);
+                httpRequest.setConnectTimeout(3 * 60000); // 3 minutes connect timeout
+                httpRequest.setReadTimeout(3 * 60000); // 3 minutes read timeout
+            }
+        };
+    }
 
     public Task<String> createFile(final String fileName) {
         return Tasks.call(mExecutor, new Callable<String>() {

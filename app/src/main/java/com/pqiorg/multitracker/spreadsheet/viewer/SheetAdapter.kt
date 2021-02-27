@@ -12,11 +12,14 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
-import com.pqiorg.multitracker.drive.FullscreenImageViewDrive2
+import androidx.work.*
 import com.google.android.material.snackbar.Snackbar
 import com.pqiorg.multitracker.R
-import com.pqiorg.multitracker.qr_scanner.intent_service.UpdateWebRequestService
+import com.pqiorg.multitracker.drive.FullscreenImageViewDrive2
+import com.pqiorg.multitracker.qr_scanner.intent_service.SaveAsanaDataWorker
+import com.pqiorg.multitracker.qr_scanner.intent_service.UpdateAsanaDataWorker
 import com.pqiorg.multitracker.spreadsheet.viewer.spreadsheet.Spreadsheet
+
 class SheetAdapter(val density: Int, var select: TextView?, var context: Context?) :
     RecyclerView.Adapter<SheetAdapter.ViewHolder>() {
 
@@ -157,7 +160,7 @@ class SheetAdapter(val density: Int, var select: TextView?, var context: Context
         viewHolder.textView.setOnClickListener {
             select?.text = cellsValue
 
-            if (cellsValue.isNullOrBlank()) return@setOnClickListener
+          //  if (cellsValue.isNullOrBlank()) return@setOnClickListener
             var fullImageLink: String = cellsValue
 
             if (fullImageLink.contains("https://lh3.googleusercontent.com")) {  // thumb
@@ -173,22 +176,22 @@ class SheetAdapter(val density: Int, var select: TextView?, var context: Context
                     context?.startActivity(newIntent)
                 }
 
-            }else if(cellsValue.contains("Parent_Id")){
+            } else if (cellsValue.contains("Parent_Id")) {
 
                 if (cellsValue.contains(",")) {
                     var s = cellsValue.split(",")
 
                     var driveParentId = s[0];
-                    if( driveParentId.contains("=")){
-                        var a= driveParentId.split("=");
-                        driveParentId=a[1];
+                    if (driveParentId.contains("=")) {
+                        var a = driveParentId.split("=");
+                        driveParentId = a[1];
                     }
 
 
                     var driveFileId = s[1];
-                    if( driveFileId.contains("=")){
-                        var a=  driveFileId.split("=");
-                        driveFileId=a[1];
+                    if (driveFileId.contains("=")) {
+                        var a = driveFileId.split("=");
+                        driveFileId = a[1];
                     }
 
 
@@ -198,14 +201,10 @@ class SheetAdapter(val density: Int, var select: TextView?, var context: Context
                     newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context?.startActivity(newIntent)
                 }
-            }
-
-
-            else if (cellsValue.equals("In Progress") || cellsValue.equals("Completed")) {
-                val timestamp= sheet.getRow(r).getCell(1).cellValue;
+            } else if (cellsValue.equals("In Progress") || cellsValue.equals("Completed") || cellsValue.equals("Failed") || cellsValue.equals("")) {
+                val timestamp = sheet.getRow(r).getCell(1).cellValue;
                 showAppCompatDialog(timestamp)
             } else {
-
 
 
                 val snackbar = Snackbar
@@ -220,18 +219,44 @@ class SheetAdapter(val density: Int, var select: TextView?, var context: Context
 
         }
     }
-     fun showAppCompatDialog(timestamp:String) {
 
+    fun showAppCompatDialog(timestamp: String) {
 
 
         val alertDialog = AlertDialog.Builder(context)
             .setMessage("Do you want to resume uploading this data?")
             .setTitle("Notice")
             .setPositiveButton("Continue") { arg0, arg1 ->
-                Toast.makeText(context, "Uploading started in background...", Toast.LENGTH_SHORT).show()
-                val msgIntent = Intent(context, UpdateWebRequestService::class.java)
-                msgIntent.putExtra(UpdateWebRequestService.QRTimestamp, timestamp)
-                context?.startService(msgIntent)
+                Toast.makeText(context, "Uploading started in background...", Toast.LENGTH_SHORT)
+                    .show()
+
+
+               /* val intent = Intent()
+                intent.putExtra(UpdateWebRequestService.QRTimestamp, timestamp)
+                JobIntentService.enqueueWork(context!!, UpdateWebRequestService::class.java, 56789, intent)
+*/
+
+
+                val data = Data.Builder()
+                    .putString(UpdateAsanaDataWorker.QRTimestamp, timestamp)
+                    .build()
+
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+
+                val oneTimeWorkRequest = OneTimeWorkRequest.Builder(
+                    UpdateAsanaDataWorker::class.java
+                )
+                    .setInputData(data)
+                    .setConstraints(constraints)
+                    .build()
+
+                WorkManager.getInstance(context!!)
+                    .enqueue(oneTimeWorkRequest)
+
+
+
             }
             .setNegativeButton("Cancel") { arg0, arg1 -> }
             .show()

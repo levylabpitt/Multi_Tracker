@@ -1,6 +1,5 @@
 package com.pqiorg.multitracker.qr_scanner.intent_service;
 
-import android.app.IntentService;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -11,6 +10,8 @@ import androidx.core.app.JobIntentService;
 
 import com.ammarptn.gdriverest.DriveServiceHelper;
 import com.ammarptn.gdriverest.GoogleDriveFileHolder;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.pqiorg.multitracker.drive.MimeUtils;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -77,9 +78,9 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
 
     public static final String QR_DATA_LIST = "qr_data_list";
     List<TaskData> AsanaTaskDataList = new ArrayList<>();
-    List<List<Object>> Bluetooth_dataList = new ArrayList<>();
+    List<List<Object>> BluetoothBeaconDataList = new ArrayList<>();
     int taskDetailAPICount = 0, taskUpdateAPICount = 0, attachmentUploadAPICount = 0, feasybeaconTaskDetailAPICount = 0, feasybeaconTaskUpdateAPICount = 0, driveUploadAPICount = 0, taskSearchAPICount = 0;
-   // final String LevyLabProject = "LevyLab AoT (all items)";
+    // final String LevyLabProject = "LevyLab AoT (all items)";
 
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
     //  private DriveServiceHelper mDriveServiceHelper;
@@ -99,13 +100,13 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
 */
 
 
-    long timestampBluetoothSheet = 0;
+    //  long timestampBluetoothSheet = 0;
     String accountName = "";
     String updatedRangeOfDataWrittenInQRSheet = ""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
 
     // the same range to update status in spreadsheet
     public SaveWebRequestService() {
-       // super("MyWebRequestService");
+        // super("MyWebRequestService");
     }
 
 
@@ -142,8 +143,10 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
     @Override
     protected void onHandleWork(Intent intent) {
         AsanaTaskDataList = (List<TaskData>) intent.getSerializableExtra(QR_DATA_LIST);
-        Bluetooth_dataList = BeaconScannerService.getBeaconList();
-        timestampBluetoothSheet = Long.parseLong(AsanaTaskDataList.get(AsanaTaskDataList.size() - 1).getTimestamp());
+        BluetoothBeaconDataList = BeaconScannerService.getBeaconList();
+        // timestampBluetoothSheet = Long.parseLong(AsanaTaskDataList.get(AsanaTaskDataList.size() - 1).getTimestamp());
+        //  updateTimestampInQRAndBeaconList();
+
         new writeQRRecordsInSpreadsheet().execute();
         new saveQRRecordsInLocalDBAsync().execute();
 
@@ -175,7 +178,7 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
                 .addOnSuccessListener(new OnSuccessListener<GoogleDriveFileHolder>() {
                     @Override
                     public void onSuccess(GoogleDriveFileHolder googleDriveFileHolder) {
-                        Log.e("Debugging..., ","photo:" + index+"uploaded successfully");
+                        Log.e("Debugging..., ", "photo:" + index + "uploaded successfully");
                         AsanaTaskDataList.get(index).setGdriveFileId(googleDriveFileHolder.getId());
                         AsanaTaskDataList.get(index).setGdriveFileParentId(folderId);
                         continueUploadFileOnGoogleDrive();
@@ -287,21 +290,55 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
             }
             return;
         }
+
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.searchTaskByWorkspace(this, this, Constants.API_TYPE.SEARCH_TASK_BY_WORKSPACE, workspace_gid, search_task, false);
     }
 
     private void hitAPIGetTaskDetails(String task_gid) {
+
+        if (task_gid.isEmpty()) {
+            taskDetailAPICount++;
+            if (taskDetailAPICount < AsanaTaskDataList.size()) {
+                hitAPIGetTaskDetails(AsanaTaskDataList.get(taskDetailAPICount).getTaskId());
+            } else {
+                feasybeaconTaskDetailAPICount = 0;
+                callAPI_getFeasyBeaconTaskDetails();
+            }
+
+            return;
+        }
+
+
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getTaskDetails(this, this, Constants.API_TYPE.TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIGetFeasybeaconTaskDetails(String task_gid) {
+
+
+
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getTaskDetails(this, SaveWebRequestService.this, Constants.API_TYPE.FEASYBEACON_TASK_DETAILS, task_gid, false);
     }
 
     private void hitAPIUpdateTask(String task_gid, JsonObject input) {
+
+        if (task_gid.isEmpty()) {
+            taskUpdateAPICount++;
+            if (taskUpdateAPICount < AsanaTaskDataList.size()) {
+                updateTask_v2();
+            } else {
+                feasybeaconTaskUpdateAPICount = 0;
+                callAPI_UpdateFeasybeaconTask();
+            }
+
+            return;
+        }
+
+
+
+
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.updateTask1(this, this, Constants.API_TYPE.UPDATE_TASK, task_gid, input, false);
     }
@@ -312,6 +349,21 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
     }
 
     private void hitAPIUploadAttachments(String task_gid, MultipartBody.Part IMAGE) {
+
+        if (task_gid.isEmpty()) {
+            attachmentUploadAPICount++;
+            if (attachmentUploadAPICount < AsanaTaskDataList.size()) {
+                hitAPIUploadAttachments(AsanaTaskDataList.get(attachmentUploadAPICount).getTaskId(), getMultipartImage(AsanaTaskDataList.get(attachmentUploadAPICount).getBitmapFilePath()));
+            } else {
+                new UpdateStatusInQRSheetNew().execute();
+                new updateStatusInLocalDBAsync().execute();
+            }
+
+
+            return;
+        }
+
+
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.uploadAttachment(this, this, Constants.API_TYPE.UPLOAD_ATTACHMENTS, IMAGE, task_gid, false);
     }
@@ -623,8 +675,9 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
     public void callAPI_getFeasyBeaconTaskDetails() {
         // because it is possible that Feasybeacon_task_gid may OR MAY NOT be available
         while (feasybeaconTaskDetailAPICount < AsanaTaskDataList.size()) {
+            String task_gid = AsanaTaskDataList.get(feasybeaconTaskDetailAPICount).getTaskId();
             String feasybeacon_task_gid = AsanaTaskDataList.get(feasybeaconTaskDetailAPICount).getFeasybeacon_task_gid();
-            if (feasybeacon_task_gid == null || feasybeacon_task_gid.isEmpty()) {
+            if (task_gid == null || task_gid.isEmpty() || feasybeacon_task_gid == null || feasybeacon_task_gid.isEmpty()) {
                 feasybeaconTaskDetailAPICount++;
             } else {
                 break;
@@ -690,15 +743,14 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
             feasybeaconTaskUpdateAPICount = 0;
             callAPI_UpdateFeasybeaconTask();
         }
-
-
     }
 
     public void callAPI_UpdateFeasybeaconTask() {
         // because it is possible that Feasybeacon_UUID_gid may OR MAY NOT be available
         while (feasybeaconTaskUpdateAPICount < AsanaTaskDataList.size()) {
             String Feasybeacon_UUID_gid = AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getFeasybeacon_UUID_gid();
-            if (Feasybeacon_UUID_gid == null || Feasybeacon_UUID_gid.isEmpty()) {
+            String task_gid = AsanaTaskDataList.get(feasybeaconTaskUpdateAPICount).getTaskId();
+            if (task_gid ==null || task_gid.isEmpty() || Feasybeacon_UUID_gid == null || Feasybeacon_UUID_gid.isEmpty()) {
                 feasybeaconTaskUpdateAPICount++;
             } else {
                 break;
@@ -766,6 +818,7 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
             mService = new Sheets.Builder(
                     transport, jsonFactory, mCredential)
                     .setApplicationName(getResources().getString(R.string.app_name))
+                    .setHttpRequestInitializer(createHttpRequestInitializer(mCredential))
                     .build();
         }
 
@@ -797,11 +850,10 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
                 //updating timestamp in bluetooth sheet
                 //  List<List<Object>> Bluetooth_dataList = BeaconScannerService.getBeaconList();
                 List<List<Object>> BluetoothBeacons_dataList = new ArrayList<>();
-                BluetoothBeacons_dataList.addAll(Bluetooth_dataList);
+                BluetoothBeacons_dataList.addAll(BluetoothBeaconDataList);
                 for (int i = 0; i < BluetoothBeacons_dataList.size(); i++) {
                     try {
                         List<Object> list1 = BluetoothBeacons_dataList.get(i);
-                        // if(list1.size()>2) list1.set(2,currentTimestamp);
                         if (list1.size() > 4) {
                             int RSSI = 0;
                             try {
@@ -817,11 +869,9 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
                             }
                         }
 
-                        // list1.set(2, Utility.getCurrentTimestamp()); // for showing in bluetooth sheet only
-                        list1.set(2, ++timestampBluetoothSheet); // to nearly match with QRSheetTimestamp
+                        //  list1.set(2, ++timestampBluetoothSheet); // to nearly match with QRSheetTimestamp
                     } catch (Exception e) {
                     }
-
 
                 }
                 if (strongestSignalBeaconUUID == null) strongestSignalBeaconUUID = "";
@@ -849,9 +899,9 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
         @Override
         protected void onPostExecute(Integer result) {
             if (result == 1) {
-                Log.e("Debugging...QR Sheet Written:" , " successfully");
-            }else {
-                Log.e("Debugging...QR Sheet Written:" , " failed");
+                Log.e("Debugging...QR Sheet Written:", " successfully");
+            } else {
+                Log.e("Debugging...QR Sheet Written:", " failed");
             }
 
         }
@@ -1064,6 +1114,7 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
             mService = new Sheets.Builder(
                     transport, jsonFactory, mCredential)
                     .setApplicationName(getResources().getString(R.string.app_name))
+                    .setHttpRequestInitializer(createHttpRequestInitializer(mCredential))
                     .build();
         }
 
@@ -1110,9 +1161,9 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
         @Override
         protected void onPostExecute(Integer result) {
             if (result == 1) {
-                Log.e("Debugging...QR Sheet Updated:" , " successfully");
-            }else {
-                Log.e("Debugging...QR Sheet Updated:" , " failed");
+                Log.e("Debugging...QR Sheet Updated:", " successfully");
+            } else {
+                Log.e("Debugging...QR Sheet Updated:", " failed");
             }
         }
 
@@ -1165,16 +1216,14 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .taskDao()
                             .updateStatus(task.getTimestamp(), task.getTaskId(), task.getFeasybeacon_UUID_gid(), task.getFeasybeacon_task_gid(), task.getGdriveFileId(), task.getGdriveFileParentId(), task.getGdriveFileThumbnail(), task.getBeacon1_RSSI_gid(), task.getBeacon1_URL(), task.getBeacon1_gid(), task.getStatus());
-                    Log.e("Debugging...Local DB Updated:" , " successfully");
+                    Log.e("Debugging...Local DB Updated:", " successfully");
                 } catch (Exception e) {
-                    Log.e("Debugging...Local DB Updated:" , " failed" +e.getMessage());
+                    Log.e("Debugging...Local DB Updated:", " failed" + e.getMessage());
                     Utility.ReportNonFatalError("updateQRStatusInLocalDB", e.getMessage());
                     addErrorDetail(0, "Error in updating status to spreadsheet!");
                 }
 
             }
-
-
 
 
         }
@@ -1209,9 +1258,9 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
                             .taskDao()
                             .insert(task);
 
-                    Log.e("Debugging...Local DB Written:" , " successfully");
+                    Log.e("Debugging...Local DB Written:", " successfully");
                 } catch (Exception e) {
-                    Log.e("Debugging...Local DB Written:" , " failed: "+e.getMessage());
+                    Log.e("Debugging...Local DB Written:", " failed: " + e.getMessage());
                     addErrorDetail(i, "Error in inserting QR record in local db");
                     Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
                 }
@@ -1219,8 +1268,8 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
         }
 
         void saveBeaconRecordsInLocalDB() {
-            if (Bluetooth_dataList == null || Bluetooth_dataList.isEmpty()) return;
-            for (List<Object> beaconData : Bluetooth_dataList) {
+            if (BluetoothBeaconDataList == null || BluetoothBeaconDataList.isEmpty()) return;
+            for (List<Object> beaconData : BluetoothBeaconDataList) {
                 try {
                     Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
                             AsanaTaskDataList.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
@@ -1271,7 +1320,47 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
 
     }
 
-}
+    public void updateTimestampInQRAndBeaconList() {
+        for (TaskData task_data : AsanaTaskDataList) {
+            ArrayList<String> dateAndTimestampList = Utility.getCurrentDateWithTimestamp();
+            String currentDate = "", currentTimestamp = "";
+            if (dateAndTimestampList.size() > 0) currentDate = dateAndTimestampList.get(0);
+            if (dateAndTimestampList.size() > 1) currentTimestamp = dateAndTimestampList.get(1);
 
+            task_data.setDateTime(currentDate);
+            task_data.setTimestamp(currentTimestamp);
+
+        }
+
+        for (List<Object> beaconData : BluetoothBeaconDataList) {
+            ArrayList<String> dateAndTimestampList = Utility.getCurrentDateWithTimestamp();
+            String currentDate = "", currentTimestamp = "";
+            if (dateAndTimestampList.size() > 0) currentDate = dateAndTimestampList.get(0);
+            if (dateAndTimestampList.size() > 1) currentTimestamp = dateAndTimestampList.get(1);
+
+            beaconData.set(0, currentDate);
+            beaconData.set(2, currentTimestamp);
+
+        }
+
+        Log.e("Debugging...", "Updated datetime and timestamp in both qr/beacon list");
+
+
+    }
+
+
+    private HttpRequestInitializer createHttpRequestInitializer(final HttpRequestInitializer requestInitializer) {
+        return new HttpRequestInitializer() {
+            @Override
+            public void initialize(final HttpRequest httpRequest) throws IOException {
+                requestInitializer.initialize(httpRequest);
+                httpRequest.setConnectTimeout(3 * 60000); // 3 minutes connect timeout
+                httpRequest.setReadTimeout(3 * 60000); // 3 minutes read timeout
+            }
+        };
+    }
+
+
+}
 
 

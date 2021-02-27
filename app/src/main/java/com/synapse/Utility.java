@@ -383,20 +383,19 @@ public static void startNotification(Context context) {
             }
         }
     }
+    public static String getCurrentDate() {
+        Date c = Calendar.getInstance().getTime();
+        // System.out.println("Current time => " + c);
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+        String formattedDate = df.format(c);
+
+        return formattedDate;
+    }
+
 
     public static String getCurrentTimestamp() {
-        //  Long tsLong = System.currentTimeMillis()/1000;
-        //   return tsLong.toString();
 
 
-       /* final GregorianCalendar startDate = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-        startDate.clear();
-        startDate.set(1904, Calendar.JANUARY, 1);
-        final long startMillis = startDate.getTimeInMillis();
-      return  startMillis+"";*/
-
-
-        long seconds = 0;
         long milliSeconds = 0;
         String toyBornTime = "1904-01-01 12:00:00.000 am";
         SimpleDateFormat dateFormat = new SimpleDateFormat(
@@ -408,8 +407,8 @@ public static void startNotification(Context context) {
             Date currentDate = new Date();
 
             long diff = currentDate.getTime() - oldDate.getTime();
-            seconds = diff / 1000;
             milliSeconds = diff;
+            //  long seconds  = diff / 1000;
             //  long minutes = seconds / 60;
             //  long hours = minutes / 60;
             //   long days = hours / 24;
@@ -420,6 +419,41 @@ public static void startNotification(Context context) {
 
 
         return String.valueOf(milliSeconds);
+
+    }
+
+
+    public static ArrayList<String> getCurrentDateWithTimestamp() {
+
+        ArrayList<String> listDateAndTimestamp=new ArrayList<>();
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+
+
+        String formattedDate ="";
+        long milliSeconds = 0;
+        String toyBornTime = "1904-01-01 12:00:00.000 am";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS aa");
+
+        try {
+
+            Date oldDate = dateFormat.parse(toyBornTime);
+            Date currentDate = new Date();
+            formattedDate = df.format(currentDate);
+            listDateAndTimestamp.add(formattedDate);
+            long diff = currentDate.getTime() - oldDate.getTime();
+            milliSeconds = diff;
+            //  long seconds  = diff / 1000;
+            //  long minutes = seconds / 60;
+            //  long hours = minutes / 60;
+            //   long days = hours / 24;
+
+            listDateAndTimestamp.add(String.valueOf(milliSeconds));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+        return listDateAndTimestamp;
 
     }
 
@@ -474,14 +508,7 @@ public static void startNotification(Context context) {
         return myObjects;
     }
 
-    public static String getCurrentDate() {
-        Date c = Calendar.getInstance().getTime();
-        // System.out.println("Current time => " + c);
-        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
-        String formattedDate = df.format(c);
 
-        return formattedDate;
-    }
 
     public static File getOutputMediaFolder() {
         File folder2 = null;
@@ -688,7 +715,9 @@ public static void startNotification(Context context) {
     }
 
     public static void ReportNonFatalError(String Title, String Detail) {
+
         FirebaseCrashlytics.getInstance().recordException(new RuntimeException(Title + "---> " + Detail));
+        Log.e("Debugging...", Title + " : " +Detail );
     }
 
     public static void logFeatureSelectedEvent(Context context, String Title, String Detail) {

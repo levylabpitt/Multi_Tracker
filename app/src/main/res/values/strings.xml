@@ -99,6 +99,7 @@
 
     <string name="ERROR_SOMETHING_WENT_WRONG">Something went wrong</string>
     <string name="default_notification_channel_id">my_channel_4601</string>
+    <string name="default_notification_channel_id_2">my_channel_4602</string>
     <string name="intro_message">
         <![CDATA[
 

@@ -31,8 +31,8 @@ android {
        //  versionCode 1
       //  versionName "1.0"
 
-        versionCode 9003
-        versionName "16Feb2021"
+        versionCode 9004
+        versionName "27Feb2021"
         useLibrary 'org.apache.http.legacy'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -97,7 +97,7 @@ android {
 
 dependencies {
     //define versions
-
+    def work_version = "2.5.0"
     def room_version = "1.1.1"
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
@@ -197,6 +197,10 @@ dependencies {
     implementation "android.arch.persistence.room:runtime:$room_version"
     annotationProcessor "android.arch.persistence.room:compiler:$room_version"
     testImplementation "android.arch.persistence.room:testing:$room_version"
+
+    //work manager
+    // (Java only)
+    implementation "androidx.work:work-runtime:$work_version"
 
    }
 //task copyNativeLibs(type: Copy) {

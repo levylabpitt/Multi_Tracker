@@ -71,8 +71,9 @@ public class BeaconScannerService extends Service {
 
         // Utility.startNotification(this);
         startNotification();
-    }
 
+
+    }
 
     void startNotification() {
 

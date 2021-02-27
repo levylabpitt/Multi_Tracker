@@ -70,9 +70,9 @@ public class RetrofitManager implements OnRetryCallback {
     private RetrofitManager() {
 
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
-        httpClient.readTimeout(60, TimeUnit.SECONDS);
-        httpClient.connectTimeout(60, TimeUnit.SECONDS);
-        httpClient.writeTimeout(200, TimeUnit.SECONDS);
+        httpClient.readTimeout(300, TimeUnit.SECONDS);
+        httpClient.connectTimeout(300, TimeUnit.SECONDS);
+        httpClient.writeTimeout(300, TimeUnit.SECONDS);
         httpClient.addInterceptor(new ConnectivityInterceptor(GlobalVar.get()));
         httpClient.addInterceptor(new SupportInterceptor());
 
@@ -146,10 +146,12 @@ public class RetrofitManager implements OnRetryCallback {
 
                         if (error == null) {
                            // Log.e("Log_Response", response.body().string());
+                            Log.e("Debugging....","On Success-"+mApiType);
                             mRequestListener.onSuccess(response, mApiType);
 
                         } else {
                             //Log.e("Log_Error", response.toString());
+                            Log.e("Debugging....","onApiException-"+mApiType+" "+ error.getResult());
                             mRequestListener.onApiException(error, response, mApiType);
                         }
 
@@ -170,10 +172,12 @@ public class RetrofitManager implements OnRetryCallback {
                             //  activity.finish();
                         }
 */
-                        String url = response.raw().request().url().toString();
-                        String headers = response.raw().request().headers().toString();
-                        Utility.ReportNonFatalError("onFailure----", "<-url-> "+url+" <-headers->"+headers+" <-error->"+strResponse);
 
+
+                       // String url = response.raw().request().url().toString();
+                       // String headers = response.raw().request().headers().toString();
+                      //  Utility.ReportNonFatalError("onFailure----", "<-url-> "+url+" <-headers->"+headers+" <-error->"+strResponse);
+                        Log.e("Debugging....","onFailure1-"+mApiType+" "+ strResponse);
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -195,12 +199,17 @@ public class RetrofitManager implements OnRetryCallback {
                     if (t instanceof SocketTimeoutException) {
                         Dialogs.showTryAgainDialog(mContext, mContext.getString(R.string.ERROR_SOCKET), mRetryCallback);
 
+                        Log.e("Debugging....","onFailure2-"+mApiType+" "+ mContext.getString(R.string.ERROR_SOCKET));
+
                     } else if (t instanceof NoConnectivityException) {
                         Dialogs.showAlert(mContext, mContext.getString(R.string.ERROR_INTERNET));
+
+                        Log.e("Debugging....","onFailure3-"+mApiType+" "+ mContext.getString(R.string.ERROR_INTERNET));
 
                     } else if (t instanceof NetworkErrorException) {
                         // Dialogs.showAlert(mContext, t.getMessage());
                         Dialogs.showAlert(mContext, mContext.getString(R.string.ERROR_SOMETHING_WENT_WRONG));
+                        Log.e("Debugging....","onFailure4-"+mApiType+" "+ "NetworkErrorException");
                     }
                     Dialogs.hideProgressDialog(mContext);
                 } catch (Exception e) {

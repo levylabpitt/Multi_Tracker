@@ -9,6 +9,7 @@ import androidx.room.Update;
 
 import com.synapse.model.TaskData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -26,6 +27,9 @@ public interface TaskDao {
 
     @Query("Delete FROM TaskData WHERE status = :status")
     int deleteAllCompletedRecords(String status);
+
+    @Query("SELECT * FROM TaskData WHERE timestamp IN (:timestamps)")
+    List<TaskData> findAllQRDataByTimestampsList(List<String> timestamps);
 
     @Insert
     void insert(TaskData task);

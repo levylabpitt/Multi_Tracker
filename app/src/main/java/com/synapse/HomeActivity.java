@@ -2,6 +2,10 @@ package com.synapse;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -23,9 +28,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.pqiorg.multitracker.drive.DriveActivity;
@@ -58,6 +65,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
+import static androidx.core.app.NotificationCompat.PRIORITY_HIGH;
+import static androidx.core.app.NotificationCompat.PRIORITY_MIN;
 
 
 public class HomeActivity extends AppCompatActivity implements RequestListener {
@@ -89,13 +98,17 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     private final RetrofitManager retrofitManager = RetrofitManager.getInstance();
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         ButterKnife.bind(this);
+
+    //    startNotification();
+
+     //   sendNotification("dddd","Ddddddd");
+
         hitAPIRefreshToken();
         if (CheckingPermissionIsEnabledOrNot(this)) {
             CheckGpsStatus();
@@ -104,9 +117,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         }
 
 
-
     }
-
 
 
     private void hitAPIRefreshToken() {
@@ -120,22 +131,128 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         super.onResume();
         try {
             initFeasyBeaconAPI();
-            if (!Utility.isMyServiceRunning(BeaconScannerService.class, this)) {
-                // this.startService(new Intent(this, BeaconScannerService.class));
+            if (!Utility.isMyServiceRunning(BeaconScannerService.class, HomeActivity.this)) {
                 this.startForegroundService(new Intent(this, BeaconScannerService.class));
             }
         } catch (Exception e) {
             Utility.ReportNonFatalError("Home", e.getMessage());
         }
     }
+    void startNotification() {
 
-    void initFeasyBeaconAPI() {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
+
+
+        //  Intent notificationIntent = new Intent(this, HomeActivity.class);
+        Intent notificationIntent = new Intent(this, TabbedActivityBeacon.class);
+
+
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent intent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentText("Beacon scanner running...")
+                .setPriority(PRIORITY_MIN)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build();
+
+        notification.contentIntent = intent;
+
+        notificationManager.notify(221, notification);
+
+
+
+    }
+
+
+    private void sendNotification(String title, String message) {
+        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        //If on Oreo then notification required a notification channel.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("default", "Default", NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
+                .setContentTitle(title)
+                .setContentText(message)
+                .setSmallIcon(R.mipmap.ic_launcher);
+
+        Notification notification = notificationbuilder
+                .setOngoing(true)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("Multitracker")
+                .setTicker("Multitracker")
+                .setContentText("Processing data in background")
+                .setPriority(PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build();
+
+
+
+        notificationManager.notify(Utility.getCurrentTimeStamp(), notification);
+    }
+
+    void cheeckNoptificatio() {
+        try {
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), channelId);
+
+
+            Intent notificationIntent = new Intent(getApplicationContext(), HomeActivity.class);
+
+
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), 0,
+                    notificationIntent, 0);
+
+            Notification notification = notificationBuilder
+                    .setOngoing(true)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle("Multitracker")
+                    .setTicker("Multitracker")
+                    .setContentText("Processing data in background")
+                    .setPriority(PRIORITY_HIGH)
+                    .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                    .build();
+            notification.contentIntent = intent;
+
+            notificationManager.notify(0, notification);
+
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(NotificationManager notificationManager) {
+        String channelId = getApplicationContext().getString(R.string.default_notification_channel_id_2);
+        String channelName = "My_Foreground_Service_Worker";
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
+        channel.setImportance(NotificationManager.IMPORTANCE_HIGH);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        notificationManager.createNotificationChannel(channel);
+        return channelId;
+    }
+
+    void initFeasyBeaconAPI() { // Todo
+        //if (fscBeaconApi == null) {
         fscBeaconApi = FscBeaconApiImp.getInstance(this);
+        // }
         if (fscBeaconApi == null) return;
         fscBeaconApi.initialize();
         if (!fscBeaconApi.isBtEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, ENABLE_BT_REQUEST_ID);
+            return;
         }
         fscBeaconApi.startScan(0);
     }
@@ -223,7 +340,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
                 break;
             case R.id.btn_qr:
                 if (!NetworkUtil.isOnline(this)) {
-                    Utility.showToast(this,"No internet available!");
+                    Utility.showToast(this, "No internet available!");
                     return;
                 }
 
@@ -234,8 +351,8 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
             case R.id.btn_spreadsheet:
 
                 if (!NetworkUtil.isOnline(this)) {
-                   Utility.showToast(this,"No internet available!");
-                   return;
+                    Utility.showToast(this, "No internet available!");
+                    return;
                 }
 
 
@@ -243,7 +360,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
                 break;
             case R.id.btn_drive:
                 if (!NetworkUtil.isOnline(this)) {
-                    Utility.showToast(this,"No internet available!");
+                    Utility.showToast(this, "No internet available!");
                     return;
                 }
 
@@ -253,7 +370,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
 
             case R.id.btn_asana:
                 if (!NetworkUtil.isOnline(this)) {
-                    Utility.showToast(this,"No internet available!");
+                    Utility.showToast(this, "No internet available!");
                     return;
                 }
 
@@ -359,6 +476,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
                 onResume();
             }
         }
+        onResume();
     }
 
 
