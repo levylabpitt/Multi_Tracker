@@ -34,6 +34,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.IntentCompat;
 
 import com.pqiorg.multitracker.drive.DriveActivity;
 import com.feasycom.controler.FscBeaconApi;
@@ -45,6 +46,7 @@ import com.pqiorg.multitracker.feasybeacon.TabbedActivityBeacon;
 import com.pqiorg.multitracker.qr_scanner.ContinuousCaptureActivityNew;
 import com.pqiorg.multitracker.spreadsheet.creater.SpreadSheetListActivity;
 import com.pqiorg.multitracker.help.TabbedActivity;
+import com.pqiorg.multitracker.tag_anchor.TagAnchorsActivity;
 import com.synapse.network.APIError;
 import com.synapse.network.Constants;
 import com.synapse.network.NetworkUtil;
@@ -105,9 +107,9 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         ButterKnife.bind(this);
 
-    //    startNotification();
+        //    startNotification();
 
-     //   sendNotification("dddd","Ddddddd");
+        //   sendNotification("dddd","Ddddddd");
 
         hitAPIRefreshToken();
         if (CheckingPermissionIsEnabledOrNot(this)) {
@@ -138,110 +140,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
             Utility.ReportNonFatalError("Home", e.getMessage());
         }
     }
-    void startNotification() {
 
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
-
-
-        //  Intent notificationIntent = new Intent(this, HomeActivity.class);
-        Intent notificationIntent = new Intent(this, TabbedActivityBeacon.class);
-
-
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent intent = PendingIntent.getActivity(this, 0,
-                notificationIntent, 0);
-
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentText("Beacon scanner running...")
-                .setPriority(PRIORITY_MIN)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .build();
-
-        notification.contentIntent = intent;
-
-        notificationManager.notify(221, notification);
-
-
-
-    }
-
-
-    private void sendNotification(String title, String message) {
-        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-
-        //If on Oreo then notification required a notification channel.
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("default", "Default", NotificationManager.IMPORTANCE_DEFAULT);
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
-                .setContentTitle(title)
-                .setContentText(message)
-                .setSmallIcon(R.mipmap.ic_launcher);
-
-        Notification notification = notificationbuilder
-                .setOngoing(true)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Multitracker")
-                .setTicker("Multitracker")
-                .setContentText("Processing data in background")
-                .setPriority(PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .build();
-
-
-
-        notificationManager.notify(Utility.getCurrentTimeStamp(), notification);
-    }
-
-    void cheeckNoptificatio() {
-        try {
-            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
-            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), channelId);
-
-
-            Intent notificationIntent = new Intent(getApplicationContext(), HomeActivity.class);
-
-
-            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), 0,
-                    notificationIntent, 0);
-
-            Notification notification = notificationBuilder
-                    .setOngoing(true)
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle("Multitracker")
-                    .setTicker("Multitracker")
-                    .setContentText("Processing data in background")
-                    .setPriority(PRIORITY_HIGH)
-                    .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                    .build();
-            notification.contentIntent = intent;
-
-            notificationManager.notify(0, notification);
-
-        } catch (Exception e) {
-            e.getMessage();
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(NotificationManager notificationManager) {
-        String channelId = getApplicationContext().getString(R.string.default_notification_channel_id_2);
-        String channelName = "My_Foreground_Service_Worker";
-        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
-        channel.setImportance(NotificationManager.IMPORTANCE_HIGH);
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-        notificationManager.createNotificationChannel(channel);
-        return channelId;
-    }
 
     void initFeasyBeaconAPI() { // Todo
         //if (fscBeaconApi == null) {
@@ -256,7 +155,6 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         }
         fscBeaconApi.startScan(0);
     }
-
 
     public static boolean CheckingPermissionIsEnabledOrNot(Context context) {
         return
@@ -314,7 +212,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
             R.id.btn_beacon,
             R.id.btn_qr,
             R.id.btn_spreadsheet,
-            R.id.btn_drive, R.id.btn_asana, R.id.btn_help
+            R.id.btn_drive, R.id.btn_asana, R.id.btn_help, R.id.btn_anchor_tagging
     })
     public void onClick(@NonNull View view) {
 
@@ -381,6 +279,24 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
                 startActivity(new Intent(HomeActivity.this, TabbedActivity.class));
 
                 break;
+
+            case R.id.btn_anchor_tagging:
+                if (!NetworkUtil.isOnline(this)) {
+                    Utility.showToast(this, "No internet available!");
+                    return;
+                }
+                if (SharedPreferencesUtil.getCurrentLoggedInUserWorkspaceId(this).equals("")) {
+                    showAppCompatDialog("Please login to Asana !!", 3);
+                } else if (SharedPreferencesUtil.getTeamNameForCreatingNewProject(this).equals("")) {
+                    showAppCompatDialog("Please choose default team !!", 3);
+                } else if (SharedPreferencesUtil.getLevyLabWorkspaceId(this).equals("")) {
+                    showAppCompatDialog("Please choose organization for updating task on Asana !!", 3);
+                } else {
+                    startActivity(new Intent(HomeActivity.this, TagAnchorsActivity.class));
+                }
+
+                break;
+
         }
 
     }
@@ -388,23 +304,17 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
 
     void checkDefaultSpreadSheetAvailability() {
         if (SharedPreferencesUtil.getDefaultSheetId(this).equals("")) {
-            showAppCompatDialog("Please choose default google spreadsheet first!", 1);
-            // Toast.makeText(this, "Please choose default spreadsheet first!", Toast.LENGTH_SHORT).show();
+            showAppCompatDialog("Please choose default google spreadsheet first !!", 1);
         } else if (SharedPreferencesUtil.getDefaultDriveFolderId(this).equals("")) {
-            // Toast.makeText(this, "Please choose default folder for uploading QR Photo!", Toast.LENGTH_SHORT).show();
-            showAppCompatDialog("Please choose default google drive folder for uploading QR Photo!", 2);
+            showAppCompatDialog("Please choose default google drive folder for uploading QR Photo !!", 2);
         } /*else if (SharedPreferencesUtil.getDefaultBluetoothSheet(this).equals("")) {
-            Toast.makeText(this, "Please choose default spreadsheet for writing beacon data!", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(HomeActivity.this, SpreadSheetListActivity.class));
-        } */ else if (SharedPreferencesUtil.getAsanaEmail(this).equals("")) {
-            //Toast.makeText(this, "Please login to Asana!", Toast.LENGTH_SHORT).show();
-            showAppCompatDialog("Please login to Asana for updating tasks on Asana!", 3);
+        } */ else if (SharedPreferencesUtil.getCurrentLoggedInUserWorkspaceId(this).equals("")) {
+            showAppCompatDialog("Please login to Asana !!", 3);
         } else if (SharedPreferencesUtil.getLevyLabWorkspaceId(this).equals("")) {
-            //Toast.makeText(this, "Please login to Asana!", Toast.LENGTH_SHORT).show();
-            showAppCompatDialog("Please choose organization for Asana!", 3);
+            showAppCompatDialog("Please choose organization for updating task on Asana !!", 3);
         } else {
             startActivity(new Intent(HomeActivity.this, ContinuousCaptureActivityNew.class));
-
 
         }
     }
@@ -472,11 +382,14 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         } else if (requestCode == ENABLE_BT_REQUEST_ID) {
             if (resultCode == Activity.RESULT_CANCELED) {
                 btDisabled();
-            } else {
-                onResume();
             }
         }
+        stopService(new Intent(getApplicationContext(), BeaconScannerService.class));
         onResume();
+       /* Intent stopIntent=new Intent(getApplicationContext(),BeaconScannerService.class);
+        stopIntent.setAction("Stop");
+        startService(stopIntent);*/
+        //  stopService(new Intent(getApplicationContext(),BeaconScannerService.class));
     }
 
 
@@ -487,6 +400,8 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
             public void onClick(DialogInterface dialogInterface, int i) {
                 Intent intent1 = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 startActivityForResult(intent1, GPS_REQUEST);
+
+
             }
         });
 

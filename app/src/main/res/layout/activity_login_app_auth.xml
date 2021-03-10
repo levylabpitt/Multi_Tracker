@@ -28,13 +28,6 @@
                 android:contentDescription="@string/openid_logo_content_description"
                 app:srcCompat="@drawable/asana" />
             <!-- app:srcCompat="@drawable/appauth_96dp"-->
-            <TextView
-                style="@style/Base.TextAppearance.AppCompat.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/intro_header"
-                android:visibility="invisible" />
 
             <!--
             displayed while the discovery document is loaded, and dynamic client registration is
@@ -85,8 +78,8 @@
                     android:layout_marginTop="@dimen/section_margin"
                     android:layout_marginBottom="8dp"
                     android:text="User is Authorized"
-                    android:textStyle="bold"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
 
                 <TextView
@@ -97,46 +90,103 @@
                     android:layout_marginTop="@dimen/section_margin"
                     android:layout_marginBottom="8dp"
                     android:textSize="17sp" />
-               <!-- <Spinner
-                    android:id="@+id/spinner_organization"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginBottom="8dp"
-                    android:visibility="gone"
-                    android:popupBackground="@color/colorPrimary"
 
-                    android:spinnerMode="dropdown" />
                 <LinearLayout
-                    android:id="@+id/ll_organizations"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/section_margin"
                     android:gravity="center"
-                    android:visibility="gone"
-                    android:orientation="horizontal"/>-->
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/re_auth"
+                        style="@style/Widget.AppCompat.Button.Colored"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginRight="5dp"
+                        android:text="Re-authorize" />
+
+                    <Button
+                        android:id="@+id/btn_logout"
+                        style="@style/Widget.AppCompat.Button.Colored"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="5dp"
+                        android:text="Log out" />
+
+                </LinearLayout>
+
+
+                <TextView
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_marginTop="@dimen/section_margin"
+                    android:text="Default workspace for updating tasks"
+                    android:textColor="@color/black2"
+                    android:textSize="16sp"
+                    android:textStyle="normal" />
+
                 <RadioGroup
                     android:id="@+id/radioGroup1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="10dp" >
+                    android:layout_marginTop="@dimen/section_margin"
+                    android:orientation="horizontal">
 
                 </RadioGroup>
-                <Button
-                    android:id="@+id/re_auth"
-                    style="@style/Widget.AppCompat.Button.Colored"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="Re-authorize" />
 
-                <Button
-                    android:id="@+id/btn_logout"
-                    style="@style/Widget.AppCompat.Button.Colored"
+                <TextView
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_gravity="left"
+                    android:layout_marginTop="@dimen/section_margin"
+                    android:text="Default workspace for creating new project"
+                    android:textColor="@color/black2"
+                    android:textSize="16sp"
+                    android:textStyle="normal" />
+
+                <RadioButton
+                    android:id="@+id/default_workspace_to_create_project"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Log out" />
+
+                    android:layout_marginTop="@dimen/section_margin"
+                    android:enabled="true" />
+
+                <TextView
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_marginTop="@dimen/section_margin"
+
+                    android:text="Default team for creating new project"
+                    android:textColor="@color/black2"
+                    android:textSize="16sp"
+                    android:textStyle="normal" />
+
+                <TextView
+                    android:id="@+id/choose_asana_team"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="@dimen/section_margin"
+                    android:background="@drawable/border_filter"
+                    android:drawableEnd="@drawable/down_black"
+                    android:gravity="start"
+                    android:hint="Choose Team"
+                    android:paddingBottom="10dp"
+                    android:textColor="@color/black2"
+                    android:textSize="16sp" />
+
 
             </LinearLayout>
 
@@ -147,7 +197,7 @@
                 android:layout_marginTop="@dimen/section_margin"
                 android:layout_marginBottom="8dp"
                 android:orientation="vertical"
-                android:visibility="invisible">
+                android:visibility="gone">
 
 
                 <TextView
@@ -223,7 +273,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:visibility="invisible">
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/error_description"

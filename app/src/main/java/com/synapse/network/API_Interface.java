@@ -91,6 +91,16 @@ public interface API_Interface {
                                              @Query("opt_fields") String opt_fields);
 
 
+
+    @POST("/api/1.0/workspaces/{workspace_gid}/projects")
+    Call<ResponseBody> createProject(@Path("workspace_gid") String workspace_gid,
+                                     @Body JsonObject jsonObject);
+
+    @POST("/api/1.0/tasks/{task_gid}/addProject")
+    Call<ResponseBody>addTaskToProject(@Path("task_gid") String task_gid,
+                                     @Body JsonObject jsonObject);
+
+
     @Multipart
     @POST("/api/1.0/tasks/{task_gid}/attachments")
     Call<ResponseBody> uploadAttachment(@Path("task_gid") String task_gid,@Part() MultipartBody.Part image);

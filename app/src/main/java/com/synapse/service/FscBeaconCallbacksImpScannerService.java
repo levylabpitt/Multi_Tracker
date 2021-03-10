@@ -35,7 +35,7 @@ public class FscBeaconCallbacksImpScannerService extends FscBeaconCallbacksImp {
           if ((null != device.getgBeacon()) || (null != device.getiBeacon()) || (null != device.getAltBeacon())) {
             if ((weakReference.get() != null) && (weakReference.get().getDeviceQueue().size() < 350)) {
                 weakReference.get().getDeviceQueue().offer(device);
-             //   Log.e("Beacon-------> ","blePeripheralFound");
+                Log.e("Beacon-------> ","blePeripheralFound");
             }
           }
        // }

@@ -85,4 +85,14 @@
         android:background="@drawable/btn_bg_rounded"
         android:text="Help"
         />
+
+    <Button
+        android:id="@+id/btn_anchor_tagging"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="30dp"
+        style="@style/smallTextViewStyle_white"
+        android:background="@drawable/btn_bg_rounded"
+        android:text="Tag Anchor"
+        />
 </LinearLayout>

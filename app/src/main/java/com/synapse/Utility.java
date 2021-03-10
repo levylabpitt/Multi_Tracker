@@ -45,9 +45,12 @@ import com.pqiorg.multitracker.help.TabbedActivity;
 import com.room_db.Beacon;
 //import com.shekhargulati.urlcleaner.UrlCleaner;
 import com.synapse.model.BlackListedBeacon;
+import com.synapse.model.QRCode;
 import com.synapse.model.TaskData;
 import com.synapse.model.Task_data;
 import com.synapse.model.SpreadsheetItem;
+
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -123,15 +126,14 @@ public class Utility {
     }
 
 
-public static int getCurrentTimeStamp(){
-   long t= System.currentTimeMillis()/1000;
+    public static int getCurrentTimeStamp() {
+        long t = System.currentTimeMillis() / 1000;
 
-     return (int)t;
-}
+        return (int) t;
+    }
 
 
-
-public static void startNotification(Context context) {
+    public static void startNotification(Context context) {
         // TODO Auto-generated method stub
         NotificationCompat.Builder notification;
         PendingIntent pIntent;
@@ -383,6 +385,7 @@ public static void startNotification(Context context) {
             }
         }
     }
+
     public static String getCurrentDate() {
         Date c = Calendar.getInstance().getTime();
         // System.out.println("Current time => " + c);
@@ -392,6 +395,68 @@ public static void startNotification(Context context) {
         return formattedDate;
     }
 
+    public static String getCurrentDateYYYYMMDD() {
+        Date c = Calendar.getInstance().getTime();
+        // System.out.println("Current time => " + c);
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        String formattedDate = df.format(c);
+
+        return formattedDate;
+    }
+
+    public static String getProjectName(Context context) {
+        String projectName = "";
+               /*The project name can be "AoT Group YYYYMMDDn", where YYYYMMDD is the date,
+                 e.g., 20210302, and "n" is appended just in case
+                   this function is run more than once in a day. */
+
+        String date = Utility.getCurrentDateYYYYMMDD();
+        int count = 1;
+        JsonObject obj = new JsonObject();
+        try {
+            obj.addProperty("date", date);
+            obj.addProperty("count", count);
+        } catch (Exception e) {
+            e.getCause();
+        }
+
+        String json = SharedPreferencesUtil.getNumberOfProjectsCreated(context);
+        if (json.isEmpty()) { // no project created till date
+            projectName = date + count;
+            SharedPreferencesUtil.setNumberOfProjectsCreated(context, obj.toString());
+        } else { // already project is created
+            try {
+                JSONObject jsonObject = new JSONObject(json);
+                String dateCreated = jsonObject.getString("date");
+                if (dateCreated.equals(Utility.getCurrentDateYYYYMMDD())) { // same day project created
+                    int countProject = jsonObject.getInt("count");
+                    countProject = countProject + 1;
+                    projectName = dateCreated + countProject;
+
+                    JsonObject obj2 = new JsonObject();
+                    try {
+                        obj2.addProperty("date", dateCreated);
+                        obj2.addProperty("count", countProject);
+                    } catch (Exception e) {
+                        e.getCause();
+                    }
+                    SharedPreferencesUtil.setNumberOfProjectsCreated(context, obj2.toString());
+
+
+                } else { //  project created in other date
+                    projectName = date + count;
+                    SharedPreferencesUtil.setNumberOfProjectsCreated(context, obj.toString());
+
+                }
+
+
+            } catch (Exception e) {
+
+            }
+        }
+
+        return projectName;
+    }
 
     public static String getCurrentTimestamp() {
 
@@ -425,11 +490,11 @@ public static void startNotification(Context context) {
 
     public static ArrayList<String> getCurrentDateWithTimestamp() {
 
-        ArrayList<String> listDateAndTimestamp=new ArrayList<>();
+        ArrayList<String> listDateAndTimestamp = new ArrayList<>();
         SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
 
 
-        String formattedDate ="";
+        String formattedDate = "";
         long milliSeconds = 0;
         String toyBornTime = "1904-01-01 12:00:00.000 am";
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS aa");
@@ -456,7 +521,39 @@ public static void startNotification(Context context) {
         return listDateAndTimestamp;
 
     }
+    public static String getCurrentDateWithTimestampNew() {
 
+                 String dateAndTimestamp ="";
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+
+
+        String formattedDate = "";
+        long milliSeconds = 0;
+        String toyBornTime = "1904-01-01 12:00:00.000 am";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS aa");
+
+        try {
+
+            Date oldDate = dateFormat.parse(toyBornTime);
+            Date currentDate = new Date();
+            formattedDate = df.format(currentDate);
+            dateAndTimestamp=dateAndTimestamp+formattedDate+"_";
+            long diff = currentDate.getTime() - oldDate.getTime();
+            milliSeconds = diff;
+            //  long seconds  = diff / 1000;
+            //  long minutes = seconds / 60;
+            //  long hours = minutes / 60;
+            //   long days = hours / 24;
+
+            dateAndTimestamp= dateAndTimestamp+milliSeconds;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+        return dateAndTimestamp;
+
+    }
     /* public static boolean QRAlreadyScanned(List<ScannedData> list, String QRData) {
          for (ScannedData scannedData : list) {
              if (scannedData.getQr_text().equals(QRData)) return true;
@@ -465,6 +562,13 @@ public static void startNotification(Context context) {
      }*/
     public static boolean QRAlreadyScanned(List<Task_data> AsanaTaskDataList, String QRData) {
         for (Task_data scannedData : AsanaTaskDataList) {
+            if (scannedData.getQrText().equals(QRData)) return true;
+        }
+        return false;
+    }
+
+    public static boolean QRAlreadyScannedNew(List<QRCode> QRCodeDataList, String QRData) {
+        for (QRCode scannedData : QRCodeDataList) {
             if (scannedData.getQrText().equals(QRData)) return true;
         }
         return false;
@@ -507,7 +611,6 @@ public static void startNotification(Context context) {
         }
         return myObjects;
     }
-
 
 
     public static File getOutputMediaFolder() {
@@ -717,7 +820,7 @@ public static void startNotification(Context context) {
     public static void ReportNonFatalError(String Title, String Detail) {
 
         FirebaseCrashlytics.getInstance().recordException(new RuntimeException(Title + "---> " + Detail));
-        Log.e("Debugging...", Title + " : " +Detail );
+        Log.e("Debugging...", Title + " : " + Detail);
     }
 
     public static void logFeatureSelectedEvent(Context context, String Title, String Detail) {
@@ -1056,8 +1159,6 @@ public static void startNotification(Context context) {
             } else {
                 return new JsonObject();
             }
-
-
 
 
         } catch (Exception e) {

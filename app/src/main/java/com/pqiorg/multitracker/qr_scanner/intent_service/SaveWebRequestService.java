@@ -1240,8 +1240,8 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
         protected Void doInBackground(Void... params) {
             saveQRRecordsInLocalDB();
             saveBeaconRecordsInLocalDB();
-            List<TaskData> QRRecords = getAllQRRecordsFromLocalStorage();
-            List<Beacon> beacons = getAllBeaconsRecordsFromLocalStorage();
+           // List<TaskData> QRRecords = getAllQRRecordsFromLocalStorage();
+          //  List<Beacon> beacons = getAllBeaconsRecordsFromLocalStorage();
             return null;
         }
 
@@ -1272,13 +1272,15 @@ public class SaveWebRequestService extends JobIntentService implements RequestLi
             for (List<Object> beaconData : BluetoothBeaconDataList) {
                 try {
                     Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
-                            AsanaTaskDataList.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
+                            String.valueOf(beaconData.get(2)),
                             String.valueOf(beaconData.get(1)),
                             String.valueOf(beaconData.get(3)),
                             String.valueOf(beaconData.get(4)),
                             String.valueOf(beaconData.get(5)),
                             String.valueOf(beaconData.get(6)),
-                            String.valueOf(beaconData.get(7)));
+                            String.valueOf(beaconData.get(7)),
+                            AsanaTaskDataList.get(0).getTimestampBeacon());// so that by using timestamp of a qr , corresponding beacons can be retrieved
+
 
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .beaconDao()

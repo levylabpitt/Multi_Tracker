@@ -404,7 +404,31 @@ public class RetrofitManager implements OnRetryCallback {
 
     }
 
+    public void createProject(
+            final RequestListener mRequestListener,
+            final Context mContext,
+            final Constants.API_TYPE mApiType,
+            final String workspace_gid,
+            final JsonObject input,
+            final boolean showProgress) {
 
+        call = retroService.createProject(workspace_gid,input);
+        performCallback(mRequestListener, mContext, mApiType, showProgress);
+
+    }
+
+    public void addTaskToProject(
+            final RequestListener mRequestListener,
+            final Context mContext,
+            final Constants.API_TYPE mApiType,
+            final String task_gid,
+            final JsonObject input,
+            final boolean showProgress) {
+
+        call = retroService.addTaskToProject(task_gid,input);
+        performCallback(mRequestListener, mContext, mApiType, showProgress);
+
+    }
 
 
 

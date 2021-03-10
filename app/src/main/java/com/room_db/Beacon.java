@@ -39,7 +39,11 @@ public class Beacon {
 
 
 
-    public Beacon(String dateTime, String timestamp, String Name, String RSSI, String UUID, String Major, String Minor, String Battery) {
+    @ColumnInfo(name = "timestampBeacon")
+    private String timestampBeacon;
+
+
+   /* public Beacon(String dateTime, String timestamp, String Name, String RSSI, String UUID, String Major, String Minor, String Battery) {
 
         this.dateTime = dateTime;
         this.timestamp = timestamp;
@@ -50,8 +54,20 @@ public class Beacon {
         this. Minor = Minor;
         this. Battery = Battery;
 
-    }
+    }*/
 
+    public Beacon( String dateTime, String timestamp, String Name, String RSSI, String UUID, String Major, String Minor, String Battery, String timestampBeacon) {
+
+        this.dateTime = dateTime;
+        this.timestamp = timestamp;
+        this.Name = Name;
+        this.RSSI = RSSI;
+        this.UUID = UUID;
+        this.Major = Major;
+        this.Minor = Minor;
+        this.Battery = Battery;
+        this.timestampBeacon = timestampBeacon;
+    }
 
     public int getId() {
         return id;
@@ -125,5 +141,11 @@ public class Beacon {
         Battery = battery;
     }
 
+    public String getTimestampBeacon() {
+        return timestampBeacon;
+    }
 
+    public void setTimestampBeacon(String timestampBeacon) {
+        this.timestampBeacon = timestampBeacon;
+    }
 }

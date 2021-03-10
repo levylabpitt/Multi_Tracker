@@ -28,15 +28,15 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebIconDatabase;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -52,10 +52,31 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.pqiorg.multitracker.R;
+import com.synapse.Utility;
+import com.synapse.adapter.GridSpacingItemDecoration;
+import com.synapse.adapter.TeamsAdapter;
+import com.synapse.listener.TeamsSelectedListener;
+import com.synapse.model.TaskData;
+import com.synapse.model.task_detail.CustomField;
+import com.synapse.model.task_detail.Tag;
+import com.synapse.model.task_detail.TaskDetail;
+import com.synapse.model.teams_by_org.Datum;
+import com.synapse.model.teams_by_org.TeamsByOrganization;
+import com.synapse.network.APIError;
+import com.synapse.network.Constants;
+import com.synapse.network.RequestListener;
+import com.synapse.network.RetrofitManager;
+import com.synapse.recycler_decorator.MyDividerItemDecoration;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthState;
@@ -75,6 +96,9 @@ import net.openid.appauth.model.user_detail.Workspace;
 import net.openid.appauth.network.SharedPreferencesUtil;
 //import net.openid.appauthdemo.BrowserSelectionAdapter.BrowserInfo;
 
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -85,6 +109,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.ResponseBody;
+import retrofit2.Response;
 
 /**
  * Demonstrates the usage of the AppAuth to authorize a user with an OAuth2 / OpenID Connect
@@ -101,7 +127,7 @@ import butterknife.ButterKnife;
  * README.md in the app/ directory for configuration instructions, and the adjacent IDP-specific
  * instructions.
  */
-public final class AsanaLoginActivity extends AppCompatActivity {
+public final class AsanaLoginActivity extends AppCompatActivity implements TeamsSelectedListener, RequestListener {
 
     private static final String TAG = "LoginActivity";
     private static final String EXTRA_FAILED = "failed";
@@ -134,6 +160,14 @@ public final class AsanaLoginActivity extends AppCompatActivity {
     Button btn_logout;
 
 
+    @BindView(R.id.default_workspace_to_create_project)
+    RadioButton default_workspace_to_create_project;
+
+    @BindView(R.id.choose_asana_team)
+    TextView choose_asana_team;
+
+    List<Datum> teamsList = new ArrayList<>();
+    BottomSheetDialog dialog ;
     @NonNull
     private BrowserMatcher mBrowserMatcher = AnyBrowserMatcher.INSTANCE;
 
@@ -230,111 +264,38 @@ public final class AsanaLoginActivity extends AppCompatActivity {
     }
 
 
-    private void clearChromeHistory() {
-        ContentResolver cr = getContentResolver();
-        Uri historyUri = Uri.parse("content://com.android.chrome.browser/history");
-        Uri searchesUri = Uri.parse("content://com.android.chrome.browser/searches");
+    private void showBottomSheetDialog(String workspace_gid) {
+        View view = getLayoutInflater().inflate(R.layout.list_bottom_sheet, null);
+         dialog = new BottomSheetDialog(this, R.style.SheetDialog);
+        TextView title = view.findViewById(R.id.title);
+        title.setText("Choose Team");
+        RecyclerView filter_selector_recyclerview = view.findViewById(R.id.filter_selector_recyclerview);
 
-        deleteChromeHistoryJava(cr, historyUri, null, null);
-        deleteChromeHistoryJava(cr, searchesUri, null, null);
+        TextView textview_no_items = view.findViewById(R.id.txtvw_no_items);
+        ImageView close = view.findViewById(R.id.close);
+        ImageView refresh = view.findViewById(R.id.refresh);
 
-    }
-
-    private void clearHistoryChrome() {
-        ContentResolver cr = getContentResolver();
-        if (canClearHistory(cr)) {
-            deleteHistoryWhere(cr, null);
-        }
-    }
-
-    private void deleteHistoryWhere(ContentResolver cr, String whereClause) {
-        String CONTENT_URI = "content://com.android.chrome.browser/history";
-        Uri URI = Uri.parse(CONTENT_URI);
-        Cursor cursor = null;
-        try {
-            cursor = cr.query(URI, new String[]{"url"}, whereClause,
-                    null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    final WebIconDatabase iconDb = WebIconDatabase.getInstance();
-                    do {
-                        // Delete favicons
-                        // TODO don't release if the URL is bookmarked
-                        iconDb.releaseIconForPageUrl(cursor.getString(0));
-                    } while (cursor.moveToNext());
-                    cr.delete(URI, whereClause, null);
-                }
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hitAPIGetTeamsByWorkspace(workspace_gid);
             }
-        } catch (IllegalStateException e) {
-            Log.i("DEBUG_", "deleteHistoryWhere IllegalStateException: " + e.getMessage());
-            return;
-        } finally {
-            if (cursor != null) cursor.close();
-        }
-        Log.i("DEBUG_", "deleteHistoryWhere: GOOD");
-    }
-
-    public boolean canClearHistory(ContentResolver cr) {
-        String CONTENT_URI = "content://com.android.chrome.browser/history";
-        Uri URI = Uri.parse(CONTENT_URI);
-        String _ID = "_id";
-        String VISITS = "visits";
-        Cursor cursor = null;
-        boolean ret = false;
-        try {
-            cursor = cr.query(URI,
-                    new String[]{_ID, VISITS},
-                    null, null, null);
-            if (cursor != null) {
-                ret = cursor.getCount() > 0;
+        });
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
             }
-        } catch (IllegalStateException e) {
-            Log.i("DEBUG_", "canClearHistory IllegalStateException: " + e.getMessage());
-        } finally {
-            if (cursor != null) cursor.close();
-        }
-        Log.i("DEBUG_", "canClearHistory: " + ret);
-        return ret;
-    }
+        });
+        filter_selector_recyclerview.setLayoutManager(new LinearLayoutManager(AsanaLoginActivity.this));
+        filter_selector_recyclerview.setItemAnimator(new DefaultItemAnimator());
+        filter_selector_recyclerview.addItemDecoration(new MyDividerItemDecoration(this, DividerItemDecoration.VERTICAL, 0));
+        filter_selector_recyclerview.setAdapter(new TeamsAdapter(this, teamsList, this));
 
 
-    /**
-     * Delete chrome browser hisory
-     *
-     * @param cr          content resolver
-     * @param whereClause Uri of the browser history query
-     * @param projection  projection array
-     * @param selection   selection item
-     */
-    private void deleteChromeHistoryJava(ContentResolver cr, Uri whereClause, String[] projection, String selection) {
-        Cursor mCursor = null;
-        final Uri BOOKMARKS_URI =
-                Uri.parse("content://browser/bookmarks");
-        try {
-            mCursor = cr.query(whereClause, projection, selection,
-                    null, null);
-            Log.i("deleteChromeHistoryJava", " Query: " + whereClause);
-            if (mCursor != null) {
-                mCursor.moveToFirst();
-                int count = mCursor.getColumnCount();
-                String COUNT = String.valueOf(count);
-                Log.i("deleteChromeHistoryJava", " mCursor count" + COUNT);
-                String url = "";
-                if (mCursor.moveToFirst() && mCursor.getCount() > 0) {
-                    while (!mCursor.isAfterLast()) {
-                        url = mCursor.getString(mCursor.getColumnIndex(BOOKMARKS_URI.toString()));
-                        Log.i("deleteChromeHistoryJava", " url: " + url);
-                        mCursor.moveToNext();
-                    }
-                }
-                cr.delete(whereClause, selection, null);
-                Log.i("deleteChromeHistoryJava", " GOOD");
-            }
-        } catch (IllegalStateException e) {
-            Log.i("deleteChromeHistoryJava", " IllegalStateException: " + e.getMessage());
-        } finally {
-            if (mCursor != null) mCursor.close();
-        }
+        dialog.setContentView(view);
+        if(dialog!=null && !dialog.isShowing())
+        dialog.show();
     }
 
 
@@ -342,6 +303,52 @@ public final class AsanaLoginActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkUserAuthorizationStatus();
+
+        chooseDefaultWorkspaceForUpdatingAsanaTasks();
+        chooseDefaultWorkspaceAndTeamForCreatingNewAsanaProject();
+    }
+
+    private void hitAPIGetTeamsByWorkspace(String workspace_gid) {
+        RetrofitManager retrofitManager = RetrofitManager.getInstance();
+        retrofitManager.getTeamsInOrganization(this, getApplicationContext(), Constants.API_TYPE.GET_TEAMS_IN_ORGANIZATION, workspace_gid, true);
+    }
+
+    @Override
+    public void onSuccess(Response<ResponseBody> response, Constants.API_TYPE apiType) {
+        if (apiType == Constants.API_TYPE.GET_TEAMS_IN_ORGANIZATION) {
+            teamsList.clear();
+            try {
+                if (response != null && response.body() != null && response.isSuccessful()) {
+                    String strResponse = response.body().string();
+                    TeamsByOrganization teamsByOrganization = new Gson().fromJson(strResponse, TeamsByOrganization.class);
+                    List<Datum> teams = teamsByOrganization.getData();
+                    teamsList.addAll(teams);
+
+                }
+            } catch (Exception e) {
+                Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
+
+            }
+        }
+    }
+
+    @Override
+    public void onFailure(Response<ResponseBody> response, Constants.API_TYPE apiType) {
+
+    }
+
+    @Override
+    public void onApiException(APIError error, Response<ResponseBody> response, Constants.API_TYPE apiType) {
+
+    }
+
+    @Override
+    public void onItemSelected(String name, String gid) {
+
+        choose_asana_team.setText(name);
+        SharedPreferencesUtil.setTeamIdForCreatingNewProject(this, gid);
+        SharedPreferencesUtil.setTeamNameForCreatingNewProject(this, name);
+        if(dialog!=null && dialog.isShowing()) dialog.dismiss();
     }
 
     void checkUserAuthorizationStatus() {  // nks
@@ -369,21 +376,8 @@ public final class AsanaLoginActivity extends AppCompatActivity {
 
             }
         });
-        chooseOrganization();
-        String AsanaUserEmail = SharedPreferencesUtil.getAsanaEmail(this);
-        String AsanaUserName = SharedPreferencesUtil.getAsanaName(this);
-        if (AsanaUserEmail.equals("")) {
-            ll_auth_detail.setVisibility(View.GONE);
-            start_auth.setVisibility(View.VISIBLE);
-            findViewById(R.id.loading_container).setVisibility(View.VISIBLE);
 
-        } else {
-            ll_auth_detail.setVisibility(View.VISIBLE);
-            start_auth.setVisibility(View.GONE);
-            findViewById(R.id.loading_container).setVisibility(View.GONE);
 
-            txtvw_AsanaAuthDetails.setText("Name: " + AsanaUserName + "\n" + "Email: " + AsanaUserEmail);
-        }
     }
 
     @Override
@@ -768,6 +762,7 @@ public final class AsanaLoginActivity extends AppCompatActivity {
         }
     }
 
+
     /**
      * Responds to changes in the login hint. After a "debounce" delay, warms up the browser
      * for a request with the new login hint; this avoids constantly re-initializing the
@@ -837,20 +832,42 @@ public final class AsanaLoginActivity extends AppCompatActivity {
     }
 
 
-  /*  void test(){
-        EndSessionRequest endSessionRequest = new EndSessionRequest(
-                authorizationServiceConfiguration,
-                idToken,
-                endSessionRedirectUri
-        );
-    }
-    private void endSession() {
-        AuthorizationService authService = new AuthorizationService(this);
-        Intent endSessionItent = authService.getAuthorizationRequestIntent(endSessionRequest);
-        startActivityForResult(endSessionItent, RC_END_SESSION);
-    }*/
+    void chooseDefaultWorkspaceAndTeamForCreatingNewAsanaProject() {
+        String CurrentLoggedInUserWorkspaceId = SharedPreferencesUtil.getCurrentLoggedInUserWorkspaceId(this);
+        String CurrentLoggedInUserWorkspaceName = SharedPreferencesUtil.getCurrentLoggedInUserWorkspaceName(this);
+        hitAPIGetTeamsByWorkspace(CurrentLoggedInUserWorkspaceId);
 
-    void chooseOrganization() {
+        String TeamNameForCreatingNewProject = SharedPreferencesUtil.getTeamNameForCreatingNewProject(this);
+        default_workspace_to_create_project.setText(CurrentLoggedInUserWorkspaceName);
+        default_workspace_to_create_project.setChecked(true);
+
+        choose_asana_team.setText(TeamNameForCreatingNewProject);
+
+        choose_asana_team.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showBottomSheetDialog(CurrentLoggedInUserWorkspaceId);
+            }
+        });
+
+
+    }
+
+    void chooseDefaultWorkspaceForUpdatingAsanaTasks() {
+        String AsanaUserEmail = SharedPreferencesUtil.getAsanaEmail(this);
+        String AsanaUserName = SharedPreferencesUtil.getAsanaName(this);
+        if (AsanaUserEmail.equals("")) {
+            ll_auth_detail.setVisibility(View.GONE);
+            start_auth.setVisibility(View.VISIBLE);
+            findViewById(R.id.loading_container).setVisibility(View.VISIBLE);
+
+        } else {
+            ll_auth_detail.setVisibility(View.VISIBLE);
+            start_auth.setVisibility(View.GONE);
+            findViewById(R.id.loading_container).setVisibility(View.GONE);
+
+            txtvw_AsanaAuthDetails.setText("Name: " + AsanaUserName + "\n" + "Email: " + AsanaUserEmail);
+        }
         String strResponse = SharedPreferencesUtil.getUserDetails(this);
         UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
 

@@ -59,7 +59,7 @@ public class BeaconScannerService extends Service {
     private static List<BluetoothDeviceWrapper> mDevices = Collections.synchronizedList(new ArrayList<BluetoothDeviceWrapper>());
 
     private static List<BluetoothDeviceWrapper> nonBlacklistedDevices = Collections.synchronizedList(new ArrayList<BluetoothDeviceWrapper>());
-
+    NotificationManager notificationManager;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -77,7 +77,7 @@ public class BeaconScannerService extends Service {
 
     void startNotification() {
 
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
 
@@ -128,9 +128,19 @@ public class BeaconScannerService extends Service {
         stopTimerThread();
         unRegisterReceiver();
         destroy();
+        removeNotification();
         super.onDestroy();
         Log.e("Service Stopped", "Beacon Scanner");
 
+    }
+
+    public void removeNotification(){
+        try {
+            notificationManager.cancelAll();
+
+        }catch (Exception e){
+
+        }
     }
 
     @Override
@@ -253,7 +263,9 @@ public class BeaconScannerService extends Service {
 
         if (i >= mDevices.size()) {
             //if (!isBlackListedBeacon(deviceDetail)) {  // nks
-            deviceDetail.setFlag(Utility.getCurrentTimestamp());//
+
+
+            deviceDetail.setFlag(Utility.getCurrentDateWithTimestampNew());//
             mDevices.add(deviceDetail);
             // }
         }
@@ -343,7 +355,7 @@ public class BeaconScannerService extends Service {
         List<List<Object>> values = new ArrayList<>();
         for (int i = 0; i < nonBlacklistedDevices.size(); i++) { //mDevices
             List<Object> list1 = new ArrayList<>();
-            list1.add(Utility.getCurrentDate()); //0
+           // list1.add(Utility.getCurrentDate()); //0
             // list1.add(Utility.getCurrentTimestamp());
 
             String deviceName;
@@ -351,7 +363,7 @@ public class BeaconScannerService extends Service {
             String deviceAdd;
             String deviceModel;
             int deviceRssi;
-            String timestamp;
+            String timestamp_date;
 
             try {
                 BluetoothDeviceWrapper deviceDetail = mDevices.get(i);
@@ -360,7 +372,16 @@ public class BeaconScannerService extends Service {
                 deviceAdd = deviceDetail.getAddress();
                 deviceModel = deviceDetail.getModel();
                 deviceRssi = deviceDetail.getRssi();
-                timestamp = deviceDetail.getFlag();
+              //  timestamp = deviceDetail.getFlag();
+                timestamp_date = deviceDetail.getFlag();
+
+                String date="", timestamp="";
+                if(timestamp_date.contains("_")) {
+                    String [] arr_timestampDate= timestamp_date.split("_");
+                    date=arr_timestampDate[0];
+                    timestamp=arr_timestampDate[1];
+                }
+                list1.add(date); //0
 
 
                 if ((completeName != null) && completeName.length() > 0) {

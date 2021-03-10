@@ -108,7 +108,7 @@ public class UpdateAsanaDataWorker extends Worker implements RequestListener {
     //   String updatedRangeOfDataWrittenInQRSheet = ""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
     // the same range to update status in spreadsheet
     NotificationManager notificationManager;
-
+    Integer notification_id=325;
    /* public UpdateAsanaDataService() {
         //super("MyWebRequestService");
     }
@@ -163,27 +163,29 @@ public class UpdateAsanaDataWorker extends Worker implements RequestListener {
             notificationManager.createNotificationChannel(channel);
         }
 
-        NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
-                //.setContentTitle(getApplicationContext().getString(R.string.app_name))
-                //.setContentText(getApplicationContext().getString(R.string.app_name))
-                .setSmallIcon(R.mipmap.ic_launcher);
-
-        Notification notification = notificationbuilder
-                // .setOngoing(true)
-                //.setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(getApplicationContext().getString(R.string.app_name))
-                .setTicker(getApplicationContext().getString(R.string.app_name))
-                .setContentText("Processing data in background")
-                .setPriority(PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .build();
-
-
-        notificationManager.notify(Utility.getCurrentTimeStamp(), notification);
-
+        Notification notification =  sendNotification("Processing data in background !!");
 
         return new ForegroundInfo(1, notification);
     }
+
+
+    Notification sendNotification(String content){
+        Notification notification = new NotificationCompat.Builder(getApplicationContext(), "default")
+                // .setOngoing(true)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getApplicationContext().getString(R.string.app_name))
+                .setTicker(getApplicationContext().getString(R.string.app_name))
+                .setContentText(content)
+                .setPriority(PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build();
+        notificationManager.notify(notification_id, notification);
+
+        return notification;
+    }
+
+
+
     /*  void initDriveServiceHelper() {
           GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
           if (account != null) {
@@ -737,7 +739,8 @@ public class UpdateAsanaDataWorker extends Worker implements RequestListener {
         } catch (Exception e) {
             Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
             addErrorDetail(attachmentUploadAPICount, apiType + " :  " + e.getMessage());
-            notificationManager.cancelAll();
+           // notificationManager.cancelAll();
+            sendNotification("Error in processing data !!");
         }
     }
 
@@ -1263,14 +1266,15 @@ public class UpdateAsanaDataWorker extends Worker implements RequestListener {
         @Override
         protected Void doInBackground(Void... params) {
             updateQRStatusInLocalDB();
-            List<TaskData> s = getAllQRRecordsFromLocalStorage();
+          //  List<TaskData> s = getAllQRRecordsFromLocalStorage();
             return null;
         }
 
 
         @Override
         protected void onPostExecute(Void result) {
-            notificationManager.cancelAll();
+           // notificationManager.cancelAll();
+            sendNotification("Completed processing data !!");
         }
 
         void updateQRStatusInLocalDB() {
@@ -1291,14 +1295,14 @@ public class UpdateAsanaDataWorker extends Worker implements RequestListener {
 
     }
 
-    List<TaskData> getAllQRRecordsFromLocalStorage() {
+   /* List<TaskData> getAllQRRecordsFromLocalStorage() {
         return DatabaseClient
                 .getInstance(getApplicationContext())
                 .getAppDatabase()
                 .taskDao()
                 .getAll();
 
-    }
+    }*/
 
     private class findRecordByTimestampAsync extends AsyncTask<Void, Void, TaskData> {
         String QRTimestamp;
@@ -1348,12 +1352,12 @@ public class UpdateAsanaDataWorker extends Worker implements RequestListener {
             return taskData;
         }
 
-        List<Beacon> _findBeaconRecordsByTimestamp(String timestamp) {
+        List<Beacon> _findBeaconRecordsByTimestamp(String BeaconTimestamp) {
             List<Beacon> beacons = DatabaseClient
                     .getInstance(getApplicationContext())
                     .getAppDatabase()
                     .beaconDao()
-                    .findByTimestamp(timestamp);
+                    .findByTimestampNew(BeaconTimestamp);
             return beacons;
         }
     }

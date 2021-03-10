@@ -379,52 +379,8 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             return;
         }
 
-
-
-
-//        Intent intent = new Intent();
-//        intent.putExtra(SaveWebRequestService.QR_DATA_LIST, (Serializable) dataListWithoutBitmap);
-//        JobIntentService.enqueueWork(ContinuousCaptureActivityNew.this, SaveWebRequestService.class, 56789, intent);
-
-      /*  Toast.makeText(this, "Uploading started in background...", Toast.LENGTH_SHORT).show();
-        finishActivity();*/
-
-
-
-
-
-
-/*
-
-        Intent intent = new Intent();
-        intent.putExtra(SaveWebRequestService.QR_DATA_LIST, (Serializable) dataListWithoutBitmap);
-        JobIntentService.enqueueWork(ContinuousCaptureActivityNew.this, SaveWebRequestService.class, 56789, intent);
-*/
-
         new saveQRRecordsInLocalDBAsync(dataListWithoutBitmap).execute();
 
-
-      /*  Gson gson = new Gson();
-        String dataListWithoutBitmapStr = gson.toJson(
-                dataListWithoutBitmap,
-                new TypeToken<ArrayList<TaskData>>() {}.getType());
-
-        Data data = new Data.Builder()
-                .putString(SaveWebRequestWorker.QR_DATA_LIST, dataListWithoutBitmapStr)
-                .build();
-
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-
-        OneTimeWorkRequest oneTimeWorkRequest =
-                new OneTimeWorkRequest.Builder(SaveWebRequestWorker.class)
-                        .setInputData(data)
-                        .setConstraints(constraints)
-                        .build();
-
-        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
-*/
 
     }
 
@@ -441,11 +397,19 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
 
         String url = AsanaTaskDataList.get(URLCount).getQrText();
         boolean isValidURL = Patterns.WEB_URL.matcher(url).matches();
-        if (isValidURL && !url.startsWith("http://")) {
+        if (isValidURL &&  !(url.startsWith("http:") || (url.startsWith("https:")))) {
             url = "http://" + url;
         }
 
-        if (!isValidURL && URLCount < AsanaTaskDataList.size()) {
+        if ( isValidURL && url.startsWith("https://app.asana.com") && URLCount < AsanaTaskDataList.size()) {
+            String asanaURL = url.substring(url.lastIndexOf("/") + 1);
+            AsanaTaskDataList.get(URLCount).setTaskId(asanaURL);
+            URLCount++;
+            UnshortenURL();
+            return;
+        }
+
+       else if (!isValidURL && URLCount < AsanaTaskDataList.size()) {
             URLCount++;
             UnshortenURL();
             return;
@@ -539,18 +503,12 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             for(int i=0;i<dataListWithoutBitmap.size();i++){
                 timestamps.add( dataListWithoutBitmap.get(i).getTimestamp());
             }
-
-           // List<TaskData> s = getAllQRRecordsFromLocalStorage(timestamps);
-
             return null;
         }
 
 
         @Override
         protected void onPostExecute(Void result) {
-            Toast.makeText(ContinuousCaptureActivityNew.this, "Uploading started in background...", Toast.LENGTH_SHORT).show();
-           finish();
-
             String[] timestampsArr = timestamps.toArray(new String[timestamps.size()]);
 
             Data data = new Data.Builder()
@@ -568,15 +526,11 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
                             .build();
 
             WorkManager.getInstance(ContinuousCaptureActivityNew.this).enqueue(oneTimeWorkRequest);
-
-
-        }
-        List<TaskData> getAllQRRecordsFromLocalStorage(ArrayList<String> timestamps) {
-            return DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
-                    .taskDao()
-                    .findAllQRDataByTimestampsList(timestamps);
+           try { Toast.makeText(ContinuousCaptureActivityNew.this, "Uploading started in background...", Toast.LENGTH_SHORT).show(); }catch (Exception e){}
+            finish();
 
         }
+
         void saveQRRecordsInLocalDB() {
             for (int i = 0; i < dataListWithoutBitmap.size(); i++) {
                 TaskData task = dataListWithoutBitmap.get(i);
@@ -597,13 +551,14 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
             for (List<Object> beaconData : BluetoothBeaconDataList) {
                 try {
                     Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
-                            dataListWithoutBitmap.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
+                            String.valueOf(beaconData.get(2)),
                             String.valueOf(beaconData.get(1)),
                             String.valueOf(beaconData.get(3)),
                             String.valueOf(beaconData.get(4)),
                             String.valueOf(beaconData.get(5)),
                             String.valueOf(beaconData.get(6)),
-                            String.valueOf(beaconData.get(7)));
+                            String.valueOf(beaconData.get(7)),
+                            dataListWithoutBitmap.get(0).getTimestampBeacon());// so that by using timestamp of a qr , corresponding beacons can be retrieved
 
                     DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                             .beaconDao()

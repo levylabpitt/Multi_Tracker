@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+
+    android:background="@color/colorAccent"
+    android:layout_height="match_parent">
+<!--   android:background="@drawable/bg"-->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+android:textColor="@color/white"
+            android:text="Select"
+
+            />
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/refresh"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_baseline_refresh_24"
+            android:visibility="visible"
+            android:layout_marginRight="50dp"
+
+            />
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/close"
+            android:layout_alignParentEnd="true"
+
+            android:src="@drawable/close"
+         />
+<!-- android:src="@drawable/ic_baseline_cancel_24"-->
+    </LinearLayout>
+
+    <View
+        android:id="@+id/divider5"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+android:backgroundTint="@android:color/white"
+       />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/filter_selector_recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/divider5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider5" />
+
+    <TextView
+        android:id="@+id/txtvw_no_items"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:textColor="@color/white"
+        android:layout_marginTop="20dp"
+        android:text="No records found !!"
+        android:textSize="16sp" />
+
+</LinearLayout>

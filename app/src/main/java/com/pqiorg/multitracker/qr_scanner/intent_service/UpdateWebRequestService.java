@@ -1395,12 +1395,12 @@ public class UpdateWebRequestService extends JobIntentService implements Request
             return taskData;
         }
 
-        List<Beacon> _findBeaconRecordsByTimestamp(String timestamp) {
+        List<Beacon> _findBeaconRecordsByTimestamp(String BeaconTimestamp) {
             List<Beacon> beacons = DatabaseClient
                     .getInstance(getApplicationContext())
                     .getAppDatabase()
                     .beaconDao()
-                    .findByTimestamp(timestamp);
+                    .findByTimestampNew(BeaconTimestamp);
             return beacons;
         }
     }

@@ -3,6 +3,9 @@
     <color name="colorPrimary">#6fc5e1</color>
     <color name="colorPrimaryDark">#53D3D6</color>
     <color name="colorAccent">#6fc5e1</color>
+
+    <color name="cd_grey">#CDCDCD</color>
+    <color name="transparent">@android:color/transparent</color>
 <!--
     <color name="white">#fff</color>
 

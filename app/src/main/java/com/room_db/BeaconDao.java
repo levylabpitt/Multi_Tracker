@@ -17,8 +17,11 @@ public interface BeaconDao {
     @Query("SELECT * FROM Beacon")
     List<Beacon> getAll();
 
-    @Query("SELECT * FROM Beacon WHERE timestamp = :Timestamp")
-    List<Beacon> findByTimestamp(String Timestamp);
+    @Query("SELECT * FROM Beacon WHERE timestampBeacon = :beaconTimestamp")
+    List<Beacon> findByTimestamp(String beaconTimestamp);
+
+    @Query("SELECT * FROM Beacon WHERE timestampBeacon = :beaconTimestamp")
+    List<Beacon> findByTimestampNew(String beaconTimestamp);
 
     @Insert
     void insert(Beacon beacon);

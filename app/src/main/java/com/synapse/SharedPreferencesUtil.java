@@ -498,6 +498,129 @@ public class SharedPreferencesUtil {
         return "";
     }
 */
+    public static void setCurrentLoggedInUserWorkspaceId(Context context, String workspace_gid) {
+    try {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("current_logged_in_user_workspace_gid", workspace_gid);
+        editor.apply();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+    public static String getCurrentLoggedInUserWorkspaceId(Context context) {
+        String val = "";
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            val = preferences.getString("current_logged_in_user_workspace_gid", "");
+            return val;
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+
+    public static void setCurrentLoggedInUserWorkspaceName(Context context, String workspace_gid) {
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("current_logged_in_user_workspace_name", workspace_gid);
+            editor.apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static String getCurrentLoggedInUserWorkspaceName(Context context) {
+        String val = "";
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            val = preferences.getString("current_logged_in_user_workspace_name", "");
+            return val;
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+    public static void setTeamIdForCreatingNewProject(Context context, String workspace_gid) {
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("team_id_for_creating_new_project", workspace_gid);
+            editor.apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static String getTeamIdForCreatingNewProject(Context context) {
+        String val = "";
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            val = preferences.getString("team_id_for_creating_new_project", "");
+            return val;
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+    public static void setNumberOfProjectsCreated(Context context, String json) {
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("NumberOfProjectsCreated", json);
+            editor.apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static String getNumberOfProjectsCreated(Context context) {
+        String val = "";
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            val = preferences.getString("NumberOfProjectsCreated", "");
+            return val;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+    public static void setTeamNameForCreatingNewProject(Context context, String workspace_gid) {
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("team_name_for_creating_new_project", workspace_gid);
+            editor.apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static String getTeamNameForCreatingNewProject(Context context) {
+        String val = "";
+        try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            val = preferences.getString("team_name_for_creating_new_project", "");
+            return val;
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
 
     public static void setLevyLabWorkspaceId(Context context, String workspace_gid) {
         try {

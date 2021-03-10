@@ -407,6 +407,16 @@ public class AuthorizationManagementActivity extends Activity implements Request
                 UserDetailsResponse userDetailsResponse = new Gson().fromJson(strResponse, UserDetailsResponse.class);
                 String user_gid = userDetailsResponse.getData().getGid();
                 //   SharedPreferencesUtil.setAsanaUserId(this, user_gid);
+
+                List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
+                if (workspaces != null && workspaces.size() > 0) {
+                    String workspace_gid = workspaces.get(0).getGid();
+                    String workspace_name = workspaces.get(0).getName();
+                      SharedPreferencesUtil.setCurrentLoggedInUserWorkspaceId(this, workspace_gid);
+                    SharedPreferencesUtil.setCurrentLoggedInUserWorkspaceName(this, workspace_name);
+                }
+
+
             /*    List<Workspace> workspaces = userDetailsResponse.getData().getWorkspaces();
                 if (workspaces != null && workspaces.size() > 0) {
                     String workspace_gid = workspaces.get(0).getGid();

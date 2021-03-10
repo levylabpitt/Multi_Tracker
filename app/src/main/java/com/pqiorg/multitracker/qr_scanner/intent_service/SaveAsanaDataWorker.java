@@ -91,37 +91,23 @@ import static com.ammarptn.gdriverest.DriveServiceHelper.getGoogleDriveService;
 
 /************************************** Note***************************************************************/
 //Changes done in this file should also be done in UpdateWebRequestService file
-
+// now this is a worker
 public class SaveAsanaDataWorker extends Worker implements RequestListener {
 
-    public static final String QR_DATA_LIST = "qr_data_list";
     List<TaskData> AsanaTaskDataList = new ArrayList<>();
     List<List<Object>> BluetoothBeaconDataList = new ArrayList<>();
     int taskDetailAPICount = 0, taskUpdateAPICount = 0, attachmentUploadAPICount = 0, feasybeaconTaskDetailAPICount = 0, feasybeaconTaskUpdateAPICount = 0, driveUploadAPICount = 0, taskSearchAPICount = 0;
-    // final String LevyLabProject = "LevyLab AoT (all items)";
 
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
-    //  private DriveServiceHelper mDriveServiceHelper;
-    // GoogleAccountCredential mCredential;
+
     int strongestSignalBeaconRSSI = 0;
     String strongestSignalBeaconUUID = "";
-
-
-    //    private RetrofitManager retrofitManager = RetrofitManager.getInstance();
-    //  String LevyLab_project_gid = "";
     String LevyLab_workspace_gid = "";
-
-
-    /*private Sheets mService = null;
-    private Exception mLastError = null;
-    private Context mContext;
-*/
-
-
-    //  long timestampBluetoothSheet = 0;
     String accountName = "";
     String updatedRangeOfDataWrittenInQRSheet = ""; // This is the range in which data has been written in spreadsheet.. this will be used for rewritting in
     NotificationManager notificationManager;
+
+    Integer notification_id=324;
 
     public SaveAsanaDataWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -132,35 +118,6 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
     }
 
 
-    /*@Override
-    public void onCreate() {
-        super.onCreate();
-        accountName = SharedPreferencesUtil.getAccountName(getApplicationContext());
-        Utility.ReportNonFatalError("accountName", accountName);
-        //  initDriveServiceHelper();
-        //  initGoogleSheetServiceHelper();
-
-    }*/
-
-
-    /*
-        void initDriveServiceHelper() {
-            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
-            if (account != null) {
-                mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name)));
-            }
-            mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES))
-                    .setBackOff(new ExponentialBackOff());
-        }
-        void initGoogleSheetServiceHelper() {
-            String accountName = SharedPreferencesUtil.getAccountName(this);
-            Utility.ReportNonFatalError("accountName", accountName);
-            if (accountName != null) {
-                mCredential.setSelectedAccountName(accountName);
-            }
-
-        }
-    */
     @NonNull
     @Override
     public Result doWork() {
@@ -168,28 +125,11 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
         Data inputData = getInputData();
         String[] timestamps = inputData.getStringArray("timestamps");
 
-
-        // Gson gson = new Gson();
-
-
-        // Type listType = new TypeToken<List<TaskData>>() {}.getType();
-        //  AsanaTaskDataList = gson.fromJson(jsonString, listType);
-
-        //  BluetoothBeaconDataList = BeaconScannerService.getBeaconList();
-
-
         setForegroundAsync(createForegroundInfo());
 
         new fetchQRRecordsAndBeaconsFromLocalDBAsync(timestamps).execute();
 
 
-       /* new writeQRRecordsInSpreadsheet().execute();
-        new saveQRRecordsInLocalDBAsync().execute();
-
-        uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
-*/
-
-        //  return null;
         return null;
     }
 
@@ -204,53 +144,27 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
             notificationManager.createNotificationChannel(channel);
         }
 
-        NotificationCompat.Builder notificationbuilder = new NotificationCompat.Builder(getApplicationContext(), "default")
-                //.setContentTitle(getApplicationContext().getString(R.string.app_name))
-                //.setContentText(getApplicationContext().getString(R.string.app_name))
-                .setSmallIcon(R.mipmap.ic_launcher);
-
-        Notification notification = notificationbuilder
-                // .setOngoing(true)
-                //.setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(getApplicationContext().getString(R.string.app_name))
-                .setTicker(getApplicationContext().getString(R.string.app_name))
-                .setContentText("Processing data in background")
-                .setPriority(PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .build();
-
-
-        notificationManager.notify(Utility.getCurrentTimeStamp(), notification);
-
+        Notification notification =  sendNotification("Processing data in background !!");
 
         return new ForegroundInfo(1, notification);
     }
-   /* @Override
-    protected void onHandleWork(Intent intent) {
-
-        AsanaTaskDataList = (List<TaskData>) intent.getSerializableExtra(QR_DATA_LIST);
-        BluetoothBeaconDataList = BeaconScannerService.getBeaconList();
-        // timestampBluetoothSheet = Long.parseLong(AsanaTaskDataList.get(AsanaTaskDataList.size() - 1).getTimestamp());
-        //  updateTimestampInQRAndBeaconList();
-
-        new writeQRRecordsInSpreadsheet().execute();
-        new saveQRRecordsInLocalDBAsync().execute();
-
-        uploadFileOnGoogleDriveFolder(AsanaTaskDataList.get(driveUploadAPICount).getBitmapFilePath(), driveUploadAPICount);
-
-    }*/
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(NotificationManager notificationManager) {
-        String channelId = getApplicationContext().getString(R.string.default_notification_channel_id_2);
-        String channelName = "My_Foreground_Service_Worker";
-        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
-        channel.setImportance(NotificationManager.IMPORTANCE_NONE);
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-        notificationManager.createNotificationChannel(channel);
-        return channelId;
-    }
+
+    Notification sendNotification(String content){
+        Notification notification = new NotificationCompat.Builder(getApplicationContext(), "default")
+                // .setOngoing(true)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getApplicationContext().getString(R.string.app_name))
+                .setTicker(getApplicationContext().getString(R.string.app_name))
+                .setContentText(content)
+                .setPriority(PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build();
+        notificationManager.notify(notification_id, notification);
+
+        return notification;
+  }
 
     void uploadFileOnGoogleDriveFolder(String filePath, int index) {
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
@@ -309,56 +223,12 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
         }
     }
 
-    private void getGoogleDriveFileThumbnails() {
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
-        DriveServiceHelper mDriveServiceHelper = null;
-        if (account != null) {
-            mDriveServiceHelper = new DriveServiceHelper(getGoogleDriveService(getApplicationContext(), account, getApplicationContext().getString(R.string.app_name)));
-        }
-        if (mDriveServiceHelper == null) {
-            //Log error here
-            return;
-        }
 
-        String parentFolderid = SharedPreferencesUtil.getDefaultDriveFolderId(getApplicationContext());
-        mDriveServiceHelper.queryFiles(parentFolderid)
-                .addOnSuccessListener(new OnSuccessListener<List<GoogleDriveFileHolder>>() {
-                    @Override
-                    public void onSuccess(List<GoogleDriveFileHolder> googleDriveFileHolders) {
-                        Gson gson = new Gson();
-                        String userJson = gson.toJson(googleDriveFileHolders);
-                        Type userListType = new TypeToken<ArrayList<GoogleDriveFileHolder>>() {
-                        }.getType();
-                        ArrayList<GoogleDriveFileHolder> list = gson.fromJson(userJson, userListType);
-                        for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                            for (int j = 0; j < list.size(); j++) {
-                                if (AsanaTaskDataList.get(i).getGdriveFileId().equals(list.get(j).getId())) {
-                                    AsanaTaskDataList.get(i).setGdriveFileThumbnail(list.get(j).getThumbnailLink() + "," + AsanaTaskDataList.get(i).getGdriveFileParentId() + "," + AsanaTaskDataList.get(i).getGdriveFileId());
-                                    break;
-                                }
-                            }
-                        }
-
-                        new writeQRRecordsInSpreadsheet().execute();
-
-
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(this.toString(), "Error_Log_viewFileFolder:" + e.getMessage());
-                        Utility.ReportNonFatalError("viewFileFolder", e.getMessage());
-
-                    }
-                });
-    }
 
     private void callApiToWriteDataOnAsana() {
         //    String user_gid = SharedPreferencesUtil.getAsanaUserId(this);
         //   String workspace_gid = SharedPreferencesUtil.getAsanaWorkspaceId(this);
         LevyLab_workspace_gid = SharedPreferencesUtil.getLevyLabWorkspaceId(getApplicationContext());
-        // LevyLab_project_gid = SharedPreferencesUtil.getLevyLabProjectId(this);
         Utility.ReportNonFatalError("AsanaTaskDataList", AsanaTaskDataList.toString());
         Log.e("AsanaTaskDataList", AsanaTaskDataList.toString());
         if (LevyLab_workspace_gid.equals("")) {
@@ -764,7 +634,9 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
             Utility.ReportNonFatalError("Exception-" + apiType, e.getMessage());
             addErrorDetail(attachmentUploadAPICount, apiType + " :  " + e.getMessage());
 
-            notificationManager.cancelAll();
+          //  notificationManager.cancelAll();
+
+            sendNotification("Error in processing data !!");
         }
     }
 
@@ -805,32 +677,7 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
         }
     }
 
-    void updateTask() {
-        //if AsanaTaskDataList has an Anchor. Update NearAnchor URL to normal task containing no Anchor tag
 
-        JsonObject input;
-        if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor()) {
-            input = Utility.getJSONForUpdatingAnchorTask(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
-        } else {
-            String nearAnchorURL = Utility.getNearAnchorURL(AsanaTaskDataList);
-            input = Utility.getJSONForUpdatingNormalTask(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
-        }
-
-
-        hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
-    }
-
-    void updateTask_v1() {
-        JsonObject input;
-        if (AsanaTaskDataList.get(taskUpdateAPICount).isAnchor() && AsanaTaskDataList.get(taskUpdateAPICount).getTaskId().equals(Utility.getLastScannedAnchorTaskID(AsanaTaskDataList))) {
-            // find logic here- https://app.asana.com/0/1190079917488218/1197159241924214
-            String nearAnchorURL = Utility.getNearAnchorURL_v1(AsanaTaskDataList.get(taskUpdateAPICount));
-            input = Utility.getJSONForUpdatingAnchorTask_v1(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI, AsanaTaskDataList.get(taskUpdateAPICount).getNearAnchor_gid(), nearAnchorURL);
-        } else {
-            input = Utility.getJSONForUpdatingNormalTask_v1(AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_gid(), AsanaTaskDataList.get(taskUpdateAPICount).getBeacon1_RSSI_gid(), strongestSignalBeaconUUID, strongestSignalBeaconRSSI);
-        }
-        hitAPIUpdateTask(AsanaTaskDataList.get(taskUpdateAPICount).getTaskId(), input);
-    }
 
     void updateTask_v2() {
         JsonObject input;
@@ -894,6 +741,8 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
         }
         return obj3;
     }
+
+
 
     public MultipartBody.Part getMultipartImage(String filePath) {
         String mimeType = Utility.getMimeTypeFile(filePath);
@@ -1072,141 +921,7 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
 
     }
 
-    private class UpdateStatusInQRSheet extends AsyncTask<Void, Void, Integer> {
-        private Sheets mService = null;
-        private Exception mLastError = null;
 
-
-        UpdateStatusInQRSheet() {
-            GoogleAccountCredential mCredential = GoogleAccountCredential.usingOAuth2(getApplicationContext(), Arrays.asList(SCOPES)).setBackOff(new ExponentialBackOff());
-            if (accountName != null) {
-                mCredential.setSelectedAccountName(accountName);
-            }
-
-            HttpTransport transport = AndroidHttp.newCompatibleTransport();
-            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-            mService = new Sheets.Builder(
-                    transport, jsonFactory, mCredential)
-                    .setApplicationName(getApplicationContext().getResources().getString(R.string.app_name))
-
-                    .build();
-
-        }
-
-        @Override
-        protected Integer doInBackground(Void... params) {
-
-
-            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                try {
-                    String timestamp = AsanaTaskDataList.get(i).getTimestamp();
-                    String position = findCellPositionInSheet(timestamp);
-                    String status = AsanaTaskDataList.get(i).getStatus();
-                    updateStatusQRSheet(position, status);
-                } catch (Exception e) {
-                    mLastError = e;
-                    Utility.ReportNonFatalError("WriteToSheetTask", e.getMessage());
-                    addErrorDetail(0, "Error in updating status to spreadsheet!");
-                    if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
-                    } else if (mLastError instanceof UserRecoverableAuthIOException) {
-                    } else {
-                        Log.e(this.toString(), "Error_Log_WriteToSheetTask:" + mLastError.getMessage());
-                    }
-                    Log.e(this.toString(), e + "");
-                    return 0;
-                }
-            }
-
-            return 1;
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onPostExecute(Integer result) {
-
-        }
-
-
-        @Override
-        protected void onCancelled() {
-            if (mLastError != null) {
-                Utility.ReportNonFatalError("onCancelled", mLastError.getMessage());
-            }
-        }
-
-        private void updateStatusQRSheet(String cellPosition, String status) throws IOException {
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
-            String range = com.synapse.Constants.SheetOne + "!" + cellPosition;
-            String valueInputOption = "USER_ENTERED";
-            // ValueRange requestBody = new ValueRange();
-            List<List<Object>> dataList = new ArrayList<>();
-            List<Object> list = new ArrayList<>();
-            list.add(status);
-            dataList.add(list);
-
-            //  requestBody.setValues(dataList);
-
-          /*  Sheets.Spreadsheets.Values.Append request =
-                    mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
-            request.setValueInputOption(valueInputOption);
-             AppendValuesResponse response = request.execute();
-            */
-
-            ValueRange valueRange = new ValueRange();
-            valueRange.setValues(dataList);
-            UpdateValuesResponse response = mService.spreadsheets().values().update(spreadsheetId, range, valueRange)
-                    .setValueInputOption(valueInputOption)
-                    .execute();
-
-
-            Utility.ReportNonFatalError("UpdateValuesResponse", response.toString());
-            Log.e(this.toString(), response.toString());
-
-        }
-
-        private String findCellPositionInSheet(String searchText) throws IOException {
-
-            String spreadsheetId = SharedPreferencesUtil.getDefaultSheetId(getApplicationContext());
-            String range = SpreadSheetListActivity.SheetOne;// name of sheet!range
-            Sheets.Spreadsheets.Values.Get request =
-                    mService.spreadsheets().values().get(spreadsheetId, range);
-
-            ValueRange response = request.execute();
-            Log.e(this.toString(), response.toPrettyString());
-
-
-            List<List<Object>> values = response.getValues();
-            List<List<Object>> columns = new ArrayList<>();
-            if (values != null) columns.addAll(values);
-
-            int columnNum = 4, rowNum = 0;
-            Boolean found = false;
-            for (int i = 0; i < columns.size(); i++) {
-                if (found) break;
-                List<Object> row = columns.get(i);
-                for (int j = 0; j < row.size(); j++) {
-                    /*if (i == 0) {
-                        columnNum = row.indexOf("Status"); // get 'Status' column number
-                        break;
-                    }*/
-                    if (row.contains(searchText)) {
-                        rowNum = i;
-                        found = true;
-                        break;
-                    }
-                }
-
-            }
-
-
-            return Utility.getCellByIndex(columnNum, rowNum);
-
-        }
-
-    }
 
     private class UpdateStatusInQRSheetNew extends AsyncTask<Void, Void, Integer> {
         private Sheets mService = null;
@@ -1319,7 +1034,10 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
 
         @Override
         protected void onPostExecute(Void result) {
-            notificationManager.cancelAll();
+
+         //   notificationManager.cancelAll();
+            sendNotification("Completed processing data !!");
+
         }
 
         void updateQRStatusInLocalDB() {
@@ -1343,71 +1061,9 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
 
     }
 
-    private class saveQRRecordsInLocalDBAsync extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            saveQRRecordsInLocalDB();
-            saveBeaconRecordsInLocalDB();
-            List<TaskData> QRRecords = getAllQRRecordsFromLocalStorage();
-            List<Beacon> beacons = getAllBeaconsRecordsFromLocalStorage();
-            return null;
-        }
 
 
-        @Override
-        protected void onPostExecute(Void result) {
-        }
-
-        void saveQRRecordsInLocalDB() {
-            for (int i = 0; i < AsanaTaskDataList.size(); i++) {
-                TaskData task = AsanaTaskDataList.get(i);
-                try {
-                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
-                            .taskDao()
-                            .insert(task);
-
-                    Log.e("Debugging...Local DB Written:", " successfully");
-                } catch (Exception e) {
-                    Log.e("Debugging...Local DB Written:", " failed: " + e.getMessage());
-                    addErrorDetail(i, "Error in inserting QR record in local db");
-                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
-                }
-            }
-        }
-
-        void saveBeaconRecordsInLocalDB() {
-            if (BluetoothBeaconDataList == null || BluetoothBeaconDataList.isEmpty()) return;
-            for (List<Object> beaconData : BluetoothBeaconDataList) {
-                try {
-                    Beacon beacon = new Beacon(String.valueOf(beaconData.get(0)),
-                            AsanaTaskDataList.get(0).getTimestampBeacon(), // so that by using timestamp of a qr , corresponding beacons can be retrieved
-                            String.valueOf(beaconData.get(1)),
-                            String.valueOf(beaconData.get(3)),
-                            String.valueOf(beaconData.get(4)),
-                            String.valueOf(beaconData.get(5)),
-                            String.valueOf(beaconData.get(6)),
-                            String.valueOf(beaconData.get(7)));
-
-                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
-                            .beaconDao()
-                            .insert(beacon);
-                } catch (Exception e) {
-                    Utility.ReportNonFatalError("saveQRRecordsInLocalDB", e.getMessage());
-                }
-            }
-
-
-        }
-
-
-    }
-
-    List<TaskData> getAllQRRecordsFromLocalStorage() {
+/*    List<TaskData> getAllQRRecordsFromLocalStorage() {
         return DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
                 .taskDao()
                 .getAll();
@@ -1421,7 +1077,7 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
                 .beaconDao()
                 .getAll();
 
-    }
+    }*/
 
     void addErrorDetail(int TaskPos, String errorDetail) {
         String prevErrors = AsanaTaskDataList.get(TaskPos).getErrors();
@@ -1430,34 +1086,6 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
         } else {
             AsanaTaskDataList.get(TaskPos).setErrors(prevErrors + "\n" + errorDetail);
         }
-
-    }
-
-    public void updateTimestampInQRAndBeaconList() {
-        for (TaskData task_data : AsanaTaskDataList) {
-            ArrayList<String> dateAndTimestampList = Utility.getCurrentDateWithTimestamp();
-            String currentDate = "", currentTimestamp = "";
-            if (dateAndTimestampList.size() > 0) currentDate = dateAndTimestampList.get(0);
-            if (dateAndTimestampList.size() > 1) currentTimestamp = dateAndTimestampList.get(1);
-
-            task_data.setDateTime(currentDate);
-            task_data.setTimestamp(currentTimestamp);
-
-        }
-
-        for (List<Object> beaconData : BluetoothBeaconDataList) {
-            ArrayList<String> dateAndTimestampList = Utility.getCurrentDateWithTimestamp();
-            String currentDate = "", currentTimestamp = "";
-            if (dateAndTimestampList.size() > 0) currentDate = dateAndTimestampList.get(0);
-            if (dateAndTimestampList.size() > 1) currentTimestamp = dateAndTimestampList.get(1);
-
-            beaconData.set(0, currentDate);
-            beaconData.set(2, currentTimestamp);
-
-        }
-
-        Log.e("Debugging...", "Updated datetime and timestamp in both qr/beacon list");
-
 
     }
 
@@ -1517,12 +1145,12 @@ public class SaveAsanaDataWorker extends Worker implements RequestListener {
 
         }
 
-        List<Beacon> _findBeaconRecordsByTimestamp(String timestamp) {
+        List<Beacon> _findBeaconRecordsByTimestamp(String BeaconTimestamp) {
             List<Beacon> beacons = DatabaseClient
                     .getInstance(getApplicationContext())
                     .getAppDatabase()
                     .beaconDao()
-                    .findByTimestamp(timestamp);
+                    .findByTimestampNew(BeaconTimestamp);
             return beacons;
         }
 
