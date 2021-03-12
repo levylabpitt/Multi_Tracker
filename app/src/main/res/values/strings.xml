@@ -298,4 +298,21 @@
     <string name="asana_6">"5. When user is authorized on Asana, a new screen having user name and email id will be shown."</string>
 
 
+
+
+
+    <string name="tag_anchor_1">This button opens the QR scanner screen.</string>
+
+    <string name="tag_anchor_2">"1. The top left corner of this screen shows the count of scanned QR code.
+        \n2. The 'Pause' button will pause the QR Scanner.
+        \n3. The 'Resume' button will resume the QR Scanner.
+        \n4. The 'Finish' button will stop QR scanner and system will starts processing QR data in below steps:
+
+        \n(a). System will search for the tasks related to each QR code scanned in the same workspace logged in.
+        \n(b). A new project will be created in  logged-in workspace and default team selected in asana home screen.
+         Project name will be in form of YYYYMMDDn, where YYYYMMDD is the date, e.g., 20210302, and "n" is appended just in case this function is run more than once in a day.
+        \n(c). All tasks will be added to this newly created project.
+
+    </string>
+
 </resources>

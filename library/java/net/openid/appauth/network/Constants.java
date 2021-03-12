@@ -5,7 +5,7 @@ package net.openid.appauth.network;
  */
 
 public class Constants {
-
+    public static final String PREFERENCE_NAME="com.pqiorg.multitracker_preferences";
     public static String BASE_URL_LIVE = "https://app.asana.com";
 
     public static enum API_TYPE {
