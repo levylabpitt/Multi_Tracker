@@ -66,14 +66,21 @@
         android:usesCleartextTraffic="true"
         >
         <activity
-            android:name=".help.TabbedActivity"
+            android:name=".help.HelpActivity"
             android:label="@string/title_activity_tabbed"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".feasybeacon.TabbedActivityBeacon"
             android:label="@string/title_activity_tabbed"
-            android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name="com.synapse.HomeActivity">
+
+
+            android:theme="@style/AppTheme.NoActionBar"
+            />
+
+        <!--   android:theme="@style/AppTheme.NoActionBar"-->
+        <activity android:name="com.synapse.HomeActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -366,7 +373,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".qr_scanner.ContinuousCaptureActivityNew"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBarNew" />
 
         <activity
             android:name=".tag_anchor.TagAnchorsActivity"

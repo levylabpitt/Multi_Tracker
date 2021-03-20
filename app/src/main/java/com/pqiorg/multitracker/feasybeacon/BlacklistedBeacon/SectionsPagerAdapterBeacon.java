@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 public class SectionsPagerAdapterBeacon extends FragmentPagerAdapter {
 
 
-    private static final String[] TAB_TITLES ={"Beacons", "BlackListed Beacons"};
+    private static final String[] TAB_TITLES ={"Beacons", "BlackListed"};
     private final Context mContext;
 
     public SectionsPagerAdapterBeacon(Context context, FragmentManager fm) {

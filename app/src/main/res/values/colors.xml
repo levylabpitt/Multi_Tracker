@@ -2,7 +2,13 @@
 <resources>
     <color name="colorPrimary">#6fc5e1</color>
     <color name="colorPrimaryDark">#53D3D6</color>
+   <!-- <color name="colorAccent">#6fc5e1</color>-->
+
     <color name="colorAccent">#6fc5e1</color>
+
+
+
+
 
     <color name="cd_grey">#CDCDCD</color>
     <color name="transparent">@android:color/transparent</color>
@@ -32,6 +38,9 @@
     <color name="white">#ffffff</color>
     <color name="white_alpha">#55ffffff</color>
     <color name="control_background">#cc4285f4</color>
+
+    <color name="txt_color">#8426FF</color>
+    <color name="txt_color_grey">#363636</color>
 
 
     <color name="colorTxtGrey">#666666</color>

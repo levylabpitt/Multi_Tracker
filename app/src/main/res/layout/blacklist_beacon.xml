@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/corner_round"
+        android:orientation="vertical"
+        android:padding="30dp">
+
+        <TextView
+            android:id="@+id/device_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/dmsans_bold"
+            android:text="Device Name"
+
+            android:textColor="@color/txt_color"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+
+            android:fontFamily="@font/dmsans_regular"
+            android:gravity="center"
+            android:text="Do you want to add
+this beacon to Blacklist?"
+
+            android:textColor="#363636"
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+
+            <Button
+                android:id="@+id/cancel"
+                style="@style/mediumTextViewStyle_white"
+                android:layout_width="100dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:layout_marginRight="10dp"
+
+                android:background="@drawable/btn_bg_round"
+                android:backgroundTint="#E0E5F2"
+                android:fontFamily="@font/dmsans_bold"
+
+                android:text="No"
+
+                android:textAllCaps="false"
+                android:textColor="#5B5B5B"
+                android:textSize="16sp"
+
+
+                />
+
+            <Button
+                android:id="@+id/submit"
+                style="@style/mediumTextViewStyle_white"
+                android:layout_width="100dp"
+                android:layout_height="40dp"
+
+                android:layout_gravity="center"
+                android:layout_marginLeft="10dp"
+                android:background="@drawable/btn_bg_round"
+                android:backgroundTint="#2DCC58"
+                android:fontFamily="@font/dmsans_bold"
+
+                android:text="Yes"
+
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+
+
+                />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

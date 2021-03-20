@@ -11,6 +11,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.pqiorg.multitracker.R;
 import com.pqiorg.multitracker.feasybeacon.BlacklistedBeacon.BlacklistedBeaconFragment;
 import com.pqiorg.multitracker.feasybeacon.BlacklistedBeacon.SectionsPagerAdapterBeacon;
+import com.synapse.Utility;
 import com.synapse.listener.BeaconBlacklistedListener;
 
 public class TabbedActivityBeacon extends AppCompatActivity implements BeaconBlacklistedListener {
@@ -20,7 +21,7 @@ public class TabbedActivityBeacon extends AppCompatActivity implements BeaconBla
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tabbed_beacon);
-
+        Utility.transparentStatusBar(this);
         SectionsPagerAdapterBeacon sectionsPagerAdapter = new SectionsPagerAdapterBeacon(this, getSupportFragmentManager());
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);

@@ -7,7 +7,7 @@
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
 
-    android:background="@color/colorAccent"
+    android:background="@drawable/gradient_img"
     android:layout_height="match_parent">
 <!--   android:background="@drawable/bg"-->
     <LinearLayout
@@ -23,6 +23,8 @@
             android:layout_weight="1"
 android:textColor="@color/white"
             android:text="Select"
+            android:fontFamily="@font/dmsans_bold"
+            android:textSize="19sp"
 
             />
         <ImageView
@@ -59,7 +61,7 @@ android:backgroundTint="@android:color/white"
         android:id="@+id/filter_selector_recyclerview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_margin="10dp"
         android:layout_below="@+id/divider5"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -76,6 +78,8 @@ android:backgroundTint="@android:color/white"
         android:textColor="@color/white"
         android:layout_marginTop="20dp"
         android:text="No records found !!"
+
+        android:fontFamily="@font/dmsans_bold"
         android:textSize="16sp" />
 
 </LinearLayout>

@@ -1,0 +1,212 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:orientation="vertical"
+    card_view:cardCornerRadius="10dp"
+    card_view:cardElevation="5sp"
+    card_view:cardUseCompatPadding="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+
+        <LinearLayout
+            android:id="@+id/layout_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/beacon_pic"
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/ibeacon" />
+
+                <TextView
+                    android:id="@+id/beacon_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="@font/dmsans_regular"
+                    android:text="iBeacon" />
+
+                <!--<LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/BeaconInfo_TV"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/dmsans_regular"
+                        android:text="RSSI:: " />
+
+
+                    <TextView
+                        android:id="@+id/tv_rssi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/dmsans_medium"
+                        android:gravity="center_horizontal"
+                        android:text="unknow"
+                        android:textColor="@color/beacon_rssi" />
+                </LinearLayout>-->
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="1"
+
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_name"
+                        style="@style/Beacon_Addr_Mac_TV"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/dmsans_bold"
+                        android:gravity="left"
+                        android:text="name" />
+
+                    <TextView
+                        android:id="@+id/tv_addr"
+                        style="@style/Beacon_Addr_Mac_TV"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:fontFamily="@font/dmsans_bold"
+                        android:text="12:23:34:45:56" />
+                </LinearLayout>
+
+
+                <com.pqiorg.multitracker.feasybeacon.BeaconView.IBeaconItem
+                    android:id="@+id/iBeacon_item_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone" />
+
+                <com.pqiorg.multitracker.feasybeacon.BeaconView.EddystoneBeaconItem
+                    android:id="@+id/gBeacon_item_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone" />
+
+                <com.pqiorg.multitracker.feasybeacon.BeaconView.AltBeaconItem
+                    android:id="@+id/altBeacon_item_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone" />
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/BeaconInfo_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/dmsans_regular"
+                android:text="RSSI: " />
+
+            <TextView
+                android:id="@+id/tv_rssi"
+                style="@style/BeaconInfo_TV"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:fontFamily="@font/dmsans_bold"
+                android:text="unknow"
+                android:textColor="@color/txt_color" />
+
+
+            <TextView
+                android:id="@+id/tv_ibeacon_major_title"
+                style="@style/BeaconInfo_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/dmsans_regular"
+
+                android:text="Major: " />
+
+            <TextView
+                android:id="@+id/tv_ibeacon_major_"
+                style="@style/BeaconInfo_TV"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:fontFamily="@font/dmsans_bold"
+                android:text="unknow"
+                android:textColor="@color/txt_color" />
+
+            <TextView
+                android:id="@+id/tv_ibeacon_minor_title"
+                style="@style/BeaconInfo_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/dmsans_regular"
+                android:text="Minor: " />
+
+            <TextView
+                android:id="@+id/tv_ibeacon_minor_"
+                style="@style/BeaconInfo_TV"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:fontFamily="@font/dmsans_bold"
+                android:text="unknow"
+                android:textColor="@color/txt_color" />
+        </LinearLayout>
+
+
+        <ProgressBar
+            android:id="@+id/pb_rssi"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="15dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="5dp"
+            android:progressDrawable="@drawable/progressbar"
+            android:visibility="gone" />
+    </LinearLayout>
+
+
+</androidx.cardview.widget.CardView>

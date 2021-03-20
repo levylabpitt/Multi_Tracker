@@ -1,12 +1,14 @@
 package com.pqiorg.multitracker.feasybeacon.BlacklistedBeacon;
 
-import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -14,8 +16,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -23,25 +27,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.feasycom.bean.BluetoothDeviceWrapper;
 import com.feasycom.controler.FscBeaconApi;
 import com.feasycom.controler.FscBeaconApiImp;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.pqiorg.multitracker.R;
-import com.pqiorg.multitracker.feasybeacon.Activity.MainActivityBeacon2;
-import com.pqiorg.multitracker.feasybeacon.Activity.SetActivity;
 import com.pqiorg.multitracker.feasybeacon.Adapter.SearchDeviceListAdapter2;
 import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
+import com.synapse.adapter.SpinnerBeaconListAdapter;
 import com.synapse.listener.BeaconBlacklistedListener;
+import com.synapse.listener.SpinnerBeaconSelectedListener;
 import com.synapse.model.BlackListedBeacon;
+import com.synapse.recycler_decorator.MyDividerItemDecoration;
 import com.synapse.service.BeaconScannerService;
 
 import java.util.ArrayList;
@@ -53,19 +61,16 @@ import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import butterknife.OnItemClick;
 
 
-public class FragmentBeacon extends Fragment {
+public class FragmentBeacon extends Fragment implements SpinnerBeaconSelectedListener {
 
     @BindView(R.id.imageViewScanning)
     ImageView imageViewScanning;
     @BindView(R.id.devicesList)
     ListView devicesList;
 
-   /* @BindView(R.id.refreshableView)
-    RefreshableView refreshableView;*/
 
 
     @BindView(R.id.pullToRefresh)
@@ -79,6 +84,10 @@ public class FragmentBeacon extends Fragment {
     ImageView AboutButton;
     @BindView(R.id.spinner_beacons)
     Spinner spinner_beacons;
+
+
+    @BindView(R.id.filter_beacons)
+    TextView filter_beacons;
 
 
     // @BindView(R.id.Sensor_Button)
@@ -95,8 +104,8 @@ public class FragmentBeacon extends Fragment {
     private Handler handler = new Handler();
 
 
-    ArrayList<BluetoothDeviceWrapper> mDevices = new ArrayList<>();
-    ArrayList<String> devices = new ArrayList<>();
+    ArrayList<BluetoothDeviceWrapper> mDevicesList = new ArrayList<>();
+    ArrayList<String> spinnerDeviceList = new ArrayList<>();
     ArrayAdapter<String> aa;
     String allowedBeacon = "BlueCharm";
     //  String allowedBeacon="FSC_BP104";
@@ -104,7 +113,7 @@ public class FragmentBeacon extends Fragment {
 
     private FragmentActivity fragmentActivity;
     private BeaconBlacklistedListener beaconBlacklistedListener;
-
+    BottomSheetDialog dialog ;
     public static Fragment newInstance() {
         FragmentBeacon frag = new FragmentBeacon();
         return frag;
@@ -114,7 +123,9 @@ public class FragmentBeacon extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.activity_main_feasybeacon, container, false);
+    //    View view = inflater.inflate(R.layout.activity_main_feasybeacon, container, false);
+        View view = inflater.inflate(R.layout.fragment_beacon, container, false);
+
         ButterKnife.bind(this, view);
         activity = getActivity();
         LocalBroadcastManager.getInstance(activity).registerReceiver(mMessageReceiver,
@@ -155,7 +166,7 @@ public class FragmentBeacon extends Fragment {
 
     void setBeaconSpinner() {
 
-        aa = new ArrayAdapter<String>(activity, R.layout.spinner_item, devices);
+        aa = new ArrayAdapter<String>(activity, R.layout.spinner_item, spinnerDeviceList);
         aa.setDropDownViewResource(android.R.layout.simple_list_item_1);
         spinner_beacons.setAdapter(aa);
 
@@ -179,6 +190,17 @@ public class FragmentBeacon extends Fragment {
                 return false;
             }
         });
+
+        filter_beacons.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showBeaconsDialog();
+            }
+        });
+
+
+
+
     }
 
 
@@ -236,7 +258,8 @@ public class FragmentBeacon extends Fragment {
     @OnItemClick(R.id.devicesList)
     public void deviceItemClick(int position) {
         BluetoothDeviceWrapper deviceWrapper = (BluetoothDeviceWrapper) devicesAdapter.getItem(position);
-        showAppCompatDialog(deviceWrapper);
+//        showAppCompatDialog(deviceWrapper);
+        ShowDialog(deviceWrapper);
     }
 
 
@@ -280,7 +303,68 @@ public class FragmentBeacon extends Fragment {
                 .show();
     }
 
+    private void ShowDialog(BluetoothDeviceWrapper deviceWrapper) {
+        String name = deviceWrapper.getName() + " (" + deviceWrapper.getAddress() + ")";
 
+        Dialog dialog =new Dialog(getActivity(), R.style.Theme_Dialog);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+
+        dialog.setContentView(R.layout.blacklist_beacon);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        TextView title = dialog.findViewById(R.id.device_name);
+        TextView message = dialog.findViewById(R.id.message);
+
+        message.setText("Do you want to add this beacon to Blacklist?");
+        title.setText(name);
+        Button yesBtn = dialog.findViewById(R.id.submit);
+        Button noBtn = dialog.findViewById(R.id.cancel) ;
+
+                yesBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        String uuid = "", type = "", id = "";
+                        if (deviceWrapper.getiBeacon() != null) {
+                            type = "iBeacon";
+                            uuid = deviceWrapper.getiBeacon().getUuid();
+                            id = deviceWrapper.getAddress();    // matching criteria
+                        } else if (deviceWrapper.getAltBeacon() != null) {
+                            type = "AltBeacon";
+                            uuid = deviceWrapper.getAltBeacon().getId();
+                            id = deviceWrapper.getAddress();  // matching criteria
+                        } else if (deviceWrapper.getgBeacon() != null) {
+                            type = "gBeacon";
+                            uuid = deviceWrapper.getgBeacon().getUrl();
+                            id = deviceWrapper.getAddress();  // matching criteria
+                        }
+
+
+                        String strBeacons = SharedPreferencesUtil.getBlacklistBeacon(activity);
+                        List<BlackListedBeacon> blackListedBeacons = Utility.convertJSONStringBeaconsList(strBeacons);
+                        blackListedBeacons.add(new BlackListedBeacon(deviceWrapper.getName(), deviceWrapper.getAddress(), uuid, type, id));
+                        String json_BlacklistedBeacons = Utility.convertBeaconListToJSONString(blackListedBeacons);
+                        SharedPreferencesUtil.setBlacklistBeacon(activity, json_BlacklistedBeacons);
+                        beaconBlacklistedListener.onItemBlacklisted();
+
+                        dialog.dismiss();
+                    }
+                });
+
+        noBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+
+        dialog.show();
+
+    }
     /**
      * bluetooth is not turned on
      */
@@ -312,8 +396,8 @@ public class FragmentBeacon extends Fragment {
         public void onReceive(Context context, Intent intent) {
 
 
-            mDevices = (ArrayList<BluetoothDeviceWrapper>) intent.getSerializableExtra("deviceList");
-            devicesAdapter.setDevices(mDevices);
+            mDevicesList = (ArrayList<BluetoothDeviceWrapper>) intent.getSerializableExtra("deviceList");
+            devicesAdapter.setDevices(mDevicesList);
             devicesAdapter.notifyDataSetChanged();
             if (getDevicesAdapter().getCount() == 0) imageViewScanning.setVisibility(View.VISIBLE);
             else imageViewScanning.setVisibility(View.GONE);
@@ -324,10 +408,12 @@ public class FragmentBeacon extends Fragment {
 
 
     void getDevicesForSpinner() {
-        if(devices==null) return;
-        devices.clear();
-        devices.add("--All Beacons--");
-        for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevices) {
+        if(spinnerDeviceList ==null) return;
+        spinnerDeviceList.clear();
+        spinnerDeviceList.add("All Beacons");
+        for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevicesList) {
+
+            Log.e("Debugging--","mDevicesList "+mDevicesList.size());
 
             try {
                 if (bluetoothDeviceWrapper == null) continue;
@@ -345,8 +431,8 @@ public class FragmentBeacon extends Fragment {
                         nameDevice = deviceName.substring(0, 10);
                     }
                 }
-                if (!devices.contains(nameDevice)) {
-                    devices.add(nameDevice);
+                if (!spinnerDeviceList.contains(nameDevice)) {
+                    spinnerDeviceList.add(nameDevice);
                 }
 
             } catch (Exception e) {
@@ -357,7 +443,9 @@ public class FragmentBeacon extends Fragment {
         }
 
         try {
-        refreshSpinnerAdapter();
+     //   showAllowedBeacons();
+
+            showAllowedBeaconsNew();
         } catch (Exception e) {
             // Log.e("Error--",String.valueOf(e.getMessage()));
         }
@@ -365,7 +453,7 @@ public class FragmentBeacon extends Fragment {
 
     void getFilterBeaconList(String beaconName) {
         ArrayList<BluetoothDeviceWrapper> mDevices_Filtered = new ArrayList<>();
-        for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevices) {
+        for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevicesList) {
             String deviceName = bluetoothDeviceWrapper.getName();
             String completeName = bluetoothDeviceWrapper.getCompleteLocalName();
             if (completeName != null && completeName.equals(beaconName)) {
@@ -380,21 +468,83 @@ public class FragmentBeacon extends Fragment {
 
     }
 
-    void refreshSpinnerAdapter() {
+    void showAllowedBeacons() {
         aa.notifyDataSetChanged();
-        if (devices.size() > 0) {
+        if (spinnerDeviceList.size() > 0) {
             if (!manuallyChangedSelection) {
-                if (devices.contains(allowedBeacon)) {
-                    int index = devices.indexOf(allowedBeacon);
+                if (spinnerDeviceList.contains(allowedBeacon)) {
+                    int index = spinnerDeviceList.indexOf(allowedBeacon);
                     spinner_beacons.setSelection(index);
                 }
             }
         }
-        if (devices.size() > 0) {
+        if (spinnerDeviceList.size() > 0) {
             spinner_beacons.setVisibility(View.VISIBLE);
         } else {
             spinner_beacons.setVisibility(View.INVISIBLE);
         }
 
+    }
+
+    void showAllowedBeaconsNew() {
+        //aa.notifyDataSetChanged();
+        if (spinnerDeviceList.size() > 0) {
+            if (!manuallyChangedSelection) {
+                if (spinnerDeviceList.contains(allowedBeacon)) {
+                    int index = spinnerDeviceList.indexOf(allowedBeacon);
+                    String allowedBeacon=spinnerDeviceList.get(index);
+                   // onBeaconSelected(allowedBeacon);
+                    filter_beacons.setText(allowedBeacon);
+                    getFilterBeaconList(allowedBeacon);
+                }
+            }
+        }
+
+
+    }
+
+    private void showBeaconsDialog() {
+        View view = getLayoutInflater().inflate(R.layout.list_bottom_sheet, null);
+        dialog = new BottomSheetDialog(getActivity(), R.style.SheetDialog);
+        TextView title = view.findViewById(R.id.title);
+        title.setText("Filter Beacon");
+
+        RecyclerView filter_selector_recyclerview = view.findViewById(R.id.filter_selector_recyclerview);
+
+        TextView textview_no_items = view.findViewById(R.id.txtvw_no_items);
+        ImageView close = view.findViewById(R.id.close);
+        ImageView refresh = view.findViewById(R.id.refresh);
+
+        if(spinnerDeviceList.size()<2){
+            textview_no_items.setVisibility(View.VISIBLE);
+        }else {
+            textview_no_items.setVisibility(View.GONE);
+        }
+
+        refresh.setVisibility(View.GONE);
+
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        filter_selector_recyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
+        filter_selector_recyclerview.setItemAnimator(new DefaultItemAnimator());
+        filter_selector_recyclerview.addItemDecoration(new MyDividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL, 0));
+        filter_selector_recyclerview.setAdapter(new SpinnerBeaconListAdapter(getActivity(), spinnerDeviceList, this));
+
+
+        dialog.setContentView(view);
+        if(dialog!=null && !dialog.isShowing())
+            dialog.show();
+    }
+
+    @Override
+    public void onBeaconSelected(String beaconName) {
+        manuallyChangedSelection=true;
+        filter_beacons.setText(beaconName);
+        getFilterBeaconList(beaconName);
+        dialog.dismiss();
     }
 }

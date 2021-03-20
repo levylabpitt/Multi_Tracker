@@ -1,0 +1,13 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle" >
+            <solid android:color="#0f0" />
+            <corners android:radius="300dp" />
+
+        </shape>
+    </item>
+
+    <item>
+        <bitmap android:src="@drawable/gradient_img" />
+    </item>
+</layer-list>

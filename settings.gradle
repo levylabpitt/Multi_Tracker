@@ -1,4 +1,4 @@
 include ':library'
-rootProject.name='Multi Tracker'
+rootProject.name='AoT'
 include ':app', ':zxing-android-embedded'
 include ':gdriverest'

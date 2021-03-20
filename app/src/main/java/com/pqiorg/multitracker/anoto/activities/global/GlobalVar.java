@@ -55,8 +55,7 @@ public class GlobalVar extends Application {
 
 
                 if (!Utility.isMyServiceRunning(BeaconScannerService.class, mInstance)) {
-
-                startForegroundService(new Intent(getApplicationContext(), BeaconScannerService.class));
+                 startForegroundService(new Intent(getApplicationContext(), BeaconScannerService.class));
                 }
 
 

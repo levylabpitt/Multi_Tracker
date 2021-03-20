@@ -63,7 +63,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.pqiorg.multitracker.R;
 import com.synapse.Utility;
-import com.synapse.adapter.GridSpacingItemDecoration;
+
 import com.synapse.adapter.TeamsAdapter;
 import com.synapse.listener.TeamsSelectedListener;
 import com.synapse.model.TaskData;

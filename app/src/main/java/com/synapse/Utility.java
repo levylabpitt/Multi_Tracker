@@ -1,5 +1,6 @@
 package com.synapse;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Dialog;
 import android.app.Notification;
@@ -25,12 +26,14 @@ import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -41,7 +44,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.JsonObject;
 import com.pqiorg.multitracker.R;
-import com.pqiorg.multitracker.help.TabbedActivity;
+import com.pqiorg.multitracker.help.HelpActivity;
 import com.room_db.Beacon;
 //import com.shekhargulati.urlcleaner.UrlCleaner;
 import com.synapse.model.BlackListedBeacon;
@@ -126,6 +129,12 @@ public class Utility {
     }
 
 
+    public static void transparentStatusBar( Activity activity){
+        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        activity.getWindow().setStatusBarColor(ContextCompat.getColor(activity, R.color.transparent));
+    }
+
     public static int getCurrentTimeStamp() {
         long t = System.currentTimeMillis() / 1000;
 
@@ -156,7 +165,7 @@ public class Utility {
 
             stackBuilder = TaskStackBuilder.create(context);
 
-            resultIntent = new Intent(context, TabbedActivity.class);
+            resultIntent = new Intent(context, HelpActivity.class);
             stackBuilder.addNextIntent(resultIntent);
             pIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -189,7 +198,7 @@ public class Utility {
             stackBuilder = TaskStackBuilder.create(context);
             /*  stackBuilder.addParentStack(Result.class);*/
             //Intent which is opened when notification is clicked
-            resultIntent = new Intent(context, TabbedActivity.class);
+            resultIntent = new Intent(context, HelpActivity.class);
             stackBuilder.addNextIntent(resultIntent);
             pIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
             notification.setContentIntent(pIntent);

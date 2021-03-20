@@ -2,39 +2,25 @@ package com.synapse;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.LocationManager;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.Patterns;
-import android.view.View;
-import android.view.WindowManager;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.IntentCompat;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.pqiorg.multitracker.drive.DriveActivity;
 import com.feasycom.controler.FscBeaconApi;
@@ -45,12 +31,15 @@ import com.pqiorg.multitracker.R;
 import com.pqiorg.multitracker.feasybeacon.TabbedActivityBeacon;
 import com.pqiorg.multitracker.qr_scanner.ContinuousCaptureActivityNew;
 import com.pqiorg.multitracker.spreadsheet.creater.SpreadSheetListActivity;
-import com.pqiorg.multitracker.help.TabbedActivity;
+import com.pqiorg.multitracker.help.HelpActivity;
 import com.pqiorg.multitracker.tag_anchor.TagAnchorsActivity;
+import com.synapse.adapter.DashboardAdapter;
+import com.synapse.adapter.GridSpacingItemDecoration;
+import com.synapse.listener.DashboardListener;
+import com.synapse.model.DashboardModel;
 import com.synapse.network.APIError;
 import com.synapse.network.Constants;
 import com.synapse.network.NetworkUtil;
-import com.synapse.network.NoConnectivityException;
 import com.synapse.network.RequestListener;
 import com.synapse.network.RetrofitManager;
 import com.synapse.service.BeaconScannerService;
@@ -59,19 +48,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
-import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
-import static androidx.core.app.NotificationCompat.PRIORITY_HIGH;
-import static androidx.core.app.NotificationCompat.PRIORITY_MIN;
 
-
-public class HomeActivity extends AppCompatActivity implements RequestListener {
+public class HomeActivity extends AppCompatActivity implements RequestListener, DashboardListener {
     final int PERMISSION_REQUEST_CODE = 100;
     static String[] Permissions = {
             Manifest.permission.CAMERA,
@@ -90,11 +75,14 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     private static final int ENABLE_BT_REQUEST_ID = 1;
 
 
-    @BindView(R.id.btn_beacon)
-    Button btn_beacon;
+   /* @BindView(R.id.btn_beacon)
+    Button btn_beacon;*/
 
-    @BindView(R.id.webview)
-    WebView webview;
+
+
+    @BindView(R.id.recycler_view)
+    RecyclerView recyclerView;
+
 
 
     private final RetrofitManager retrofitManager = RetrofitManager.getInstance();
@@ -104,13 +92,15 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+       // getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        Utility.transparentStatusBar(this);
+
         ButterKnife.bind(this);
 
         //    startNotification();
-
         //   sendNotification("dddd","Ddddddd");
-
+        setHomeScreenData();
         hitAPIRefreshToken();
         if (CheckingPermissionIsEnabledOrNot(this)) {
             CheckGpsStatus();
@@ -178,6 +168,85 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         }
     }
 
+
+    void setHomeScreenData() {
+
+       ArrayList<DashboardModel>  dashboardList=new  ArrayList();
+        dashboardList.add(new DashboardModel("", R.drawable.icon_aot));
+        dashboardList.add(new DashboardModel("", R.drawable.asana_logo));
+        dashboardList.add(new DashboardModel("QR Scanner", R.drawable.icon_qr_scanner));
+        dashboardList.add(new DashboardModel("Beacon Scanner", R.drawable.icon_beacon_scanner));
+        dashboardList.add(new DashboardModel("Manage Spreadsheet", R.drawable.icon_manage_spreadsheet));
+        dashboardList.add(new DashboardModel("Manage Drive", R.drawable.icon_manage_drive));
+        dashboardList.add(new DashboardModel("Asana", R.drawable.icon_asana));
+        dashboardList.add(new DashboardModel("Tag Anchor", R.drawable.icon_tag_anchor));
+        dashboardList.add(new DashboardModel("Help", R.drawable.icon_help));
+
+
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, 20, false));
+
+        DashboardAdapter dashboardAdapter = new DashboardAdapter(this, dashboardList, this);
+        recyclerView.setAdapter(dashboardAdapter);
+    }
+    @Override
+    public void onDashboardItemClick(int position, String title) {
+
+        switch(position) {
+            case 2: // QR Scanner
+
+
+                validationQRScanner();
+
+                break;
+            case 3: // Beacon Scanner
+                startActivity(new Intent(this, TabbedActivityBeacon.class));
+                break;
+            case 4: // Manage Spreadsheet
+                if (!NetworkUtil.isOnline(this)) {
+                    Utility.showToast(this, "No internet available!");
+                    return;
+                }
+
+                startActivity(new Intent(HomeActivity.this, SpreadSheetListActivity.class));
+
+                break;
+            case 5:// Manage Drive
+                if (!NetworkUtil.isOnline(this)) {
+                    Utility.showToast(this, "No internet available!");
+                    return;
+                }
+
+                startActivity(new Intent(HomeActivity.this, DriveActivity.class));
+
+                break;
+            case 6: //  Asana
+                if (!NetworkUtil.isOnline(this)) {
+                    Utility.showToast(this, "No internet available!");
+                    return;
+                }
+
+                startActivity(new Intent(HomeActivity.this, AsanaLoginActivity.class));
+
+
+                break;
+            case 7: // tag Anchor
+
+                validationTagAnchor();
+
+                break;
+            case 8: // Help
+
+                startActivity(new Intent(HomeActivity.this, HelpActivity.class));
+
+                break;
+
+            default:
+
+        }
+
+    }
     /* @Override
      public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
          switch (requestCode) {
@@ -207,7 +276,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         }
     }
 
-    @OnClick({
+   /* @OnClick({
             R.id.btn_adna,
             R.id.btn_beacon,
             R.id.btn_qr,
@@ -218,11 +287,11 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
 
         switch (view.getId()) {
             case R.id.btn_adna:
-               /* if (checkPermission()) {
+               *//* if (checkPermission()) {
                     startActivity(new Intent(this, MyScanActivity.class));
                 } else {
                     requestPermission();
-                }*/
+                }*//*
 
                 String msg = "aDNA sdk initialization crashing the app.";
                 Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_SHORT).show();
@@ -276,7 +345,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
 
                 break;
             case R.id.btn_help:
-                startActivity(new Intent(HomeActivity.this, TabbedActivity.class));
+                startActivity(new Intent(HomeActivity.this, HelpActivity.class));
 
                 break;
 
@@ -299,10 +368,14 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
 
         }
 
-    }
+    }*/
 
 
-    void checkDefaultSpreadSheetAvailability() {
+    void validationQRScanner() {
+        if (!NetworkUtil.isOnline(this)) {
+            Utility.showToast(this, "No internet available!");
+            return;
+        }
         if (SharedPreferencesUtil.getDefaultSheetId(this).equals("")) {
             showAppCompatDialog("Please choose default google spreadsheet first !!", 1);
         } else if (SharedPreferencesUtil.getDefaultDriveFolderId(this).equals("")) {
@@ -319,7 +392,22 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
         }
     }
 
+    void validationTagAnchor() {
+        if (!NetworkUtil.isOnline(this)) {
+            Utility.showToast(this, "No internet available!");
+            return;
+        }
+        if (SharedPreferencesUtil.getCurrentLoggedInUserWorkspaceId(this).equals("")) {
+            showAppCompatDialog("Please login to Asana !!", 3);
+        } else if (SharedPreferencesUtil.getTeamNameForCreatingNewProject(this).equals("")) {
+            showAppCompatDialog("Please choose default team !!", 3);
+        } else if (SharedPreferencesUtil.getLevyLabWorkspaceId(this).equals("")) {
+            showAppCompatDialog("Please choose organization for updating task on Asana !!", 3);
+        } else {
+            startActivity(new Intent(HomeActivity.this, TagAnchorsActivity.class));
+        }
 
+    }
     protected void showAppCompatDialog(String msg, int type) {
         android.app.AlertDialog alertDialog = new android.app.AlertDialog.Builder(this)
                 .setMessage(msg)
@@ -355,7 +443,7 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Utility.killAppFromBg();
+       // Utility.killAppFromBg();
     }
 
     public void CheckGpsStatus() {
@@ -439,4 +527,6 @@ public class HomeActivity extends AppCompatActivity implements RequestListener {
     @Override
     public void onApiException(APIError error, Response<ResponseBody> response, Constants.API_TYPE apiType) {
     }
+
+
 }

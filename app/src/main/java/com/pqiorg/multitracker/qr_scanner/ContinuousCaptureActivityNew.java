@@ -81,11 +81,8 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
 
     ProgressHUD mProgressHUD;
 
-    @BindView(R.id.ll_Save_QR_Image)
-    LinearLayout ll_Save_QR_Image;
 
-    @BindView(R.id.barcodePreview)
-    ImageView imageView;
+
 
     /************Beacon************/
     private FscBeaconApi fscBeaconApi;
@@ -139,10 +136,12 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activity = this;
-        /*getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);*/
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setContentView(R.layout.continuous_scan2);
+
+
+        setContentView(R.layout.continuous_qr_scanner);
+        Utility.transparentStatusBar(this);
         ButterKnife.bind(this);
 
         barcodeView = findViewById(R.id.barcode_scanner);
@@ -165,8 +164,7 @@ public class ContinuousCaptureActivityNew extends AppCompatActivity implements E
 
     }
 
-    @OnClick({R.id.btn_pause, R.id.btn_resume, R.id.btn_finish,
-            R.id.btn_save, R.id.imgvw_cancel, R.id.imgvw_save})
+    @OnClick({R.id.btn_pause, R.id.btn_resume, R.id.btn_finish})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_pause:

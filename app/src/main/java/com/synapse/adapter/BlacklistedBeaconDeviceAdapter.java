@@ -41,8 +41,9 @@ BeaconItemClickListener beaconItemClickListener;
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
 
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.blacklisted_beacon_info, parent, false);
+      //  View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.blacklisted_beacon_info, parent, false);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.remove_blacklisted_beacon, parent, false);
+
         return new MyViewHolder(itemView);
 
 
@@ -58,7 +59,7 @@ BeaconItemClickListener beaconItemClickListener;
         String BeaconUUID = deviceDetail.getBeaconUUID();
 
         viewHolder.tvName.setText(BeaconName);
-        viewHolder.tvAddr.setText(" ("+BeaconAddress+")");
+        viewHolder.tvAddr.setText("("+BeaconAddress+")");
 
 
 
@@ -69,7 +70,9 @@ BeaconItemClickListener beaconItemClickListener;
             viewHolder.tv_type.setText(BeaconType);
             viewHolder.tv_uuid.setText("ID: " + BeaconUUID);
         } else if (BeaconType.equalsIgnoreCase("gBeacon")) {
-            viewHolder.tv_type.setText("Eddystone");
+         //   viewHolder.tv_type.setText("Eddystone");
+            viewHolder.tv_type.setText(BeaconType);
+
             viewHolder.tv_uuid.setText("URL: " + BeaconUUID);
         }
     }
