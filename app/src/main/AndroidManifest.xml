@@ -14,7 +14,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+   <!-- <uses-permission android:name="android.permission.READ_CONTACTS" />-->
     <!--<uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS"/>
      <uses-permission android:name="com.android.browser.permission.WRITE_HISTORY_BOOKMARKS"/>-->
  <!--   <permission
@@ -36,7 +36,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+<!--    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />-->
     <uses-feature android:name="android.hardware.camera.any" />
     <uses-feature
         android:name="android.hardware.camera.autofocus"
@@ -433,9 +433,12 @@
         -->
         <activity android:name=".spreadsheet.creater.SpreadSheetListActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:theme="@style/AppTheme.Bg"
+            />
 
-            /> <!-- feasy beacon -->
+        <!--   android:theme="@style/AppTheme.NoActionBar"-->
+
+        <!-- feasy beacon -->
         <activity
             android:name=".feasybeacon.Activity.AdvertisingActivity"
             android:screenOrientation="portrait"
@@ -547,24 +550,7 @@
             android:windowSoftInputMode="stateHidden" />
         <activity android:name="net.openid.appauth.RedirectUriReceiverActivity">
 
-            <!--
-                        <intent-filter >
-                            <action android:name="android.intent.action.VIEW"/>
-                            <category android:name="android.intent.category.DEFAULT"/>
-                            <category android:name="android.intent.category.BROWSABLE"/>
-                            <data android:scheme="https"
-                              android:host="www.pqi.org"
-                              android:pathPrefix="/about"/>
-                        </intent-filter>
-            -->
-            <!--
-               <intent-filter>
-                   <data android:scheme="naveen_open" />
-                   <action android:name="android.intent.action.VIEW" />
-                   <category android:name="android.intent.category.DEFAULT" />
-                   <category android:name="android.intent.category.BROWSABLE" />
-               </intent-filter>
-            -->
+
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

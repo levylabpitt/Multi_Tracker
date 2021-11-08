@@ -81,6 +81,7 @@ import com.synapse.SharedPreferencesUtil;
 import com.synapse.Utility;
 import com.synapse.adapter.DrivePathAdapter;
 import com.synapse.adapter.DriveSheetsAdapter;
+import com.synapse.adapter.DriveSheetsAdapterNew;
 import com.synapse.adapter.GridSpacingItemDecoration;
 import com.synapse.listener.DriveItemListener;
 import com.synapse.listener.DrivePathClickListener;
@@ -132,7 +133,7 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
     GoogleAccountCredential mCredential;
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS, "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"};
 
-    public static final int indexOfStatusColumn = 4;
+   // public static final int indexOfStatusColumn = 4;
 
     //   Drive.SCOPE_FILE,new Scope("https://www.googleapis.com/auth/drive"), new Scope("https://www.googleapis.com/auth/spreadsheets"
     static final int REQUEST_ACCOUNT_PICKER = 1000;
@@ -140,8 +141,8 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
-    private static final String BUTTON_TEXT = "Call Google Sheets API";
-    private static final String PREF_ACCOUNT_NAME = "accountName";
+ //   private static final String BUTTON_TEXT = "Call Google Sheets API";
+ //   private static final String PREF_ACCOUNT_NAME = "accountName";
     // private ProgressBar mProgressBar;
     public static final int RC_SIGN_IN = 1;
     ProgressHUD mProgressHUD;
@@ -186,16 +187,24 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
 
 
     Context context;
-    ImageView signOutButton;
-    ImageView signinButton;
+   /* ImageView signOutButton;
+    ImageView signinButton;*/
+
+    TextView signOutButton;
+    TextView signinButton;
+
     TextView mail_id, txt_no_items;
     ArrayList<PathDrive> List_Path = new ArrayList<>();
     DrivePathAdapter drivePathAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spreadsheet_list);
+        Utility.transparentStatusBar(this);
+
+
         ButterKnife.bind(this);
         context = SpreadSheetListActivity.this;
 
@@ -270,21 +279,21 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (getSupportActionBar() != null){
+        /*if (getSupportActionBar() != null){
             getSupportActionBar().setDisplayShowTitleEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        }
+        }*/
         // Get access to the custom title view
         TextView mTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
-      //  ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
+        ImageView imgBack = (ImageView) toolbar.findViewById(R.id.img_back);
 
         mTitle.setText("Spreadsheet");
         // toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+     //   toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
-     //   imgBack.setOnClickListener((View.OnClickListener) v -> onBackPressed());
+        imgBack.setOnClickListener((View.OnClickListener) v -> onBackPressed());
         String defaultSheetName = SharedPreferencesUtil.getDefaultSheetName(this);
         if (!defaultSheetName.equals("")) {
             _default.setVisibility(View.VISIBLE);
@@ -310,9 +319,16 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
         progressBar1 = findViewById(R.id.progressBar1);
 
 
+      //  recycler_sheets.setLayoutManager(new GridLayoutManager(this, 2));
+     //   recycler_sheets.setItemAnimator(new DefaultItemAnimator());
+      //  recycler_sheets.addItemDecoration(new GridSpacingItemDecoration(2, 10, true));
+
+
         recycler_sheets.setLayoutManager(new GridLayoutManager(this, 2));
         recycler_sheets.setItemAnimator(new DefaultItemAnimator());
-        recycler_sheets.addItemDecoration(new GridSpacingItemDecoration(2, 10, true));
+        recycler_sheets.addItemDecoration(new GridSpacingItemDecoration(2, 20, false));
+
+
 
 
         recycler_path = (RecyclerView) findViewById(R.id.recycler_view_path);
@@ -1237,7 +1253,10 @@ public class SpreadSheetListActivity extends AppCompatActivity implements EasyPe
                         ArrayList<GoogleDriveFileHolder> list_new = getOnlySpreadsheet(list);
                         //   Utility.checkBluetoothSheetAvailability(context, list);
 
-                        DriveSheetsAdapter adapterDrive = new DriveSheetsAdapter(context, list_new, SpreadSheetListActivity.this, SpreadSheetListActivity.this);
+                     //   DriveSheetsAdapter adapterDrive = new DriveSheetsAdapter(context, list_new, SpreadSheetListActivity.this, SpreadSheetListActivity.this);
+
+                        DriveSheetsAdapterNew adapterDrive = new DriveSheetsAdapterNew(context, list_new, SpreadSheetListActivity.this, SpreadSheetListActivity.this);
+
                         recycler_sheets.setAdapter(adapterDrive);
                         if (list_new.isEmpty()) {
                             txt_no_items.setVisibility(View.VISIBLE);

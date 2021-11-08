@@ -14,6 +14,8 @@
 
 package net.openid.appauth;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +30,11 @@ class Utils {
     private Utils() {
         throw new IllegalStateException("This type is not intended to be instantiated");
     }
+    public static void ReportNonFatalError(String Title, String Detail) {
 
+       // FirebaseCrashlytics.getInstance().recordException(new RuntimeException(Title + "---> " + Detail));
+        Log.e("Debugging...", Title + " : " + Detail);
+    }
     /**
      * Read a string from an input stream.
      */

@@ -30,6 +30,16 @@ public class ManageDriveHelp extends Fragment {
         View view = inflater.inflate(R.layout.fragment_help_drive, container, false);
         ButterKnife.bind(this, view);
 
+        ImageView img_back = view.findViewById(R.id.img_back);
+        img_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    getActivity().onBackPressed();
+                } catch (Exception e) {
+                }
+            }
+        });
 
         return view;
     }

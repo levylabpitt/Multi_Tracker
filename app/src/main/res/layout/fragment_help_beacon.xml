@@ -1,134 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
     >
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="10dp"
-    android:orientation="vertical"
-    tools:context=".help.ui.main.QRScannerHelp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        tools:context=".help.ui.main.QRScannerHelp">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
         >
-    <Button
-        android:id="@+id/serial_no"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/round_corner"
-        android:elevation="4dp"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:text="2"
-        android:layout_marginRight="20dp"
-        android:textColor="#fff"
-        android:textSize="17sp"
-        android:textStyle="bold"
 
-        />
+        <ImageView
+            android:id="@+id/img_back"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginLeft="5dp"
+            android:layout_gravity="left|center"
+            android:src="@drawable/ic_back_48_on" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/btn_qr"
-        android:layout_width="200dp"
-        android:layout_height="40dp"
-        style="@style/smallTextViewStyle_white"
-        android:layout_gravity="center_horizontal"
-        android:background="@drawable/btn_bg_rounded"
-        android:text="Beacon Scanner"
-        />
+            <Button
+                android:id="@+id/serial_no"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/round_corner"
+                android:elevation="4dp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:text="2"
+                android:textColor="#fff"
+                android:textSize="17sp"
+                android:textStyle="bold"
+
+                />
+
+            <Button
+                android:id="@+id/btn_qr"
+                style="@style/smallTextViewStyle_white"
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/btn_bg_rounded"
+                android:text="Beacon Scanner" />
+        </LinearLayout>
     </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dimen_help_txtvw"
+            android:gravity="center"
+            android:text="@string/beacon_scanner1"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+        <!--  android:textColor="@color/colorPrimary"-->
+        <ImageView
+            android:id="@+id/screenshot_1"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:layout_marginTop="@dimen/dimen_help"
+            android:src="@drawable/ss_beacons" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/dimen_help_txtvw"
-        android:gravity="center"
-        android:text="@string/beacon_scanner1"
-        android:textStyle="bold"
-        android:textSize="17sp" />
-    <!--  android:textColor="@color/colorPrimary"-->
-    <ImageView
-        android:id="@+id/screenshot_1"
-        android:layout_width="wrap_content"
-        android:layout_height="400dp"
-        android:layout_marginTop="@dimen/dimen_help"
-        android:src="@drawable/ss_beacons"
-         />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/dimen_help_txtvw"
-        android:gravity="center_vertical"
-        android:text="@string/beacon_scanner2"
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dimen_help_txtvw"
+            android:gravity="center_vertical"
+            android:text="@string/beacon_scanner2"
 
-      android:textSize="@dimen/help_text_size" />
-    <ImageView
-        android:id="@+id/screenshot_2"
-        android:layout_width="wrap_content"
-        android:layout_height="400dp"
-        android:layout_marginTop="@dimen/dimen_help"
-        android:src="@drawable/ss_empty_beacon_blacklist"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dimen_help_txtvw"
-        android:gravity="center_vertical"
-        android:text="@string/beacon_scanner3"
+            android:textSize="@dimen/help_text_size" />
 
-        android:textSize="@dimen/help_text_size" />
-    <ImageView
-        android:id="@+id/screenshot_3"
-        android:layout_width="wrap_content"
-        android:layout_height="400dp"
-        android:layout_marginTop="@dimen/dimen_help"
-        android:src="@drawable/ss_add_beacon_blacklist"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dimen_help_txtvw"
-        android:gravity="center_vertical"
-        android:text="@string/beacon_scanner4"
+        <ImageView
+            android:id="@+id/screenshot_2"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:layout_marginTop="@dimen/dimen_help"
+            android:src="@drawable/ss_empty_beacon_blacklist" />
 
-        android:textSize="@dimen/help_text_size" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dimen_help_txtvw"
+            android:gravity="center_vertical"
+            android:text="@string/beacon_scanner3"
 
-    <ImageView
-        android:id="@+id/screenshot_4"
-        android:layout_width="wrap_content"
-        android:layout_height="400dp"
-        android:layout_marginTop="@dimen/dimen_help"
-        android:src="@drawable/ss_beacon_blacklist"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dimen_help_txtvw"
-        android:gravity="center_vertical"
-        android:text="@string/beacon_scanner5"
-        android:textSize="@dimen/help_text_size" />
+            android:textSize="@dimen/help_text_size" />
 
-    <ImageView
-        android:id="@+id/screenshot_5"
-        android:layout_width="wrap_content"
-        android:layout_height="400dp"
-        android:layout_marginTop="@dimen/dimen_help"
-        android:src="@drawable/ss_remove_beacon_blacklist"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dimen_help_txtvw"
-        android:gravity="center_vertical"
-        android:text="@string/beacon_scanner6"
-        android:textSize="@dimen/help_text_size" />
+        <ImageView
+            android:id="@+id/screenshot_3"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:layout_marginTop="@dimen/dimen_help"
+            android:src="@drawable/ss_add_beacon_blacklist" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dimen_help_txtvw"
+            android:gravity="center_vertical"
+            android:text="@string/beacon_scanner4"
+
+            android:textSize="@dimen/help_text_size" />
+
+        <ImageView
+            android:id="@+id/screenshot_4"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:layout_marginTop="@dimen/dimen_help"
+            android:src="@drawable/ss_beacon_blacklist" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dimen_help_txtvw"
+            android:gravity="center_vertical"
+            android:text="@string/beacon_scanner5"
+            android:textSize="@dimen/help_text_size" />
+
+        <ImageView
+            android:id="@+id/screenshot_5"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:layout_marginTop="@dimen/dimen_help"
+            android:src="@drawable/ss_remove_beacon_blacklist" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dimen_help_txtvw"
+            android:gravity="center_vertical"
+            android:text="@string/beacon_scanner6"
+            android:textSize="@dimen/help_text_size" />
     </LinearLayout>
-    </ScrollView>
+</ScrollView>

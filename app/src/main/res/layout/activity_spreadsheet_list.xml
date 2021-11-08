@@ -4,8 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
    >
-    <include layout="@layout/gsign_toolbar" />
+<!--    <include layout="@layout/gsign_toolbar" />-->
+
+
+    <include layout="@layout/gsign_toolbar_new" />
 
     <include layout="@layout/content_spreadsheet" />
 
@@ -103,6 +107,7 @@
             android:layout_gravity="bottom|end"
             android:gravity="center_vertical"
             app:fabSize="normal"
+            android:backgroundTint="@color/fab_bg_color"
             app:srcCompat="@drawable/ic_add_black_24dp" />
     </LinearLayout>
 

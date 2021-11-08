@@ -27,7 +27,7 @@ public class GlobalVar extends Application {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         mInstance = this;
         checkForApplicationLevelEvents();
-        System.loadLibrary("adna-sdk");
+      //  System.loadLibrary("adna-sdk");
 
         try {
             // initialize();

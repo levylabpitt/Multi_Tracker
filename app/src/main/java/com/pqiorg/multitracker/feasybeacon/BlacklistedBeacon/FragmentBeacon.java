@@ -397,6 +397,7 @@ public class FragmentBeacon extends Fragment implements SpinnerBeaconSelectedLis
 
 
             mDevicesList = (ArrayList<BluetoothDeviceWrapper>) intent.getSerializableExtra("deviceList");
+            Log.e("Debugging--","mDevicesList "+mDevicesList.size());
             devicesAdapter.setDevices(mDevicesList);
             devicesAdapter.notifyDataSetChanged();
             if (getDevicesAdapter().getCount() == 0) imageViewScanning.setVisibility(View.VISIBLE);
@@ -413,7 +414,7 @@ public class FragmentBeacon extends Fragment implements SpinnerBeaconSelectedLis
         spinnerDeviceList.add("All Beacons");
         for (BluetoothDeviceWrapper bluetoothDeviceWrapper : mDevicesList) {
 
-            Log.e("Debugging--","mDevicesList "+mDevicesList.size());
+
 
             try {
                 if (bluetoothDeviceWrapper == null) continue;

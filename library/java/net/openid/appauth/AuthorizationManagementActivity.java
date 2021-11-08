@@ -49,6 +49,8 @@ import java.util.List;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
+import static net.openid.appauth.Utils.ReportNonFatalError;
+
 
 /**
  * Stores state and handles events related to the authorization flow. The activity is
@@ -385,12 +387,33 @@ public class AuthorizationManagementActivity extends Activity implements Request
 
     }
 
+    void logResponseToFirebaseConsole(Response<ResponseBody> response) {
+        try {
+
+            String url = "", headers = "", strResponse = "";
+            if (response != null && response.body() != null) {
+                strResponse = response.body().toString();
+            }
+            if (response != null && response.raw() != null && response.raw().request() != null && response.raw().request().url() != null) {
+                url = response.raw().request().url().toString();
+            }
+            if (response != null && response.raw() != null && response.raw().request() != null && response.raw().request().headers() != null) {
+                headers = response.raw().request().headers().toString();
+            }
+            Utils.ReportNonFatalError("onSuccess----", "<-url->\n " + url + " <-headers->\n " + headers + " <-Response->\n " + strResponse);
+
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
 
     @Override
     public void onSuccess(Response<ResponseBody> response, Constants.API_TYPE apiType) {
         try {
             String strResponse = response.body().string();
             Log.e("APIResponse---->", response.body().toString());
+            logResponseToFirebaseConsole(response);
+
             if (apiType == Constants.API_TYPE.INITIAL_TOKEN) {
                 InitialToken initialToken = new Gson().fromJson(strResponse, InitialToken.class);
                 //Toast.makeText(getApplicationContext(),strResponse,Toast.LENGTH_SHORT).show();
@@ -445,6 +468,10 @@ public class AuthorizationManagementActivity extends Activity implements Request
     @Override
     public void onFailure(Response<ResponseBody> response, Constants.API_TYPE apiType) {
         //Toast.makeText(getApplicationContext(),"strResponse",Toast.LENGTH_SHORT).show();
+        if (response != null && response.errorBody() != null) {
+            ReportNonFatalError("onFailure", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        }
+
         String messgae = response.message();
         ResponseBody s = response.errorBody();
         String dd = response.toString();
@@ -453,7 +480,14 @@ public class AuthorizationManagementActivity extends Activity implements Request
     @Override
     public void onApiException(APIError error, Response<ResponseBody> response, Constants.API_TYPE apiType) {
         //  Toast.makeText(getApplicationContext(),"strResponse",Toast.LENGTH_SHORT).show();
+        if (response != null && response.errorBody() != null) {
+            ReportNonFatalError("onApiException", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        }
+
         String messgae = response.message();
+
+
+
     }
 
 

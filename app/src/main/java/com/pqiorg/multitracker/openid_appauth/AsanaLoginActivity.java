@@ -312,7 +312,25 @@ public final class AsanaLoginActivity extends AppCompatActivity implements Teams
         RetrofitManager retrofitManager = RetrofitManager.getInstance();
         retrofitManager.getTeamsInOrganization(this, getApplicationContext(), Constants.API_TYPE.GET_TEAMS_IN_ORGANIZATION, workspace_gid, true);
     }
+    void logResponseToFirebaseConsole(Response<ResponseBody> response) {
+        try {
 
+            String url = "", headers = "", strResponse = "";
+            if (response != null && response.body() != null) {
+                strResponse = response.body().toString();
+            }
+            if (response != null && response.raw() != null && response.raw().request() != null && response.raw().request().url() != null) {
+                url = response.raw().request().url().toString();
+            }
+            if (response != null && response.raw() != null && response.raw().request() != null && response.raw().request().headers() != null) {
+                headers = response.raw().request().headers().toString();
+            }
+            Utility.ReportNonFatalError("onSuccess----", "<-url->\n " + url + " <-headers->\n " + headers + " <-Response->\n " + strResponse);
+
+        } catch (Exception e) {
+            e.getMessage();
+        }
+    }
     @Override
     public void onSuccess(Response<ResponseBody> response, Constants.API_TYPE apiType) {
         if (apiType == Constants.API_TYPE.GET_TEAMS_IN_ORGANIZATION) {
@@ -320,6 +338,8 @@ public final class AsanaLoginActivity extends AppCompatActivity implements Teams
             try {
                 if (response != null && response.body() != null && response.isSuccessful()) {
                     String strResponse = response.body().string();
+                    logResponseToFirebaseConsole(response);
+
                     TeamsByOrganization teamsByOrganization = new Gson().fromJson(strResponse, TeamsByOrganization.class);
                     List<Datum> teams = teamsByOrganization.getData();
                     teamsList.addAll(teams);
@@ -334,11 +354,17 @@ public final class AsanaLoginActivity extends AppCompatActivity implements Teams
 
     @Override
     public void onFailure(Response<ResponseBody> response, Constants.API_TYPE apiType) {
+        if (response != null && response.errorBody() != null) {
+            Utility.ReportNonFatalError("onFailure", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        }
 
     }
 
     @Override
     public void onApiException(APIError error, Response<ResponseBody> response, Constants.API_TYPE apiType) {
+        if (response != null && response.errorBody() != null) {
+            Utility.ReportNonFatalError("onApiException", "API-->" + apiType + " Error-->" + response.errorBody().toString());
+        }
 
     }
 

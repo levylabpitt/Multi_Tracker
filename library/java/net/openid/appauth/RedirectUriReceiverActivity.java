@@ -65,9 +65,6 @@ public class RedirectUriReceiverActivity extends Activity {
 
 
 
-       /* startActivity(AuthorizationManagementActivity.createResponseHandlingIntent(
-                this, getIntent().getData()));*/
-
     }
 
 }
