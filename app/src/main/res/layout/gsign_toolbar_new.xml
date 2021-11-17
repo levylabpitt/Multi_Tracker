@@ -10,7 +10,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:background="@drawable/gradient_img"
+        android:background="@drawable/gradient_img1"
         android:minHeight="?attr/actionBarSize"
         app:titleTextColor="@android:color/white">
      <ImageView

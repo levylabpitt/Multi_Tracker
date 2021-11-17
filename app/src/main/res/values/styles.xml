@@ -119,7 +119,7 @@
 
     <style name="AppTheme.Bg">
 
-        <item name="android:windowBackground">@drawable/gradient_img</item>
+        <item name="android:windowBackground">@drawable/gradient_img1</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
 

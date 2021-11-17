@@ -8,6 +8,6 @@
     </item>
 
     <item>
-        <bitmap android:src="@drawable/gradient_img" />
+        <bitmap android:src="@drawable/gradient_img1" />
     </item>
 </layer-list>

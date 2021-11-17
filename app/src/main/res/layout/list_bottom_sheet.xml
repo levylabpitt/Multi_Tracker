@@ -7,7 +7,7 @@
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
 
-    android:background="@drawable/gradient_img"
+    android:background="@drawable/gradient_img1"
     android:layout_height="match_parent">
 <!--   android:background="@drawable/bg"-->
     <LinearLayout
