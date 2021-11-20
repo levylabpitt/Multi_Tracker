@@ -52,7 +52,12 @@
         android:required="false" />
 
 
-
+    <queries>
+        <intent>
+            <action android:name=
+                "android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
     <application
         android:name=".anoto.activities.global.GlobalVar"
         android:allowBackup="true"
